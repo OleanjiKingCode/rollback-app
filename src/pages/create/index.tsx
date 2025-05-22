@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -12,14 +11,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  plus, 
-  minus, 
-  check, 
-  arrow-right,
-  arrow-left,
-  wallet,
-  clock,
-  shield
+  Plus, 
+  Minus, 
+  Check, 
+  ArrowRight,
+  ArrowLeft,
+  Wallet,
+  Clock,
+  Shield
 } from 'lucide-react';
 
 type WalletConfig = {
@@ -144,7 +143,7 @@ export default function CreateRollbackWallet() {
           <Card className="border-rollback-cream">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <wallet className="h-5 w-5 text-rollback-primary" />
+                <Wallet className="h-5 w-5 text-rollback-primary" />
                 <span>Fallback Wallets</span>
               </CardTitle>
               <CardDescription>
@@ -167,7 +166,7 @@ export default function CreateRollbackWallet() {
                       size="icon"
                       onClick={() => removeFallbackWallet(index)}
                     >
-                      <minus className="h-4 w-4" />
+                      <Minus className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -179,7 +178,7 @@ export default function CreateRollbackWallet() {
                   onClick={addFallbackWallet}
                   className="w-full border-rollback-primary text-rollback-primary"
                 >
-                  <plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4 mr-2" />
                   Add Fallback Wallet
                 </Button>
               )}
@@ -192,7 +191,7 @@ export default function CreateRollbackWallet() {
           <Card className="border-rollback-cream">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <clock className="h-5 w-5 text-rollback-primary" />
+                <Clock className="h-5 w-5 text-rollback-primary" />
                 <span>Inactivity Threshold</span>
               </CardTitle>
               <CardDescription>
@@ -281,7 +280,7 @@ export default function CreateRollbackWallet() {
           <Card className="border-rollback-cream">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <shield className="h-5 w-5 text-rollback-primary" />
+                <Shield className="h-5 w-5 text-rollback-primary" />
                 <span>Rollback Mechanism</span>
               </CardTitle>
               <CardDescription>
@@ -363,7 +362,7 @@ export default function CreateRollbackWallet() {
           <Card className="max-w-2xl mx-auto border-rollback-cream">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <check className="h-5 w-5 text-green-600" />
+                <Check className="h-5 w-5 text-green-600" />
                 <span>Review Configuration</span>
               </CardTitle>
               <CardDescription>
@@ -423,7 +422,7 @@ export default function CreateRollbackWallet() {
                   onClick={() => setCurrentStep(currentStep - 1)}
                   className="flex-1"
                 >
-                  <arrow-left className="h-4 w-4 mr-2" />
+                  <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
                 <Button
@@ -473,7 +472,7 @@ export default function CreateRollbackWallet() {
                 onClick={() => setCurrentStep(currentStep - 1)}
                 className="flex-1"
               >
-                <arrow-left className="h-4 w-4 mr-2" />
+                <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
             )}
@@ -490,7 +489,7 @@ export default function CreateRollbackWallet() {
               className="flex-1 bg-rollback-primary hover:bg-rollback-primary/90"
             >
               {currentStep === totalSteps ? 'Review' : 'Next'}
-              <arrow-right className="h-4 w-4 ml-2" />
+              <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </div>
         </div>

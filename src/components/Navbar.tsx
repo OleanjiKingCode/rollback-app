@@ -9,13 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  wallet, 
-  home, 
-  plus, 
-  settings, 
-  user,
-  layout-dashboard,
-  bell
+  Wallet, 
+  Home, 
+  Plus, 
+  Settings, 
+  User,
+  LayoutDashboard,
+  Bell
 } from 'lucide-react';
 
 // Mock wallet connection - replace with wagmi hooks
@@ -38,11 +38,11 @@ const useWallet = () => {
 };
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: layout-dashboard },
-  { name: 'Create Wallet', href: '/create', icon: plus },
-  { name: 'Governance', href: '/governance', icon: settings },
-  { name: 'Agent Management', href: '/agent', icon: user },
-  { name: 'Subscription', href: '/subscribe', icon: bell },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Create Wallet', href: '/create', icon: Plus },
+  { name: 'Governance', href: '/governance', icon: Settings },
+  { name: 'Agent Management', href: '/agent', icon: User },
+  { name: 'Subscription', href: '/subscribe', icon: Bell },
 ];
 
 export function Navbar() {
@@ -124,7 +124,7 @@ export function Navbar() {
                   : "bg-rollback-primary hover:bg-rollback-primary/90 text-white"
               }
             >
-              <wallet className="h-4 w-4 mr-2" />
+              <Wallet className="h-4 w-4 mr-2" />
               {isConnected ? formatAddress(address!) : 'Connect Wallet'}
             </Button>
 

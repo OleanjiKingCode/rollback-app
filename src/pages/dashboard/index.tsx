@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,13 +9,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  wallet, 
-  clock, 
-  settings, 
-  copy,
-  chevron-down,
-  bell,
-  user
+  Wallet, 
+  Clock, 
+  Settings, 
+  Copy,
+  ChevronDown,
+  Bell,
+  User
 } from 'lucide-react';
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
@@ -121,7 +120,7 @@ export default function Dashboard() {
                 {mockWallets.map((wallet) => (
                   <SelectItem key={wallet.id} value={wallet.id}>
                     <div className="flex items-center space-x-2">
-                      <wallet className="h-4 w-4" />
+                      <Wallet className="h-4 w-4" />
                       <span>{wallet.address.slice(0, 10)}...{wallet.address.slice(-8)}</span>
                       <Badge variant="secondary" className={getStatusColor(wallet.status)}>
                         {wallet.status}
@@ -186,7 +185,7 @@ export default function Dashboard() {
           <Card className="border-rollback-cream">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <wallet className="h-5 w-5 text-rollback-primary" />
+                <Wallet className="h-5 w-5 text-rollback-primary" />
                 <span>Wallet Overview</span>
               </CardTitle>
               <CardDescription>
@@ -203,7 +202,7 @@ export default function Dashboard() {
                     size="sm"
                     onClick={() => handleCopyAddress(selectedWallet.address)}
                   >
-                    <copy className="h-4 w-4" />
+                    <Copy className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -220,11 +219,11 @@ export default function Dashboard() {
 
               <div className="flex space-x-2 pt-4">
                 <Button onClick={handleResetActivity} className="bg-rollback-primary hover:bg-rollback-primary/90">
-                  <clock className="h-4 w-4 mr-2" />
+                  <Clock className="h-4 w-4 mr-2" />
                   Reset Activity
                 </Button>
                 <Button variant="outline" className="border-rollback-primary text-rollback-primary">
-                  <settings className="h-4 w-4 mr-2" />
+                  <Settings className="h-4 w-4 mr-2" />
                   Modify Config
                 </Button>
               </div>
@@ -311,7 +310,7 @@ export default function Dashboard() {
                           size="sm"
                           onClick={() => handleCopyAddress(wallet.address)}
                         >
-                          <copy className="h-4 w-4" />
+                          <Copy className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -326,7 +325,7 @@ export default function Dashboard() {
         <Card className="border-rollback-cream mt-8">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <bell className="h-5 w-5 text-rollback-primary" />
+              <Bell className="h-5 w-5 text-rollback-primary" />
               <span>Recent Activity</span>
             </CardTitle>
             <CardDescription>Latest events and transactions</CardDescription>
