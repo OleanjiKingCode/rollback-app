@@ -10,12 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  user, 
-  shield, 
-  check, 
-  plus,
-  settings,
-  copy
+  User, 
+  Shield, 
+  Check, 
+  Plus,
+  Settings,
+  Copy
 } from 'lucide-react';
 
 const mockWallets = [
@@ -176,7 +176,7 @@ export default function AgentManagement() {
           <Card className="border-rollback-cream">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <user className="h-5 w-5 text-rollback-primary" />
+                <User className="h-5 w-5 text-rollback-primary" />
                 <span>Current Agent Status</span>
               </CardTitle>
               <CardDescription>
@@ -188,7 +188,7 @@ export default function AgentManagement() {
                 <div className="space-y-4">
                   <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                     <div className="flex items-center space-x-2 mb-2">
-                      <check className="h-4 w-4 text-green-600" />
+                      <Check className="h-4 w-4 text-green-600" />
                       <span className="font-medium text-green-800">Agent Active</span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -200,7 +200,7 @@ export default function AgentManagement() {
                         size="sm"
                         onClick={() => handleCopyAddress(selectedWallet.agentWallet!)}
                       >
-                        <copy className="h-4 w-4" />
+                        <Copy className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -218,7 +218,7 @@ export default function AgentManagement() {
                 <div className="space-y-4">
                   <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div className="flex items-center space-x-2 mb-2">
-                      <shield className="h-4 w-4 text-yellow-600" />
+                      <Shield className="h-4 w-4 text-yellow-600" />
                       <span className="font-medium text-yellow-800">No Agent Assigned</span>
                     </div>
                     <p className="text-sm text-yellow-700">
@@ -244,7 +244,7 @@ export default function AgentManagement() {
           <Card className="border-rollback-cream">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <settings className="h-5 w-5 text-rollback-primary" />
+                <Settings className="h-5 w-5 text-rollback-primary" />
                 <span>{selectedWallet.agentWallet ? 'Update' : 'Assign'} Agent Wallet</span>
               </CardTitle>
               <CardDescription>
@@ -300,7 +300,7 @@ export default function AgentManagement() {
         <Card className="border-rollback-cream mt-8">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <shield className="h-5 w-5 text-rollback-primary" />
+              <Shield className="h-5 w-5 text-rollback-primary" />
               <span>Agent Wallet Capabilities (V2)</span>
             </CardTitle>
             <CardDescription>
@@ -311,7 +311,7 @@ export default function AgentManagement() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {mockAgentCapabilities.map((capability, index) => (
                 <div key={index} className="flex items-center space-x-3 p-3 bg-rollback-cream rounded-lg">
-                  <check className="h-4 w-4 text-rollback-primary flex-shrink-0" />
+                  <Check className="h-4 w-4 text-rollback-primary flex-shrink-0" />
                   <span className="text-sm text-rollback-dark">{capability}</span>
                 </div>
               ))}
