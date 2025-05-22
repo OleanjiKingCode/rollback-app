@@ -2,9 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { useRouter, usePathname } from 'next/navigation';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useToast } from '@/hooks/use-toast';
@@ -48,7 +46,8 @@ const navigation = [
 export function Navbar() {
   const { isConnected, address, connect, disconnect } = useWallet();
   const { toast } = useToast();
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleWalletAction = () => {
@@ -76,9 +75,9 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3">
+          <Link to="/" className="flex items-center space-x-3">
             <div className="relative">
-              <Image
+              <img
                 src="/lovable-uploads/86a7596b-4477-45a7-88bb-9de6bbadd014.png"
                 alt="Rollback Wallet"
                 width={40}
@@ -99,7 +98,7 @@ export function Navbar() {
               return (
                 <Link
                   key={item.name}
-                  href={item.href}
+                  to={item.href}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     isActive
                       ? 'bg-rollback-primary text-white'
@@ -147,7 +146,7 @@ export function Navbar() {
                     return (
                       <Link
                         key={item.name}
-                        href={item.href}
+                        to={item.href}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={`flex items-center space-x-3 px-4 py-3 rounded-md text-sm font-medium transition-colors ${
                           isActive

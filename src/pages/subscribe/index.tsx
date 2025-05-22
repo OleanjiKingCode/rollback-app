@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  check, 
-  x,
-  bell,
-  shield,
-  zap
+  Check, 
+  X,
+  Bell,
+  Shield,
+  Zap
 } from 'lucide-react';
 
 type SubscriptionTier = {
@@ -163,13 +163,13 @@ export default function Subscription() {
                 {/* Features */}
                 <div>
                   <h4 className="font-semibold text-rollback-dark mb-3 flex items-center">
-                    <check className="h-4 w-4 text-green-600 mr-2" />
+                    <Check className="h-4 w-4 text-green-600 mr-2" />
                     What's Included
                   </h4>
                   <ul className="space-y-2">
                     {tier.features.map((feature, index) => (
                       <li key={index} className="flex items-start space-x-2 text-sm">
-                        <check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                        <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                         <span className="text-rollback-brown">{feature}</span>
                       </li>
                     ))}
@@ -180,13 +180,13 @@ export default function Subscription() {
                 {tier.limitations.length > 0 && (
                   <div>
                     <h4 className="font-semibold text-rollback-dark mb-3 flex items-center">
-                      <x className="h-4 w-4 text-red-500 mr-2" />
+                      <X className="h-4 w-4 text-red-500 mr-2" />
                       Limitations
                     </h4>
                     <ul className="space-y-2">
                       {tier.limitations.map((limitation, index) => (
                         <li key={index} className="flex items-start space-x-2 text-sm">
-                          <x className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                          <X className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
                           <span className="text-rollback-brown">{limitation}</span>
                         </li>
                       ))}
@@ -244,21 +244,21 @@ export default function Subscription() {
                   </tr>
                   <tr>
                     <td className="py-3 px-4 text-rollback-brown">V2 Agent Wallets</td>
-                    <td className="py-3 px-4 text-center"><x className="h-4 w-4 text-red-500 mx-auto" /></td>
-                    <td className="py-3 px-4 text-center"><check className="h-4 w-4 text-green-600 mx-auto" /></td>
-                    <td className="py-3 px-4 text-center"><check className="h-4 w-4 text-green-600 mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><X className="h-4 w-4 text-red-500 mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
                   </tr>
                   <tr>
                     <td className="py-3 px-4 text-rollback-brown">Priority Support</td>
-                    <td className="py-3 px-4 text-center"><x className="h-4 w-4 text-red-500 mx-auto" /></td>
-                    <td className="py-3 px-4 text-center"><check className="h-4 w-4 text-green-600 mx-auto" /></td>
-                    <td className="py-3 px-4 text-center"><check className="h-4 w-4 text-green-600 mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><X className="h-4 w-4 text-red-500 mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
                   </tr>
                   <tr>
                     <td className="py-3 px-4 text-rollback-brown">API Access</td>
-                    <td className="py-3 px-4 text-center"><x className="h-4 w-4 text-red-500 mx-auto" /></td>
-                    <td className="py-3 px-4 text-center"><x className="h-4 w-4 text-red-500 mx-auto" /></td>
-                    <td className="py-3 px-4 text-center"><check className="h-4 w-4 text-green-600 mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><X className="h-4 w-4 text-red-500 mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><X className="h-4 w-4 text-red-500 mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
                   </tr>
                 </tbody>
               </table>
@@ -328,7 +328,7 @@ export default function Subscription() {
           <Card className="border-yellow-200 bg-yellow-50">
             <CardContent className="p-6">
               <div className="flex items-start space-x-3">
-                <bell className="h-5 w-5 text-yellow-600 mt-0.5" />
+                <Bell className="h-5 w-5 text-yellow-600 mt-0.5" />
                 <div>
                   <h3 className="font-semibold text-yellow-800 mb-2">
                     Backend Integration Required

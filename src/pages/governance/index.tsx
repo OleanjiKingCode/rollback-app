@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -13,12 +12,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  settings, 
-  clock, 
-  check, 
-  x,
-  plus,
-  user
+  Settings, 
+  Clock, 
+  Check, 
+  X,
+  Plus,
+  User
 } from 'lucide-react';
 
 type ProposalType = 'threshold' | 'obsolete' | 'agent';
@@ -128,10 +127,10 @@ export default function Governance() {
 
   const getTypeIcon = (type: ProposalType) => {
     switch (type) {
-      case 'threshold': return <clock className="h-4 w-4" />;
-      case 'obsolete': return <x className="h-4 w-4" />;
-      case 'agent': return <user className="h-4 w-4" />;
-      default: return <settings className="h-4 w-4" />;
+      case 'threshold': return <Clock className="h-4 w-4" />;
+      case 'obsolete': return <X className="h-4 w-4" />;
+      case 'agent': return <User className="h-4 w-4" />;
+      default: return <Settings className="h-4 w-4" />;
     }
   };
 
@@ -176,7 +175,7 @@ export default function Governance() {
                   onClick={() => handleVote(proposal.id, 'approve')}
                   className="bg-green-600 hover:bg-green-700 text-white"
                 >
-                  <check className="h-4 w-4 mr-1" />
+                  <Check className="h-4 w-4 mr-1" />
                   Approve
                 </Button>
                 <Button
@@ -185,7 +184,7 @@ export default function Governance() {
                   onClick={() => handleVote(proposal.id, 'reject')}
                   className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
                 >
-                  <x className="h-4 w-4 mr-1" />
+                  <X className="h-4 w-4 mr-1" />
                   Reject
                 </Button>
                 <Button
@@ -216,7 +215,7 @@ export default function Governance() {
           <Dialog open={isCreatingProposal} onOpenChange={setIsCreatingProposal}>
             <DialogTrigger asChild>
               <Button className="mt-4 lg:mt-0 bg-rollback-primary hover:bg-rollback-primary/90">
-                <plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 mr-2" />
                 Create Proposal
               </Button>
             </DialogTrigger>
@@ -324,7 +323,7 @@ export default function Governance() {
             {activeProposals.length === 0 ? (
               <Card className="border-rollback-cream">
                 <CardContent className="text-center py-12">
-                  <settings className="h-12 w-12 text-rollback-brown mx-auto mb-4" />
+                  <Settings className="h-12 w-12 text-rollback-brown mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-rollback-dark mb-2">No Active Proposals</h3>
                   <p className="text-rollback-brown">
                     There are currently no active governance proposals. Create one to get started.
@@ -416,7 +415,7 @@ export default function Governance() {
                         }}
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                       >
-                        <check className="h-4 w-4 mr-2" />
+                        <Check className="h-4 w-4 mr-2" />
                         Approve
                       </Button>
                       <Button
@@ -427,7 +426,7 @@ export default function Governance() {
                         }}
                         className="flex-1 border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
                       >
-                        <x className="h-4 w-4 mr-2" />
+                        <X className="h-4 w-4 mr-2" />
                         Reject
                       </Button>
                     </div>
