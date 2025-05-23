@@ -18,12 +18,12 @@ export function DashboardCharts({ mockAnalytics }: DashboardChartsProps) {
         <LineChart data={mockAnalytics}>
           <XAxis 
             dataKey="date" 
-            tick={{ fill: '#8B5E3C', fontSize: 12 }}
-            axisLine={{ stroke: '#8B5E3C' }}
+            tick={{ fill: '#3C2415', fontSize: 12 }}
+            axisLine={{ stroke: '#3C2415' }}
           />
           <YAxis 
-            tick={{ fill: '#8B5E3C', fontSize: 12 }}
-            axisLine={{ stroke: '#8B5E3C' }}
+            tick={{ fill: '#3C2415', fontSize: 12 }}
+            axisLine={{ stroke: '#3C2415' }}
           />
           <ChartTooltip content={<ChartTooltipContent />} />
           <Line 

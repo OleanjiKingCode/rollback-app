@@ -152,7 +152,7 @@ export default function Governance() {
               {proposal.status}
             </Badge>
           </div>
-          <CardDescription>{proposal.description}</CardDescription>
+          <CardDescription className="text-rollback-dark">{proposal.description}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

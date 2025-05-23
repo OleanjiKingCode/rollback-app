@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { User, Shield, Check, Plus, Settings, Copy } from 'lucide-react';
+
 const mockWallets = [{
   id: '1',
   address: '0x1234567890123456789012345678901234567890',
@@ -109,7 +110,7 @@ export default function AgentManagement() {
         <Card className="border-rollback-cream mb-8">
           <CardHeader>
             <CardTitle>Select Rollback Wallet</CardTitle>
-            <CardDescription className="text-slate-950">
+            <CardDescription className="text-rollback-dark">
               Choose which rollback wallet to manage the agent for
             </CardDescription>
           </CardHeader>
@@ -145,7 +146,7 @@ export default function AgentManagement() {
                 <User className="h-5 w-5 text-rollback-primary" />
                 <span>Current Agent Status</span>
               </CardTitle>
-              <CardDescription className="text-slate-950">
+              <CardDescription className="text-rollback-dark">
                 View and manage the current agent wallet assignment
               </CardDescription>
             </CardHeader>
@@ -201,7 +202,7 @@ export default function AgentManagement() {
                 <Settings className="h-5 w-5 text-rollback-primary" />
                 <span>{selectedWallet.agentWallet ? 'Update' : 'Assign'} Agent Wallet</span>
               </CardTitle>
-              <CardDescription className="text-slate-950">
+              <CardDescription className="text-rollback-dark">
                 {selectedWallet.agentWallet ? 'Update the current agent wallet assignment' : 'Assign a new agent wallet for V2 features'}
               </CardDescription>
             </CardHeader>
@@ -240,7 +241,7 @@ export default function AgentManagement() {
               <Shield className="h-5 w-5 text-rollback-primary" />
               <span>Agent Wallet Capabilities (V2)</span>
             </CardTitle>
-            <CardDescription className="text-slate-950">
+            <CardDescription className="text-rollback-dark">
               Features and benefits provided by the V2 Agent Wallet architecture
             </CardDescription>
           </CardHeader>

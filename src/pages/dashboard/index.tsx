@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -418,9 +419,9 @@ export default function Dashboard() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Token</TableHead>
-                    <TableHead>Balance</TableHead>
-                    <TableHead>Value</TableHead>
+                    <TableHead className="text-rollback-dark">Token</TableHead>
+                    <TableHead className="text-rollback-dark">Balance</TableHead>
+                    <TableHead className="text-rollback-dark">Value</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -448,9 +449,9 @@ export default function Dashboard() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Address</TableHead>
-                      <TableHead>Action</TableHead>
+                      <TableHead className="text-rollback-dark">Priority</TableHead>
+                      <TableHead className="text-rollback-dark">Address</TableHead>
+                      <TableHead className="text-rollback-dark">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -508,10 +509,10 @@ export default function Dashboard() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="text-rollback-dark">Date</TableHead>
+                  <TableHead className="text-rollback-dark">Type</TableHead>
+                  <TableHead className="text-rollback-dark">Details</TableHead>
+                  <TableHead className="text-rollback-dark">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
