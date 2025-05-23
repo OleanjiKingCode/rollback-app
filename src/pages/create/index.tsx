@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -146,7 +147,7 @@ export default function CreateRollbackWallet() {
                 <Wallet className="h-5 w-5 text-rollback-primary" />
                 <span>Fallback Wallets</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-rollback-dark">
                 Add up to 10 fallback wallet addresses for recovery (max 10)
               </CardDescription>
             </CardHeader>
@@ -194,7 +195,7 @@ export default function CreateRollbackWallet() {
                 <Clock className="h-5 w-5 text-rollback-primary" />
                 <span>Inactivity Threshold</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-rollback-dark">
                 Set the period of inactivity before rollback is initiated
               </CardDescription>
             </CardHeader>
@@ -244,7 +245,7 @@ export default function CreateRollbackWallet() {
           <Card className="border-rollback-cream">
             <CardHeader>
               <CardTitle>Monitored Tokens</CardTitle>
-              <CardDescription>
+              <CardDescription className="text-rollback-dark">
                 Select up to 5 tokens to monitor (including ETH)
               </CardDescription>
             </CardHeader>
@@ -283,7 +284,7 @@ export default function CreateRollbackWallet() {
                 <Shield className="h-5 w-5 text-rollback-primary" />
                 <span>Rollback Mechanism</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-rollback-dark">
                 Choose how fallback wallets are selected during rollback
               </CardDescription>
             </CardHeader>
@@ -310,7 +311,7 @@ export default function CreateRollbackWallet() {
                   <div className="flex-1">
                     <Label htmlFor="randomized" className="font-medium">Randomized</Label>
                     <p className="text-sm text-rollback-brown">
-                      Fallback wallet is selected randomly using block hash (V2) or Chainlink VRF (V1)
+                      Fallback wallet is selected randomly using block hash or Chainlink VRF
                     </p>
                   </div>
                 </div>
@@ -323,8 +324,8 @@ export default function CreateRollbackWallet() {
         return (
           <Card className="border-rollback-cream">
             <CardHeader>
-              <CardTitle>Agent Wallet (V2)</CardTitle>
-              <CardDescription>
+              <CardTitle>Agent Wallet</CardTitle>
+              <CardDescription className="text-rollback-dark">
                 Assign an Agent Wallet for enhanced security and automation
               </CardDescription>
             </CardHeader>
@@ -343,7 +344,7 @@ export default function CreateRollbackWallet() {
                 <h4 className="font-medium text-rollback-dark mb-2">What is an Agent Wallet?</h4>
                 <p className="text-sm text-rollback-brown">
                   Agent Wallets provide additional security layers and can automate certain recovery processes. 
-                  This is part of our V2 architecture with enhanced block hash randomization.
+                  This is part of our enhanced architecture with improved block hash randomization.
                 </p>
               </div>
             </CardContent>
@@ -362,10 +363,10 @@ export default function CreateRollbackWallet() {
           <Card className="max-w-2xl mx-auto border-rollback-cream">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Check className="h-5 w-5 text-green-600" />
+                <Check className="h-5 w-5 text-rollback-primary" />
                 <span>Review Configuration</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-rollback-dark">
                 Please review your rollback wallet configuration before creating
               </CardDescription>
             </CardHeader>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -166,7 +165,7 @@ export default function Dashboard() {
           {/* Total Wallet Value Card */}
           <Card className="border-rollback-cream bg-white">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-rollback-brown">Total Wallet Value</CardTitle>
+              <CardTitle className="text-sm font-medium text-rollback-dark">Total Wallet Value</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-rollback-dark">${totalValue.toLocaleString()}</div>
@@ -181,7 +180,7 @@ export default function Dashboard() {
                 <DialogContent className="max-w-4xl">
                   <DialogHeader>
                     <DialogTitle>Value Distribution</DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription className="text-rollback-dark">
                       Distribution of your wallet value by tokens and wallets
                     </DialogDescription>
                   </DialogHeader>
@@ -253,7 +252,7 @@ export default function Dashboard() {
           {/* Status Card */}
           <Card className="border-rollback-cream bg-white">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-rollback-brown">Status</CardTitle>
+              <CardTitle className="text-sm font-medium text-rollback-dark">Status</CardTitle>
             </CardHeader>
             <CardContent>
               <Badge variant="outline" className={getStatusColor(selectedWallet.status)}>
@@ -267,7 +266,7 @@ export default function Dashboard() {
           {/* Days Remaining Card */}
           <Card className={`bg-white ${isLowDaysRemaining ? 'border-red-500 border-2 bg-red-50' : 'border-rollback-cream'}`}>
             <CardHeader className="pb-2">
-              <CardTitle className={`text-sm font-medium ${isLowDaysRemaining ? 'text-red-700' : 'text-rollback-brown'}`}>
+              <CardTitle className={`text-sm font-medium ${isLowDaysRemaining ? 'text-red-700' : 'text-rollback-dark'}`}>
                 Days Remaining
               </CardTitle>
             </CardHeader>
@@ -286,7 +285,7 @@ export default function Dashboard() {
           {/* Agent Wallet Card */}
           <Card className="border-rollback-cream bg-white">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-rollback-brown">Agent Wallet</CardTitle>
+              <CardTitle className="text-sm font-medium text-rollback-dark">Agent Wallet</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-sm font-mono text-rollback-dark">{selectedWallet.agentWallet}</div>
@@ -301,7 +300,7 @@ export default function Dashboard() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Agent Wallet Details</DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription className="text-rollback-dark">
                       Details and management options for your agent wallet
                     </DialogDescription>
                   </DialogHeader>
@@ -355,7 +354,7 @@ export default function Dashboard() {
                 <Wallet className="h-5 w-5 text-rollback-primary" />
                 <span>Wallet Overview</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-rollback-dark">
                 Current wallet configuration and settings
               </CardDescription>
             </CardHeader>
@@ -401,7 +400,7 @@ export default function Dashboard() {
           <Card className="border-rollback-cream bg-white">
             <CardHeader>
               <CardTitle>Value Analytics</CardTitle>
-              <CardDescription>Total value locked over time</CardDescription>
+              <CardDescription className="text-rollback-dark">Total value locked over time</CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
@@ -432,7 +431,7 @@ export default function Dashboard() {
           <Card className="border-rollback-cream bg-white">
             <CardHeader>
               <CardTitle>Monitored Tokens</CardTitle>
-              <CardDescription>Current balances of monitored assets</CardDescription>
+              <CardDescription className="text-rollback-dark">Current balances of monitored assets</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -460,7 +459,7 @@ export default function Dashboard() {
           <Card className="border-rollback-cream bg-white">
             <CardHeader>
               <CardTitle>Owner Wallets & Fallback</CardTitle>
-              <CardDescription>Configured recovery addresses and fallback wallet</CardDescription>
+              <CardDescription className="text-rollback-dark">Configured recovery addresses and fallback wallet</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -522,7 +521,7 @@ export default function Dashboard() {
               <Bell className="h-5 w-5 text-rollback-primary" />
               <span>Recent Activity</span>
             </CardTitle>
-            <CardDescription>Latest events and transactions</CardDescription>
+            <CardDescription className="text-rollback-dark">Latest events and transactions</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
