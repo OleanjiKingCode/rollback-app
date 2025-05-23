@@ -117,7 +117,7 @@ export default function AgentManagement() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
+      case 'active': return 'bg-rollback-primary/10 text-rollback-primary border-rollback-primary';
       case 'no-agent': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -186,13 +186,13 @@ export default function AgentManagement() {
             <CardContent className="space-y-4">
               {selectedWallet.agentWallet ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="p-4 bg-rollback-primary/10 border border-rollback-primary rounded-lg">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Check className="h-4 w-4 text-green-600" />
-                      <span className="font-medium text-green-800">Agent Active</span>
+                      <Check className="h-4 w-4 text-rollback-primary" />
+                      <span className="font-medium text-rollback-primary">Agent Active</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-sm text-green-700">
+                      <span className="font-mono text-sm text-rollback-dark">
                         {selectedWallet.agentWallet}
                       </span>
                       <Button

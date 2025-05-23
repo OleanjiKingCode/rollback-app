@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell } from 'recharts';
+import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
 
 // Mock data - replace with actual contract calls
 const mockWallets = [
@@ -403,27 +404,7 @@ export default function Dashboard() {
               <CardDescription className="text-rollback-dark">Total value locked over time</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer
-                config={{
-                  value: { label: "Value ($)", color: "#E9A344" }
-                }}
-                className="h-[200px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={mockAnalytics}>
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Line 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="#E9A344" 
-                      strokeWidth={2}
-                      dot={{ fill: '#E9A344' }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartContainer>
+              <DashboardCharts mockAnalytics={mockAnalytics} />
             </CardContent>
           </Card>
 
