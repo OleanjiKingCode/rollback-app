@@ -113,10 +113,10 @@ export default function Dashboard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-blue-100 text-blue-800';
-      case 'obsolete': return 'bg-yellow-100 text-yellow-800';
-      case 'fallback-mode': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active': return 'bg-rollback-primary/10 text-rollback-primary border-rollback-primary';
+      case 'obsolete': return 'bg-rollback-brown/10 text-rollback-brown border-rollback-brown';
+      case 'fallback-mode': return 'bg-red-100 text-red-800 border-red-300';
+      default: return 'bg-rollback-cream text-rollback-dark border-rollback-light';
     }
   };
 
@@ -141,7 +141,7 @@ export default function Dashboard() {
               const wallet = mockWallets.find(w => w.id === value);
               if (wallet) setSelectedWallet(wallet);
             }}>
-              <SelectTrigger className="w-80">
+              <SelectTrigger className="w-80 border-rollback-cream">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -150,7 +150,7 @@ export default function Dashboard() {
                     <div className="flex items-center space-x-2">
                       <Wallet className="h-4 w-4" />
                       <span>{wallet.address.slice(0, 10)}...{wallet.address.slice(-8)}</span>
-                      <Badge variant="secondary" className={getStatusColor(wallet.status)}>
+                      <Badge variant="outline" className={getStatusColor(wallet.status)}>
                         {wallet.status}
                       </Badge>
                     </div>
@@ -164,7 +164,7 @@ export default function Dashboard() {
         {/* Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Wallet Value Card */}
-          <Card className="border-rollback-cream">
+          <Card className="border-rollback-cream bg-white">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-rollback-brown">Total Wallet Value</CardTitle>
             </CardHeader>
@@ -173,7 +173,7 @@ export default function Dashboard() {
               <p className="text-xs text-rollback-brown mt-1">Across all monitored tokens</p>
               <Dialog open={isValueModalOpen} onOpenChange={setIsValueModalOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="mt-2">
+                  <Button variant="outline" size="sm" className="mt-2 border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white">
                     <Eye className="h-4 w-4 mr-2" />
                     View Distribution
                   </Button>
@@ -251,12 +251,12 @@ export default function Dashboard() {
           </Card>
 
           {/* Status Card */}
-          <Card className="border-rollback-cream">
+          <Card className="border-rollback-cream bg-white">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-rollback-brown">Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <Badge className={getStatusColor(selectedWallet.status)}>
+              <Badge variant="outline" className={getStatusColor(selectedWallet.status)}>
                 {selectedWallet.status === 'active' ? 'Active' : 
                  selectedWallet.status === 'obsolete' ? 'Obsolete' : 'Fallback Mode'}
               </Badge>
@@ -265,7 +265,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Days Remaining Card */}
-          <Card className={`border-rollback-cream ${isLowDaysRemaining ? 'border-red-500 border-2 bg-red-50' : ''}`}>
+          <Card className={`bg-white ${isLowDaysRemaining ? 'border-red-500 border-2 bg-red-50' : 'border-rollback-cream'}`}>
             <CardHeader className="pb-2">
               <CardTitle className={`text-sm font-medium ${isLowDaysRemaining ? 'text-red-700' : 'text-rollback-brown'}`}>
                 Days Remaining
@@ -284,7 +284,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Agent Wallet Card */}
-          <Card className="border-rollback-cream">
+          <Card className="border-rollback-cream bg-white">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-rollback-brown">Agent Wallet</CardTitle>
             </CardHeader>
@@ -293,7 +293,7 @@ export default function Dashboard() {
               <p className="text-xs text-rollback-brown mt-1">Agent Management</p>
               <Dialog open={isAgentModalOpen} onOpenChange={setIsAgentModalOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="mt-2">
+                  <Button variant="outline" size="sm" className="mt-2 border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white">
                     <Eye className="h-4 w-4 mr-2" />
                     View Details
                   </Button>
@@ -321,7 +321,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center justify-between p-3 bg-rollback-cream rounded-lg">
                       <span className="text-sm font-medium">Status:</span>
-                      <Badge className="bg-blue-100 text-blue-800">Active</Badge>
+                      <Badge variant="outline" className="bg-rollback-primary/10 text-rollback-primary border-rollback-primary">Active</Badge>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-rollback-cream rounded-lg">
                       <span className="text-sm font-medium">Last Activity:</span>
@@ -333,7 +333,7 @@ export default function Dashboard() {
                           setIsAgentModalOpen(false);
                           navigate('/agent');
                         }}
-                        className="bg-rollback-primary hover:bg-rollback-primary/90"
+                        className="bg-rollback-primary hover:bg-rollback-primary/90 text-white"
                       >
                         <ExternalLink className="h-4 w-4 mr-2" />
                         Manage Agent
@@ -349,7 +349,7 @@ export default function Dashboard() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Wallet Overview */}
-          <Card className="border-rollback-cream">
+          <Card className="border-rollback-cream bg-white">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Wallet className="h-5 w-5 text-rollback-primary" />
@@ -385,11 +385,11 @@ export default function Dashboard() {
               </div>
 
               <div className="flex space-x-2 pt-4">
-                <Button onClick={handleResetActivity} className="bg-rollback-primary hover:bg-rollback-primary/90">
+                <Button onClick={handleResetActivity} className="bg-rollback-primary hover:bg-rollback-primary/90 text-white">
                   <Clock className="h-4 w-4 mr-2" />
                   Reset Activity
                 </Button>
-                <Button variant="outline" className="border-rollback-primary text-rollback-primary">
+                <Button variant="outline" className="border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white">
                   <Settings className="h-4 w-4 mr-2" />
                   Modify Config
                 </Button>
@@ -398,7 +398,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Analytics Chart */}
-          <Card className="border-rollback-cream">
+          <Card className="border-rollback-cream bg-white">
             <CardHeader>
               <CardTitle>Value Analytics</CardTitle>
               <CardDescription>Total value locked over time</CardDescription>
@@ -429,7 +429,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Monitored Tokens */}
-          <Card className="border-rollback-cream">
+          <Card className="border-rollback-cream bg-white">
             <CardHeader>
               <CardTitle>Monitored Tokens</CardTitle>
               <CardDescription>Current balances of monitored assets</CardDescription>
@@ -457,7 +457,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Owner Wallets & Fallback Wallet */}
-          <Card className="border-rollback-cream">
+          <Card className="border-rollback-cream bg-white">
             <CardHeader>
               <CardTitle>Owner Wallets & Fallback</CardTitle>
               <CardDescription>Configured recovery addresses and fallback wallet</CardDescription>
@@ -500,7 +500,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between p-3 bg-rollback-cream rounded-lg">
                   <div className="flex items-center space-x-2">
                     <span className="font-mono text-sm">{mockFallbackWallet.address.slice(0, 10)}...{mockFallbackWallet.address.slice(-8)}</span>
-                    <Badge className="bg-blue-100 text-blue-800">{mockFallbackWallet.status}</Badge>
+                    <Badge variant="outline" className="bg-rollback-primary/10 text-rollback-primary border-rollback-primary">{mockFallbackWallet.status}</Badge>
                   </div>
                   <Button
                     variant="ghost"
@@ -516,7 +516,7 @@ export default function Dashboard() {
         </div>
 
         {/* Activity Feed */}
-        <Card className="border-rollback-cream mt-8">
+        <Card className="border-rollback-cream bg-white mt-8">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Bell className="h-5 w-5 text-rollback-primary" />
@@ -541,7 +541,7 @@ export default function Dashboard() {
                     <TableCell>{activity.type}</TableCell>
                     <TableCell>{activity.details}</TableCell>
                     <TableCell>
-                      <Badge className="bg-blue-100 text-blue-800">
+                      <Badge variant="outline" className="bg-rollback-primary/10 text-rollback-primary border-rollback-primary">
                         {activity.status}
                       </Badge>
                     </TableCell>
