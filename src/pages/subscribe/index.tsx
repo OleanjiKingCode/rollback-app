@@ -214,7 +214,7 @@ export default function Subscription() {
         <Card className="border-rollback-cream max-w-6xl mx-auto">
           <CardHeader>
             <CardTitle className="text-center">Feature Comparison</CardTitle>
-            <CardDescription className="text-center">
+            <CardDescription className="text-center text-rollback-dark">
               Compare features across all subscription tiers
             </CardDescription>
           </CardHeader>
@@ -292,7 +292,7 @@ export default function Subscription() {
                 </h3>
                 <p className="text-sm text-rollback-brown">
                   Existing rollback wallets remain active, but you may lose access to advanced 
-                  features like V2 Agent Wallets and priority support.
+                  features like Agent Wallets and priority support.
                 </p>
               </CardContent>
             </Card>
@@ -323,26 +323,8 @@ export default function Subscription() {
           </div>
         </div>
 
-        {/* Backend Integration Note */}
-        <div className="max-w-4xl mx-auto mt-12">
-          <Card className="border-yellow-200 bg-yellow-50">
-            <CardContent className="p-6">
-              <div className="flex items-start space-x-3">
-                <Bell className="h-5 w-5 text-yellow-600 mt-0.5" />
-                <div>
-                  <h3 className="font-semibold text-yellow-800 mb-2">
-                    Backend Integration Required
-                  </h3>
-                  <p className="text-sm text-yellow-700">
-                    This subscription interface requires backend integration for payment processing, 
-                    subscription management, and feature access control. The UI is fully functional 
-                    and ready for backend API integration.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        
+        
       </div>
     </div>
   );
