@@ -223,7 +223,7 @@ export default function Governance() {
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Create New Proposal</DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="text-rollback-dark">
                   Submit a new governance proposal for voting
                 </DialogDescription>
               </DialogHeader>
@@ -250,6 +250,7 @@ export default function Governance() {
                 <div>
                   <Label htmlFor="walletAddress">Target Wallet Address</Label>
                   <Input
+                    className='text-rollback-dark'
                     id="walletAddress"
                     placeholder="0x..."
                     value={newProposal.walletAddress}
@@ -264,6 +265,7 @@ export default function Governance() {
                   <div>
                     <Label htmlFor="newThreshold">New Threshold (days)</Label>
                     <Input
+                      className='text-rollback-dark'
                       id="newThreshold"
                       type="number"
                       placeholder="30"
