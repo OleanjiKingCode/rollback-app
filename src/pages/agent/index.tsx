@@ -234,35 +234,8 @@ export default function AgentManagement() {
           </Card>
         </div>
 
-        {/* Agent Capabilities */}
-        <Card className="border-rollback-cream mt-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Shield className="h-5 w-5 text-rollback-primary" />
-              <span>Agent Wallet Capabilities (V2)</span>
-            </CardTitle>
-            <CardDescription className="text-rollback-dark">
-              Features and benefits provided by the V2 Agent Wallet architecture
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {mockAgentCapabilities.map((capability, index) => <div key={index} className="flex items-center space-x-3 p-3 bg-rollback-cream rounded-lg">
-                  <Check className="h-4 w-4 text-rollback-primary flex-shrink-0" />
-                  <span className="text-sm text-rollback-dark">{capability}</span>
-                </div>)}
-            </div>
-            
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 className="font-medium text-blue-800 mb-2">V2 vs V1 Architecture</h4>
-              <p className="text-sm text-blue-700">
-                V2 architecture uses Agent Wallets with block hash randomization for enhanced security and 
-                automation, while V1 relies on Chainlink VRF. Agent Wallets provide more granular control 
-                and better gas optimization for rollback operations.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      
+       
       </div>
     </div>;
 }
