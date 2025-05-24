@@ -265,10 +265,10 @@ export default function Governance() {
                   <div>
                     <Label htmlFor="newThreshold">New Threshold (days)</Label>
                     <Input
-                      color='rollback-dark'
                       id="newThreshold"
                       type="number"
                       placeholder="30"
+                      className="placeholder-rollback-dark"
                       onChange={(e) => setNewProposal(prev => ({
                         ...prev,
                         parameters: { ...prev.parameters, newThreshold: Number(e.target.value) }
