@@ -140,6 +140,22 @@ nav {
   background-color: #F9F3E5 !important;
 }
 
+nav * {
+  background-color: transparent !important;
+}
+
+nav button {
+  background-color: transparent !important;
+}
+
+nav button:hover {
+  background-color: #FAEBD1 !important;
+}
+
+nav button[data-state="open"] {
+  background-color: #FAEBD1 !important;
+}
+
 /* Mobile-specific fixes */
 @media (max-width: 768px) {
   html, body, #root {
@@ -148,7 +164,23 @@ nav {
   }
   
   nav, nav * {
+    background-color: transparent !important;
+  }
+  
+  nav {
     background-color: #F9F3E5 !important;
+  }
+  
+  nav button {
+    background-color: transparent !important;
+  }
+  
+  nav button:hover {
+    background-color: #FAEBD1 !important;
+  }
+  
+  nav button[data-state="open"] {
+    background-color: #FAEBD1 !important;
   }
   
   * {

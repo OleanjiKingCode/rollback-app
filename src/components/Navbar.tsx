@@ -119,18 +119,24 @@ export function Navbar() {
               variant={isConnected ? "outline" : "default"}
               className={
                 isConnected
-                  ? "border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white"
+                  ? "border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white !bg-transparent"
                   : "bg-rollback-primary hover:bg-rollback-primary/90 text-white"
               }
+              size="sm"
             >
               <Wallet className="h-4 w-4 mr-2" />
-              {isConnected ? formatAddress(address!) : 'Connect Wallet'}
+              <span className="hidden sm:inline">
+                {isConnected ? formatAddress(address!) : 'Connect Wallet'}
+              </span>
+              <span className="sm:hidden">
+                {isConnected ? 'Connected' : 'Connect'}
+              </span>
             </Button>
 
             {/* Mobile Menu */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon" className="hover:bg-rollback-cream">
+                <Button variant="ghost" size="icon" className="hover:bg-rollback-cream !bg-transparent">
                   <div className="flex flex-col space-y-1">
                     <div className="w-4 h-0.5 bg-rollback-dark"></div>
                     <div className="w-4 h-0.5 bg-rollback-dark"></div>
