@@ -265,7 +265,7 @@ export default function Governance() {
                   <div>
                     <Label htmlFor="newThreshold">New Threshold (days)</Label>
                     <Input
-                      className='text-rollback-dark'
+                      color='text-rollback-dark'
                       id="newThreshold"
                       type="number"
                       placeholder="30"
