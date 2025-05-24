@@ -135,10 +135,20 @@
   @apply bg-rollback-light !important;
 }
 
+/* Force proper navbar styling on all devices */
+nav {
+  background-color: #F9F3E5 !important;
+}
+
 /* Mobile-specific fixes */
 @media (max-width: 768px) {
   html, body, #root {
     @apply bg-rollback-light !important;
+    background-color: #F9F3E5 !important;
+  }
+  
+  nav, nav * {
+    background-color: #F9F3E5 !important;
   }
   
   * {
@@ -152,5 +162,12 @@
   .bg-yellow-400,
   .bg-yellow-500 {
     @apply bg-rollback-light !important;
+    background-color: #F9F3E5 !important;
+  }
+  
+  /* Fix sheet content background */
+  [data-radix-popper-content-wrapper],
+  [data-state="open"] {
+    background-color: #F9F3E5 !important;
   }
 }

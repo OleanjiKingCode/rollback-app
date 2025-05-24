@@ -71,7 +71,7 @@ export function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-rollback-cream bg-rollback-light/95 backdrop-blur supports-[backdrop-filter]:bg-rollback-light/60">
+    <nav className="sticky top-0 z-50 w-full border-b border-rollback-cream !bg-rollback-light backdrop-blur supports-[backdrop-filter]:!bg-rollback-light">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -130,7 +130,7 @@ export function Navbar() {
             {/* Mobile Menu */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="hover:bg-rollback-cream">
                   <div className="flex flex-col space-y-1">
                     <div className="w-4 h-0.5 bg-rollback-dark"></div>
                     <div className="w-4 h-0.5 bg-rollback-dark"></div>
@@ -138,7 +138,7 @@ export function Navbar() {
                   </div>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-64 bg-rollback-light">
+              <SheetContent side="right" className="w-64 !bg-rollback-light border-rollback-cream">
                 <div className="flex flex-col space-y-4 mt-8">
                   {navigation.map((item) => {
                     const Icon = item.icon;
