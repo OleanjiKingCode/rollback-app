@@ -404,8 +404,8 @@ export default function Dashboard() {
               <CardTitle>Value Analytics</CardTitle>
               <CardDescription className="text-rollback-dark">Total value locked over time</CardDescription>
             </CardHeader>
-            <CardContent className='text-rollback-dark'>
-              <DashboardCharts mockAnalytics={mockAnalytics} />
+            <CardContent>
+              <DashboardCharts mockAnalytics={mockAnalytics}/>
             </CardContent>
           </Card>
 

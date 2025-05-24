@@ -58,7 +58,7 @@ const mockProposals: Proposal[] = [
     id: '2',
     type: 'agent',
     title: 'Agent Wallet Assignment',
-    description: 'Proposal to assign new Agent Wallet for V2 architecture support',
+    description: 'Proposal to assign new Agent Wallet for architecture support',
     status: 'active',
     votes: { approve: 2, reject: 0, total: 2 },
     timeRemaining: '3 days',
@@ -242,7 +242,7 @@ export default function Governance() {
                     <SelectContent>
                       <SelectItem value="threshold">Threshold Change</SelectItem>
                       <SelectItem value="obsolete">Mark Obsolete</SelectItem>
-                      <SelectItem value="agent">Agent Change (V2)</SelectItem>
+                      <SelectItem value="agent">Agent Change </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

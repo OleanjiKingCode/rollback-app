@@ -57,7 +57,7 @@ const subscriptionTiers: SubscriptionTier[] = [
     features: [
       'Up to 10 Rollback Wallets',
       'Multi-token monitoring (up to 5 per wallet)',
-      'V2 Agent Wallet support',
+      'Agent Wallet support',
       'Priority recovery assistance',
       'Advanced analytics dashboard',
       'Custom inactivity thresholds',
@@ -80,7 +80,7 @@ const subscriptionTiers: SubscriptionTier[] = [
     features: [
       'Unlimited Rollback Wallets',
       'Unlimited token monitoring',
-      'Advanced V2 Agent Wallets',
+      'Advanced  Agent Wallets',
       'White-glove recovery service',
       'Custom governance rules',
       'API access',
@@ -243,7 +243,7 @@ export default function Subscription() {
                     <td className="py-3 px-4 text-center">Unlimited</td>
                   </tr>
                   <tr>
-                    <td className="py-3 px-4 text-rollback-brown">V2 Agent Wallets</td>
+                    <td className="py-3 px-4 text-rollback-brown">Agent Wallets</td>
                     <td className="py-3 px-4 text-center"><X className="h-4 w-4 text-red-500 mx-auto" /></td>
                     <td className="py-3 px-4 text-center"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
                     <td className="py-3 px-4 text-center"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
