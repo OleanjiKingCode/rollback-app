@@ -90,9 +90,19 @@
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground;
+  html, body {
+    @apply bg-rollback-light text-rollback-dark;
     font-feature-settings: "rlig" 1, "calt" 1;
+    min-height: 100vh;
+  }
+
+  body {
+    @apply bg-rollback-light text-rollback-dark;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  #root {
+    @apply bg-rollback-light min-h-screen;
   }
 }
 
@@ -108,4 +118,39 @@
 
 .animate-pulse-rollback {
   animation: pulse-rollback 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Ensure no yellow backgrounds anywhere */
+* {
+  background-color: inherit;
+}
+
+/* Override any potential yellow backgrounds */
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-yellow-500 {
+  @apply bg-rollback-light !important;
+}
+
+/* Mobile-specific fixes */
+@media (max-width: 768px) {
+  html, body, #root {
+    @apply bg-rollback-light !important;
+  }
+  
+  * {
+    background-color: inherit !important;
+  }
+  
+  .bg-yellow-50,
+  .bg-yellow-100,
+  .bg-yellow-200,
+  .bg-yellow-300,
+  .bg-yellow-400,
+  .bg-yellow-500 {
+    @apply bg-rollback-light !important;
+  }
 }
