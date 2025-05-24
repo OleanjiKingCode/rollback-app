@@ -140,22 +140,6 @@ nav {
   background-color: #F9F3E5 !important;
 }
 
-nav * {
-  background-color: transparent !important;
-}
-
-nav button {
-  background-color: transparent !important;
-}
-
-nav button:hover {
-  background-color: #FAEBD1 !important;
-}
-
-nav button[data-state="open"] {
-  background-color: #FAEBD1 !important;
-}
-
 /* Mobile-specific fixes */
 @media (max-width: 768px) {
   html, body, #root {
@@ -163,24 +147,38 @@ nav button[data-state="open"] {
     background-color: #F9F3E5 !important;
   }
   
-  nav, nav * {
-    background-color: transparent !important;
-  }
-  
   nav {
     background-color: #F9F3E5 !important;
   }
   
-  nav button {
+  /* Only make the hamburger menu button transparent */
+  nav button[data-mobile-menu] {
     background-color: transparent !important;
   }
   
-  nav button:hover {
+  nav button[data-mobile-menu]:hover {
     background-color: #FAEBD1 !important;
   }
   
-  nav button[data-state="open"] {
-    background-color: #FAEBD1 !important;
+  /* Ensure Connect Wallet button keeps its proper styling on mobile */
+  nav button[data-wallet-button] {
+    background-color: #E9A344 !important;
+    color: white !important;
+  }
+  
+  nav button[data-wallet-button]:hover {
+    background-color: rgba(233, 163, 68, 0.9) !important;
+  }
+  
+  nav button[data-wallet-button][data-connected="true"] {
+    background-color: transparent !important;
+    border: 1px solid #E9A344 !important;
+    color: #E9A344 !important;
+  }
+  
+  nav button[data-wallet-button][data-connected="true"]:hover {
+    background-color: #E9A344 !important;
+    color: white !important;
   }
   
   * {
