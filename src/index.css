@@ -135,9 +135,20 @@
   @apply bg-rollback-light !important;
 }
 
-/* Force proper navbar styling on all devices */
+/* Force proper navbar styling on all devices with highest z-index */
 nav {
   background-color: #F9F3E5 !important;
+  z-index: 9999 !important;
+  position: relative !important;
+}
+
+/* Ensure all overlays and modals don't interfere with navbar */
+[data-radix-popper-content-wrapper] {
+  z-index: 8888 !important;
+}
+
+[data-state="open"] {
+  z-index: 8888 !important;
 }
 
 /* Mobile-specific fixes */
@@ -149,6 +160,9 @@ nav {
   
   nav {
     background-color: #F9F3E5 !important;
+    z-index: 9999 !important;
+    position: sticky !important;
+    top: 0 !important;
   }
   
   /* Only make the hamburger menu button transparent */
@@ -195,9 +209,22 @@ nav {
     background-color: #F9F3E5 !important;
   }
   
-  /* Fix sheet content background */
+  /* Fix sheet content background and ensure it doesn't cover navbar */
   [data-radix-popper-content-wrapper],
   [data-state="open"] {
     background-color: #F9F3E5 !important;
+    z-index: 8888 !important;
+  }
+  
+  /* Ensure page content doesn't overlap navbar */
+  main {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  
+  /* Prevent any elements from covering the navbar */
+  .container {
+    position: relative !important;
+    z-index: 1 !important;
   }
 }
