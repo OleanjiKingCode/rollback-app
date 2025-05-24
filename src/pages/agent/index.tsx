@@ -21,7 +21,7 @@ const mockWallets = [{
   agentWallet: null,
   status: 'no-agent'
 }];
-const mockAgentCapabilities = ['Automated activity monitoring', 'Enhanced security validations', 'Block hash randomization (V2)', 'Emergency recovery assistance', 'Gas optimization for transactions', 'Multi-signature coordination'];
+const mockAgentCapabilities = ['Automated activity monitoring', 'Enhanced security validations', 'Block hash randomization', 'Emergency recovery assistance', 'Gas optimization for transactions', 'Multi-signature coordination'];
 export default function AgentManagement() {
   const [selectedWallet, setSelectedWallet] = useState(mockWallets[0]);
   const [newAgentAddress, setNewAgentAddress] = useState('');
@@ -102,7 +102,7 @@ export default function AgentManagement() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-rollback-dark mb-2">Agent Wallet Management</h1>
           <p className="text-rollback-brown">
-            Manage Agent Wallets for enhanced V2 architecture security and automation
+            Manage Agent Wallets for enhanced architecture security and automation
           </p>
         </div>
 
@@ -181,7 +181,7 @@ export default function AgentManagement() {
                     </div>
                     <p className="text-sm text-yellow-700">
                       This rollback wallet doesn't have an agent wallet assigned. 
-                      Consider assigning one for enhanced V2 features.
+                      Consider assigning one for enhanced features.
                     </p>
                   </div>
                   
@@ -203,7 +203,7 @@ export default function AgentManagement() {
                 <span>{selectedWallet.agentWallet ? 'Update' : 'Assign'} Agent Wallet</span>
               </CardTitle>
               <CardDescription className="text-rollback-dark">
-                {selectedWallet.agentWallet ? 'Update the current agent wallet assignment' : 'Assign a new agent wallet for V2 features'}
+                {selectedWallet.agentWallet ? 'Update the current agent wallet assignment' : 'Assign a new agent wallet for features'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -225,7 +225,7 @@ export default function AgentManagement() {
                 <h4 className="font-medium text-sm mb-2">Agent Wallet Requirements:</h4>
                 <ul className="text-xs text-rollback-brown space-y-1">
                   <li>• Must be a valid Ethereum address</li>
-                  <li>• Will be whitelisted for V2 operations</li>
+                  <li>• Will be whitelisted for operations</li>
                   <li>• Can be changed through governance</li>
                   <li>• Enables block hash randomization</li>
                 </ul>
