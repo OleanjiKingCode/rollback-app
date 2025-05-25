@@ -47,7 +47,7 @@ html, body, #root {
   @apply bg-rollback-light !important;
 }
 
-/* Remove any yellow backgrounds */
+/* Remove any yellow backgrounds and replace with rollback cream */
 * {
   background-color: inherit;
 }
@@ -57,6 +57,38 @@ html, body, #root {
 .bg-yellow-200,
 .bg-yellow-300,
 .bg-yellow-400,
-.bg-yellow-500 {
-  @apply bg-rollback-light !important;
+.bg-yellow-500,
+.bg-yellow-600,
+.bg-yellow-700,
+.bg-yellow-800,
+.bg-yellow-900 {
+  @apply bg-rollback-cream !important;
+}
+
+/* Replace yellow text colors */
+.text-yellow-50,
+.text-yellow-100,
+.text-yellow-200,
+.text-yellow-300,
+.text-yellow-400,
+.text-yellow-500,
+.text-yellow-600,
+.text-yellow-700,
+.text-yellow-800,
+.text-yellow-900 {
+  @apply text-rollback-brown !important;
+}
+
+/* Replace yellow border colors */
+.border-yellow-50,
+.border-yellow-100,
+.border-yellow-200,
+.border-yellow-300,
+.border-yellow-400,
+.border-yellow-500,
+.border-yellow-600,
+.border-yellow-700,
+.border-yellow-800,
+.border-yellow-900 {
+  @apply border-rollback-cream !important;
 }

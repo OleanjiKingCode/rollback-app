@@ -136,6 +136,58 @@ nav {
   z-index: 8888 !important;
 }
 
+/* Replace ALL yellow colors with rollback cream across the entire application */
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-yellow-500,
+.bg-yellow-600,
+.bg-yellow-700,
+.bg-yellow-800,
+.bg-yellow-900 {
+  background-color: #FAEBD1 !important;
+}
+
+/* Replace yellow text colors with appropriate rollback colors */
+.text-yellow-50,
+.text-yellow-100,
+.text-yellow-200,
+.text-yellow-300,
+.text-yellow-400,
+.text-yellow-500,
+.text-yellow-600,
+.text-yellow-700,
+.text-yellow-800,
+.text-yellow-900 {
+  color: #8B5E3C !important;
+}
+
+/* Replace yellow border colors with rollback cream */
+.border-yellow-50,
+.border-yellow-100,
+.border-yellow-200,
+.border-yellow-300,
+.border-yellow-400,
+.border-yellow-500,
+.border-yellow-600,
+.border-yellow-700,
+.border-yellow-800,
+.border-yellow-900 {
+  border-color: #FAEBD1 !important;
+}
+
+/* Ensure any element with yellow background becomes rollback cream */
+[style*="background-color: yellow"],
+[style*="background: yellow"],
+[style*="background-color: #ffff"],
+[style*="background-color: #FFFF"],
+[style*="background: #ffff"],
+[style*="background: #FFFF"] {
+  background-color: #FAEBD1 !important;
+}
+
 /* Mobile-specific fixes - ensure exact color matching with desktop */
 @media (max-width: 768px) {
   html, body, #root {
@@ -213,5 +265,19 @@ nav {
   .container {
     position: relative !important;
     z-index: 1 !important;
+  }
+  
+  /* Replace any yellow backgrounds on mobile with rollback cream */
+  .bg-yellow-50,
+  .bg-yellow-100,
+  .bg-yellow-200,
+  .bg-yellow-300,
+  .bg-yellow-400,
+  .bg-yellow-500,
+  .bg-yellow-600,
+  .bg-yellow-700,
+  .bg-yellow-800,
+  .bg-yellow-900 {
+    background-color: #FAEBD1 !important;
   }
 }
