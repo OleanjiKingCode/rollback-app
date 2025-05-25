@@ -106,89 +106,8 @@
   }
 }
 
-/* COMPREHENSIVE YELLOW COLOR REPLACEMENT */
-/* Input fields */
-input,
-textarea,
-select,
-.input,
-[role="textbox"],
-[type="text"],
-[type="email"],
-[type="password"],
-[type="number"],
-[type="search"],
-[type="tel"],
-[type="url"] {
-  background-color: white !important;
-  border-color: #FAEBD1 !important;
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-  background-color: white !important;
-  border-color: #E9A344 !important;
-  ring-color: #E9A344 !important;
-}
-
-/* Button styling consistency */
-button,
-.btn,
-[role="button"] {
-  background-color: #E9A344 !important;
-  color: white !important;
-  border: none !important;
-}
-
-button:hover,
-.btn:hover,
-[role="button"]:hover {
-  background-color: rgba(233, 163, 68, 0.9) !important;
-}
-
-/* Variant specific button styling */
-button[class*="variant-outline"],
-button[class*="outline"] {
-  background-color: transparent !important;
-  border: 1px solid #E9A344 !important;
-  color: #E9A344 !important;
-}
-
-button[class*="variant-outline"]:hover,
-button[class*="outline"]:hover {
-  background-color: #E9A344 !important;
-  color: white !important;
-}
-
-button[class*="variant-ghost"],
-button[class*="ghost"] {
-  background-color: transparent !important;
-  color: #8B5E3C !important;
-  border: none !important;
-}
-
-button[class*="variant-ghost"]:hover,
-button[class*="ghost"]:hover {
-  background-color: #FAEBD1 !important;
-  color: #8B5E3C !important;
-}
-
-/* Remove all yellow backgrounds globally */
-*[style*="background-color: yellow"],
-*[style*="background: yellow"],
-*[style*="background-color: #ffff"],
-*[style*="background-color: #FFFF"],
-*[style*="background: #ffff"],
-*[style*="background: #FFFF"],
-*[style*="background-color: #fff700"],
-*[style*="background-color: #FFF700"],
-*[style*="background: #fff700"],
-*[style*="background: #FFF700"],
-*[style*="background-color: #ffff00"],
-*[style*="background-color: #FFFF00"],
-*[style*="background: #ffff00"],
-*[style*="background: #FFFF00"],
+/* GLOBAL YELLOW COLOR REPLACEMENTS - Apply to ALL devices */
+/* Background colors */
 .bg-yellow-50,
 .bg-yellow-100,
 .bg-yellow-200,
@@ -198,18 +117,21 @@ button[class*="ghost"]:hover {
 .bg-yellow-600,
 .bg-yellow-700,
 .bg-yellow-800,
-.bg-yellow-900 {
+.bg-yellow-900,
+[style*="background-color: yellow"],
+[style*="background: yellow"],
+[style*="background-color: #ffff"],
+[style*="background-color: #FFFF"],
+[style*="background: #ffff"],
+[style*="background: #FFFF"],
+[style*="background-color: #fff700"],
+[style*="background-color: #FFF700"],
+[style*="background: #fff700"],
+[style*="background: #FFF700"] {
   background-color: #FAEBD1 !important;
 }
 
-/* Remove all yellow text colors */
-*[style*="color: yellow"],
-*[style*="color: #ffff"],
-*[style*="color: #FFFF"],
-*[style*="color: #fff700"],
-*[style*="color: #FFF700"],
-*[style*="color: #ffff00"],
-*[style*="color: #FFFF00"],
+/* Text colors */
 .text-yellow-50,
 .text-yellow-100,
 .text-yellow-200,
@@ -219,18 +141,16 @@ button[class*="ghost"]:hover {
 .text-yellow-600,
 .text-yellow-700,
 .text-yellow-800,
-.text-yellow-900 {
+.text-yellow-900,
+[style*="color: yellow"],
+[style*="color: #ffff"],
+[style*="color: #FFFF"],
+[style*="color: #fff700"],
+[style*="color: #FFF700"] {
   color: #8B5E3C !important;
 }
 
-/* Remove all yellow border colors */
-*[style*="border-color: yellow"],
-*[style*="border-color: #ffff"],
-*[style*="border-color: #FFFF"],
-*[style*="border-color: #fff700"],
-*[style*="border-color: #FFF700"],
-*[style*="border-color: #ffff00"],
-*[style*="border-color: #FFFF00"],
+/* Border colors */
 .border-yellow-50,
 .border-yellow-100,
 .border-yellow-200,
@@ -240,164 +160,13 @@ button[class*="ghost"]:hover {
 .border-yellow-600,
 .border-yellow-700,
 .border-yellow-800,
-.border-yellow-900 {
+.border-yellow-900,
+[style*="border-color: yellow"],
+[style*="border-color: #ffff"],
+[style*="border-color: #FFFF"],
+[style*="border-color: #fff700"],
+[style*="border-color: #FFF700"] {
   border-color: #FAEBD1 !important;
-}
-
-/* MOBILE RESPONSIVE STYLES */
-@media (max-width: 768px) {
-  /* Force all backgrounds */
-  html, body, #root {
-    background-color: #F9F3E5 !important;
-  }
-  
-  /* Input fields on mobile */
-  input,
-  textarea,
-  select,
-  .input,
-  [role="textbox"] {
-    background-color: white !important;
-    border-color: #FAEBD1 !important;
-    width: 100% !important;
-    font-size: 16px !important; /* Prevent zoom on iOS */
-  }
-  
-  /* Button consistency on mobile */
-  button,
-  .btn,
-  [role="button"] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-    padding: 0.75rem 1rem !important;
-    font-size: 0.875rem !important;
-    min-height: 44px !important; /* Touch-friendly */
-  }
-  
-  /* Dialog/Modal responsive */
-  [data-radix-dialog-content] {
-    width: 95vw !important;
-    max-width: 95vw !important;
-    margin: 1rem !important;
-    max-height: 90vh !important;
-    overflow-y: auto !important;
-  }
-  
-  /* Chart containers mobile responsive */
-  .recharts-wrapper {
-    width: 100% !important;
-    height: auto !important;
-    min-height: 200px !important;
-  }
-  
-  /* Pie chart responsive */
-  .recharts-pie {
-    transform: scale(0.8) !important;
-  }
-  
-  /* Grid responsive */
-  .grid {
-    grid-template-columns: 1fr !important;
-    gap: 1rem !important;
-  }
-  
-  /* Card responsive */
-  .card,
-  [data-card] {
-    padding: 1rem !important;
-    margin-bottom: 1rem !important;
-  }
-  
-  /* Table responsive */
-  table {
-    font-size: 0.75rem !important;
-    width: 100% !important;
-    display: block !important;
-    overflow-x: auto !important;
-    white-space: nowrap !important;
-  }
-  
-  /* Select dropdown responsive */
-  [data-radix-select-content] {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-  
-  /* Navbar mobile responsive */
-  nav {
-    background-color: #F9F3E5 !important;
-    z-index: 9999 !important;
-  }
-  
-  /* Mobile menu responsive */
-  [data-radix-popper-content-wrapper],
-  [data-state="open"] {
-    background-color: #F9F3E5 !important;
-    z-index: 8888 !important;
-  }
-  
-  /* Progress bar responsive */
-  .progress {
-    width: 100% !important;
-    height: 0.5rem !important;
-  }
-  
-  /* Badge responsive */
-  .badge {
-    font-size: 0.75rem !important;
-    padding: 0.25rem 0.5rem !important;
-  }
-  
-  /* Container responsive */
-  .container {
-    padding: 1rem !important;
-    width: 100% !important;
-  }
-  
-  /* Flex responsive */
-  .flex {
-    flex-wrap: wrap !important;
-  }
-  
-  /* Space adjustments */
-  .space-x-4 > * + * {
-    margin-left: 1rem !important;
-  }
-  
-  .space-y-4 > * + * {
-    margin-top: 1rem !important;
-  }
-  
-  /* Text responsive */
-  .text-3xl {
-    font-size: 1.875rem !important;
-  }
-  
-  .text-2xl {
-    font-size: 1.5rem !important;
-  }
-  
-  .text-xl {
-    font-size: 1.25rem !important;
-  }
-}
-
-/* TABLET RESPONSIVE */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 1.5rem !important;
-  }
-  
-  .container {
-    padding: 1.5rem !important;
-  }
-  
-  [data-radix-dialog-content] {
-    width: 90vw !important;
-    max-width: 90vw !important;
-  }
 }
 
 /* Force navbar styling with highest priority */
@@ -405,6 +174,15 @@ nav {
   background-color: #F9F3E5 !important;
   z-index: 9999 !important;
   position: relative !important;
+}
+
+/* Ensure all overlays don't interfere with navbar */
+[data-radix-popper-content-wrapper] {
+  z-index: 8888 !important;
+}
+
+[data-state="open"] {
+  z-index: 8888 !important;
 }
 
 /* Custom animations for rollback branding */
@@ -419,4 +197,253 @@ nav {
 
 .animate-pulse-rollback {
   animation: pulse-rollback 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* MOBILE SPECIFIC STYLES - Complete override for all yellow colors */
+@media (max-width: 768px) {
+  /* Force correct background colors */
+  html, body, #root {
+    background-color: #F9F3E5 !important;
+  }
+  
+  /* Navbar styling - highest priority */
+  nav {
+    background-color: #F9F3E5 !important;
+    z-index: 9999 !important;
+    position: sticky !important;
+    top: 0 !important;
+  }
+  
+  /* All button styling */
+  button,
+  .btn,
+  [role="button"] {
+    background-color: inherit !important;
+  }
+  
+  /* Hamburger menu button */
+  nav button[data-mobile-menu] {
+    background-color: transparent !important;
+  }
+  
+  nav button[data-mobile-menu]:hover {
+    background-color: #FAEBD1 !important;
+  }
+  
+  /* Connect Wallet button */
+  nav button[data-wallet-button] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  nav button[data-wallet-button]:hover {
+    background-color: rgba(233, 163, 68, 0.9) !important;
+  }
+  
+  /* Connected state */
+  nav button[data-wallet-button][data-connected="true"] {
+    background-color: transparent !important;
+    border: 1px solid #E9A344 !important;
+    color: #E9A344 !important;
+  }
+  
+  nav button[data-wallet-button][data-connected="true"]:hover {
+    background-color: #E9A344 !important;
+    color: white !important;
+  }
+  
+  /* Navigation links */
+  nav a {
+    color: #8B5E3C !important;
+  }
+  
+  nav a:hover {
+    color: #3C2415 !important;
+    background-color: #FAEBD1 !important;
+  }
+  
+  /* Active navigation links */
+  nav a[class*="bg-rollback-primary"] {
+    background-color: #E9A344 !important;
+    color: white !important;
+  }
+  
+  /* Sheet content background */
+  [data-radix-popper-content-wrapper],
+  [data-state="open"] {
+    background-color: #F9F3E5 !important;
+    z-index: 8888 !important;
+  }
+  
+  /* Page content positioning */
+  main {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  
+  .container {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  
+  /* AGGRESSIVE YELLOW REPLACEMENT ON MOBILE */
+  .bg-yellow-50,
+  .bg-yellow-100,
+  .bg-yellow-200,
+  .bg-yellow-300,
+  .bg-yellow-400,
+  .bg-yellow-500,
+  .bg-yellow-600,
+  .bg-yellow-700,
+  .bg-yellow-800,
+  .bg-yellow-900,
+  button[style*="background-color: yellow"],
+  button[style*="background: yellow"],
+  div[style*="background-color: yellow"],
+  div[style*="background: yellow"],
+  span[style*="background-color: yellow"],
+  span[style*="background: yellow"],
+  [style*="background-color: #ffff"],
+  [style*="background-color: #FFFF"],
+  [style*="background: #ffff"],
+  [style*="background: #FFFF"],
+  [style*="background-color: #fff700"],
+  [style*="background-color: #FFF700"],
+  [style*="background: #fff700"],
+  [style*="background: #FFF700"] {
+    background-color: #FAEBD1 !important;
+  }
+  
+  /* Text color replacements on mobile */
+  .text-yellow-50,
+  .text-yellow-100,
+  .text-yellow-200,
+  .text-yellow-300,
+  .text-yellow-400,
+  .text-yellow-500,
+  .text-yellow-600,
+  .text-yellow-700,
+  .text-yellow-800,
+  .text-yellow-900,
+  [style*="color: yellow"],
+  [style*="color: #ffff"],
+  [style*="color: #FFFF"],
+  [style*="color: #fff700"],
+  [style*="color: #FFF700"] {
+    color: #8B5E3C !important;
+  }
+  
+  /* Border color replacements on mobile */
+  .border-yellow-50,
+  .border-yellow-100,
+  .border-yellow-200,
+  .border-yellow-300,
+  .border-yellow-400,
+  .border-yellow-500,
+  .border-yellow-600,
+  .border-yellow-700,
+  .border-yellow-800,
+  .border-yellow-900,
+  [style*="border-color: yellow"],
+  [style*="border-color: #ffff"],
+  [style*="border-color: #FFFF"],
+  [style*="border-color: #fff700"],
+  [style*="border-color: #FFF700"] {
+    border-color: #FAEBD1 !important;
+  }
+  
+  /* Mobile responsive adjustments for cards and components */
+  .card,
+  [data-card] {
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  /* Mobile responsive grid adjustments */
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  
+  /* Mobile responsive table adjustments */
+  table {
+    font-size: 0.875rem !important;
+  }
+  
+  /* Mobile responsive chart container */
+  .recharts-wrapper {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 200px !important;
+  }
+  
+  /* Mobile responsive dialog adjustments */
+  [data-radix-dialog-content] {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 1rem !important;
+  }
+  
+  /* Mobile responsive button adjustments */
+  button {
+    padding: 0.75rem 1rem !important;
+    font-size: 0.875rem !important;
+  }
+  
+  /* Mobile responsive select adjustments */
+  [data-radix-select-trigger] {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* TABLET RESPONSIVE STYLES */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .container {
+    padding: 1.5rem !important;
+  }
+}
+
+/* FORCE YELLOW REPLACEMENTS GLOBALLY WITH HIGHEST SPECIFICITY */
+* {
+  /* Replace any inline yellow styles */
+}
+
+*[style*="background-color: yellow"] {
+  background-color: #FAEBD1 !important;
+}
+
+*[style*="background: yellow"] {
+  background-color: #FAEBD1 !important;
+}
+
+*[style*="color: yellow"] {
+  color: #8B5E3C !important;
+}
+
+*[style*="border-color: yellow"] {
+  border-color: #FAEBD1 !important;
+}
+
+/* Additional yellow hex variations */
+*[style*="background-color: #ffff00"],
+*[style*="background-color: #FFFF00"],
+*[style*="background: #ffff00"],
+*[style*="background: #FFFF00"] {
+  background-color: #FAEBD1 !important;
+}
+
+*[style*="color: #ffff00"],
+*[style*="color: #FFFF00"] {
+  color: #8B5E3C !important;
+}
+
+*[style*="border-color: #ffff00"],
+*[style*="border-color: #FFFF00"] {
+  border-color: #FAEBD1 !important;
 }
