@@ -120,21 +120,6 @@
   animation: pulse-rollback 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Ensure no yellow backgrounds anywhere */
-* {
-  background-color: inherit;
-}
-
-/* Override any potential yellow backgrounds */
-.bg-yellow-50,
-.bg-yellow-100,
-.bg-yellow-200,
-.bg-yellow-300,
-.bg-yellow-400,
-.bg-yellow-500 {
-  @apply bg-rollback-light !important;
-}
-
 /* Force proper navbar styling on all devices with highest z-index */
 nav {
   background-color: #F9F3E5 !important;
@@ -151,10 +136,9 @@ nav {
   z-index: 8888 !important;
 }
 
-/* Mobile-specific fixes */
+/* Mobile-specific fixes - ensure exact color matching with desktop */
 @media (max-width: 768px) {
   html, body, #root {
-    @apply bg-rollback-light !important;
     background-color: #F9F3E5 !important;
   }
   
@@ -165,7 +149,7 @@ nav {
     top: 0 !important;
   }
   
-  /* Only make the hamburger menu button transparent */
+  /* Hamburger menu button - transparent with proper hover */
   nav button[data-mobile-menu] {
     background-color: transparent !important;
   }
@@ -174,16 +158,18 @@ nav {
     background-color: #FAEBD1 !important;
   }
   
-  /* Ensure Connect Wallet button keeps its proper styling on mobile */
+  /* Connect Wallet button - exact same styling as desktop */
   nav button[data-wallet-button] {
     background-color: #E9A344 !important;
     color: white !important;
+    border: none !important;
   }
   
   nav button[data-wallet-button]:hover {
     background-color: rgba(233, 163, 68, 0.9) !important;
   }
   
+  /* Connected state - outline style like desktop */
   nav button[data-wallet-button][data-connected="true"] {
     background-color: transparent !important;
     border: 1px solid #E9A344 !important;
@@ -195,21 +181,23 @@ nav {
     color: white !important;
   }
   
-  * {
-    background-color: inherit !important;
+  /* Navigation links in mobile menu */
+  nav a {
+    color: #8B5E3C !important;
   }
   
-  .bg-yellow-50,
-  .bg-yellow-100,
-  .bg-yellow-200,
-  .bg-yellow-300,
-  .bg-yellow-400,
-  .bg-yellow-500 {
-    @apply bg-rollback-light !important;
-    background-color: #F9F3E5 !important;
+  nav a:hover {
+    color: #3C2415 !important;
+    background-color: #FAEBD1 !important;
   }
   
-  /* Fix sheet content background and ensure it doesn't cover navbar */
+  /* Active navigation links */
+  nav a[class*="bg-rollback-primary"] {
+    background-color: #E9A344 !important;
+    color: white !important;
+  }
+  
+  /* Sheet content background */
   [data-radix-popper-content-wrapper],
   [data-state="open"] {
     background-color: #F9F3E5 !important;
@@ -222,7 +210,6 @@ nav {
     z-index: 1 !important;
   }
   
-  /* Prevent any elements from covering the navbar */
   .container {
     position: relative !important;
     z-index: 1 !important;
