@@ -106,85 +106,6 @@
   }
 }
 
-/* GLOBAL YELLOW COLOR REPLACEMENTS - Apply to ALL devices */
-/* Background colors */
-.bg-yellow-50,
-.bg-yellow-100,
-.bg-yellow-200,
-.bg-yellow-300,
-.bg-yellow-400,
-.bg-yellow-500,
-.bg-yellow-600,
-.bg-yellow-700,
-.bg-yellow-800,
-.bg-yellow-900,
-[style*="background-color: yellow"],
-[style*="background: yellow"],
-[style*="background-color: #ffff"],
-[style*="background-color: #FFFF"],
-[style*="background: #ffff"],
-[style*="background: #FFFF"],
-[style*="background-color: #fff700"],
-[style*="background-color: #FFF700"],
-[style*="background: #fff700"],
-[style*="background: #FFF700"] {
-  background-color: #FAEBD1 !important;
-}
-
-/* Text colors */
-.text-yellow-50,
-.text-yellow-100,
-.text-yellow-200,
-.text-yellow-300,
-.text-yellow-400,
-.text-yellow-500,
-.text-yellow-600,
-.text-yellow-700,
-.text-yellow-800,
-.text-yellow-900,
-[style*="color: yellow"],
-[style*="color: #ffff"],
-[style*="color: #FFFF"],
-[style*="color: #fff700"],
-[style*="color: #FFF700"] {
-  color: #8B5E3C !important;
-}
-
-/* Border colors */
-.border-yellow-50,
-.border-yellow-100,
-.border-yellow-200,
-.border-yellow-300,
-.border-yellow-400,
-.border-yellow-500,
-.border-yellow-600,
-.border-yellow-700,
-.border-yellow-800,
-.border-yellow-900,
-[style*="border-color: yellow"],
-[style*="border-color: #ffff"],
-[style*="border-color: #FFFF"],
-[style*="border-color: #fff700"],
-[style*="border-color: #FFF700"] {
-  border-color: #FAEBD1 !important;
-}
-
-/* Force navbar styling with highest priority */
-nav {
-  background-color: #F9F3E5 !important;
-  z-index: 9999 !important;
-  position: relative !important;
-}
-
-/* Ensure all overlays don't interfere with navbar */
-[data-radix-popper-content-wrapper] {
-  z-index: 8888 !important;
-}
-
-[data-state="open"] {
-  z-index: 8888 !important;
-}
-
 /* Custom animations for rollback branding */
 @keyframes pulse-rollback {
   0%, 100% {
@@ -199,14 +120,44 @@ nav {
   animation: pulse-rollback 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* MOBILE SPECIFIC STYLES - Complete override for all yellow colors */
+/* Ensure no yellow backgrounds anywhere */
+* {
+  background-color: inherit;
+}
+
+/* Override any potential yellow backgrounds */
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-yellow-500 {
+  @apply bg-rollback-light !important;
+}
+
+/* Force proper navbar styling on all devices with highest z-index */
+nav {
+  background-color: #F9F3E5 !important;
+  z-index: 9999 !important;
+  position: relative !important;
+}
+
+/* Ensure all overlays and modals don't interfere with navbar */
+[data-radix-popper-content-wrapper] {
+  z-index: 8888 !important;
+}
+
+[data-state="open"] {
+  z-index: 8888 !important;
+}
+
+/* Mobile-specific fixes */
 @media (max-width: 768px) {
-  /* Force correct background colors */
   html, body, #root {
+    @apply bg-rollback-light !important;
     background-color: #F9F3E5 !important;
   }
   
-  /* Navbar styling - highest priority */
   nav {
     background-color: #F9F3E5 !important;
     z-index: 9999 !important;
@@ -214,14 +165,7 @@ nav {
     top: 0 !important;
   }
   
-  /* All button styling */
-  button,
-  .btn,
-  [role="button"] {
-    background-color: inherit !important;
-  }
-  
-  /* Hamburger menu button */
+  /* Only make the hamburger menu button transparent */
   nav button[data-mobile-menu] {
     background-color: transparent !important;
   }
@@ -230,18 +174,16 @@ nav {
     background-color: #FAEBD1 !important;
   }
   
-  /* Connect Wallet button */
+  /* Ensure Connect Wallet button keeps its proper styling on mobile */
   nav button[data-wallet-button] {
     background-color: #E9A344 !important;
     color: white !important;
-    border: none !important;
   }
   
   nav button[data-wallet-button]:hover {
     background-color: rgba(233, 163, 68, 0.9) !important;
   }
   
-  /* Connected state */
   nav button[data-wallet-button][data-connected="true"] {
     background-color: transparent !important;
     border: 1px solid #E9A344 !important;
@@ -253,197 +195,36 @@ nav {
     color: white !important;
   }
   
-  /* Navigation links */
-  nav a {
-    color: #8B5E3C !important;
+  * {
+    background-color: inherit !important;
   }
   
-  nav a:hover {
-    color: #3C2415 !important;
-    background-color: #FAEBD1 !important;
+  .bg-yellow-50,
+  .bg-yellow-100,
+  .bg-yellow-200,
+  .bg-yellow-300,
+  .bg-yellow-400,
+  .bg-yellow-500 {
+    @apply bg-rollback-light !important;
+    background-color: #F9F3E5 !important;
   }
   
-  /* Active navigation links */
-  nav a[class*="bg-rollback-primary"] {
-    background-color: #E9A344 !important;
-    color: white !important;
-  }
-  
-  /* Sheet content background */
+  /* Fix sheet content background and ensure it doesn't cover navbar */
   [data-radix-popper-content-wrapper],
   [data-state="open"] {
     background-color: #F9F3E5 !important;
     z-index: 8888 !important;
   }
   
-  /* Page content positioning */
+  /* Ensure page content doesn't overlap navbar */
   main {
     position: relative !important;
     z-index: 1 !important;
   }
   
+  /* Prevent any elements from covering the navbar */
   .container {
     position: relative !important;
     z-index: 1 !important;
   }
-  
-  /* AGGRESSIVE YELLOW REPLACEMENT ON MOBILE */
-  .bg-yellow-50,
-  .bg-yellow-100,
-  .bg-yellow-200,
-  .bg-yellow-300,
-  .bg-yellow-400,
-  .bg-yellow-500,
-  .bg-yellow-600,
-  .bg-yellow-700,
-  .bg-yellow-800,
-  .bg-yellow-900,
-  button[style*="background-color: yellow"],
-  button[style*="background: yellow"],
-  div[style*="background-color: yellow"],
-  div[style*="background: yellow"],
-  span[style*="background-color: yellow"],
-  span[style*="background: yellow"],
-  [style*="background-color: #ffff"],
-  [style*="background-color: #FFFF"],
-  [style*="background: #ffff"],
-  [style*="background: #FFFF"],
-  [style*="background-color: #fff700"],
-  [style*="background-color: #FFF700"],
-  [style*="background: #fff700"],
-  [style*="background: #FFF700"] {
-    background-color: #FAEBD1 !important;
-  }
-  
-  /* Text color replacements on mobile */
-  .text-yellow-50,
-  .text-yellow-100,
-  .text-yellow-200,
-  .text-yellow-300,
-  .text-yellow-400,
-  .text-yellow-500,
-  .text-yellow-600,
-  .text-yellow-700,
-  .text-yellow-800,
-  .text-yellow-900,
-  [style*="color: yellow"],
-  [style*="color: #ffff"],
-  [style*="color: #FFFF"],
-  [style*="color: #fff700"],
-  [style*="color: #FFF700"] {
-    color: #8B5E3C !important;
-  }
-  
-  /* Border color replacements on mobile */
-  .border-yellow-50,
-  .border-yellow-100,
-  .border-yellow-200,
-  .border-yellow-300,
-  .border-yellow-400,
-  .border-yellow-500,
-  .border-yellow-600,
-  .border-yellow-700,
-  .border-yellow-800,
-  .border-yellow-900,
-  [style*="border-color: yellow"],
-  [style*="border-color: #ffff"],
-  [style*="border-color: #FFFF"],
-  [style*="border-color: #fff700"],
-  [style*="border-color: #FFF700"] {
-    border-color: #FAEBD1 !important;
-  }
-  
-  /* Mobile responsive adjustments for cards and components */
-  .card,
-  [data-card] {
-    padding: 1rem !important;
-    margin-bottom: 1rem !important;
-  }
-  
-  /* Mobile responsive grid adjustments */
-  .grid {
-    grid-template-columns: 1fr !important;
-    gap: 1rem !important;
-  }
-  
-  /* Mobile responsive table adjustments */
-  table {
-    font-size: 0.875rem !important;
-  }
-  
-  /* Mobile responsive chart container */
-  .recharts-wrapper {
-    width: 100% !important;
-    height: auto !important;
-    min-height: 200px !important;
-  }
-  
-  /* Mobile responsive dialog adjustments */
-  [data-radix-dialog-content] {
-    width: 95vw !important;
-    max-width: 95vw !important;
-    margin: 1rem !important;
-  }
-  
-  /* Mobile responsive button adjustments */
-  button {
-    padding: 0.75rem 1rem !important;
-    font-size: 0.875rem !important;
-  }
-  
-  /* Mobile responsive select adjustments */
-  [data-radix-select-trigger] {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-}
-
-/* TABLET RESPONSIVE STYLES */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  
-  .container {
-    padding: 1.5rem !important;
-  }
-}
-
-/* FORCE YELLOW REPLACEMENTS GLOBALLY WITH HIGHEST SPECIFICITY */
-* {
-  /* Replace any inline yellow styles */
-}
-
-*[style*="background-color: yellow"] {
-  background-color: #FAEBD1 !important;
-}
-
-*[style*="background: yellow"] {
-  background-color: #FAEBD1 !important;
-}
-
-*[style*="color: yellow"] {
-  color: #8B5E3C !important;
-}
-
-*[style*="border-color: yellow"] {
-  border-color: #FAEBD1 !important;
-}
-
-/* Additional yellow hex variations */
-*[style*="background-color: #ffff00"],
-*[style*="background-color: #FFFF00"],
-*[style*="background: #ffff00"],
-*[style*="background: #FFFF00"] {
-  background-color: #FAEBD1 !important;
-}
-
-*[style*="color: #ffff00"],
-*[style*="color: #FFFF00"] {
-  color: #8B5E3C !important;
-}
-
-*[style*="border-color: #ffff00"],
-*[style*="border-color: #FFFF00"] {
-  border-color: #FAEBD1 !important;
 }

@@ -128,21 +128,21 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-rollback-light">
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 sm:mb-8">
-          <div className="mb-4 lg:mb-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-rollback-dark mb-2">Dashboard</h1>
-            <p className="text-sm sm:text-base text-rollback-brown">Monitor and manage your Rollback Wallets</p>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-rollback-dark mb-2">Dashboard</h1>
+            <p className="text-rollback-brown">Monitor and manage your Rollback Wallets</p>
           </div>
           
           {/* Wallet Selector */}
-          <div className="w-full lg:w-auto">
+          <div className="mt-4 lg:mt-0">
             <Select value={selectedWallet.id} onValueChange={(value) => {
               const wallet = mockWallets.find(w => w.id === value);
               if (wallet) setSelectedWallet(wallet);
             }}>
-              <SelectTrigger className="w-full lg:w-80 border-rollback-cream">
+              <SelectTrigger className="w-80 border-rollback-cream">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -150,7 +150,7 @@ export default function Dashboard() {
                   <SelectItem key={wallet.id} value={wallet.id}>
                     <div className="flex items-center space-x-2">
                       <Wallet className="h-4 w-4" />
-                      <span className="text-xs sm:text-sm">{wallet.address.slice(0, 10)}...{wallet.address.slice(-8)}</span>
+                      <span>{wallet.address.slice(0, 10)}...{wallet.address.slice(-8)}</span>
                       <Badge variant="outline" className={getStatusColor(wallet.status)}>
                         {wallet.status}
                       </Badge>
@@ -163,37 +163,37 @@ export default function Dashboard() {
         </div>
 
         {/* Overview Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Wallet Value Card */}
           <Card className="border-rollback-cream bg-white">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-rollback-dark">Total Wallet Value</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-xl sm:text-2xl font-bold text-rollback-dark">${totalValue.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-rollback-dark">${totalValue.toLocaleString()}</div>
               <p className="text-xs text-rollback-brown mt-1">Across all monitored tokens</p>
               <Dialog open={isValueModalOpen} onOpenChange={setIsValueModalOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="mt-2 w-full sm:w-auto border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white">
+                  <Button variant="outline" size="sm" className="mt-2 border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white">
                     <Eye className="h-4 w-4 mr-2" />
-                    <span className="text-xs sm:text-sm">View Distribution</span>
+                    View Distribution
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="w-[95vw] max-w-4xl mx-auto">
+                <DialogContent className="max-w-4xl">
                   <DialogHeader>
                     <DialogTitle>Value Distribution</DialogTitle>
                     <DialogDescription className="text-rollback-dark">
                       Distribution of your wallet value by tokens and wallets
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <h3 className="text-base sm:text-lg font-semibold mb-4">By Tokens</h3>
+                      <h3 className="text-lg font-semibold mb-4">By Tokens</h3>
                       <ChartContainer
                         config={{
                           value: { label: "Value", color: "#E9A344" }
                         }}
-                        className="h-[250px] sm:h-[300px]"
+                        className="h-[300px]"
                       >
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
@@ -203,7 +203,7 @@ export default function Dashboard() {
                               cy="50%"
                               labelLine={false}
                               label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                              outerRadius={60}
+                              outerRadius={80}
                               fill="#8884d8"
                               dataKey="value"
                             >
@@ -217,12 +217,12 @@ export default function Dashboard() {
                       </ChartContainer>
                     </div>
                     <div>
-                      <h3 className="text-base sm:text-lg font-semibold mb-4">By Wallets</h3>
+                      <h3 className="text-lg font-semibold mb-4">By Wallets</h3>
                       <ChartContainer
                         config={{
                           value: { label: "Value", color: "#E9A344" }
                         }}
-                        className="h-[250px] sm:h-[300px]"
+                        className="h-[300px]"
                       >
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
@@ -232,7 +232,7 @@ export default function Dashboard() {
                               cy="50%"
                               labelLine={false}
                               label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                              outerRadius={60}
+                              outerRadius={80}
                               fill="#8884d8"
                               dataKey="value"
                             >
@@ -273,7 +273,7 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className={`text-xl sm:text-2xl font-bold ${isLowDaysRemaining ? 'text-red-700' : 'text-rollback-dark'}`}>
+              <div className={`text-2xl font-bold ${isLowDaysRemaining ? 'text-red-700' : 'text-rollback-dark'}`}>
                 {selectedWallet.daysRemaining}
               </div>
               <Progress value={progressPercentage} className="mt-2" />
@@ -290,16 +290,16 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-medium text-rollback-dark">Agent Wallet</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-xs sm:text-sm font-mono text-rollback-dark break-all">{selectedWallet.agentWallet}</div>
+              <div className="text-sm font-mono text-rollback-dark">{selectedWallet.agentWallet}</div>
               <p className="text-xs text-rollback-brown mt-1">Agent Management</p>
               <Dialog open={isAgentModalOpen} onOpenChange={setIsAgentModalOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="mt-2 w-full sm:w-auto border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white">
+                  <Button variant="outline" size="sm" className="mt-2 border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white">
                     <Eye className="h-4 w-4 mr-2" />
-                    <span className="text-xs sm:text-sm">View Details</span>
+                    View Details
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="w-[95vw] max-w-md mx-auto">
+                <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Agent Wallet Details</DialogTitle>
                     <DialogDescription className="text-rollback-dark">
@@ -310,7 +310,7 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between p-3 bg-rollback-cream rounded-lg">
                       <span className="text-sm font-medium">Address:</span>
                       <div className="flex items-center space-x-2">
-                        <span className="font-mono text-xs sm:text-sm break-all">{selectedWallet.agentWallet}</span>
+                        <span className="font-mono text-sm">{selectedWallet.agentWallet}</span>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -328,13 +328,13 @@ export default function Dashboard() {
                       <span className="text-sm font-medium">Last Activity:</span>
                       <span className="text-sm">2 hours ago</span>
                     </div>
-                    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 pt-4">
+                    <div className="flex space-x-2 pt-4">
                       <Button 
                         onClick={() => {
                           setIsAgentModalOpen(false);
                           navigate('/agent');
                         }}
-                        className="w-full sm:w-auto bg-rollback-primary hover:bg-rollback-primary/90 text-white"
+                        className="bg-rollback-primary hover:bg-rollback-primary/90 text-white"
                       >
                         <ExternalLink className="h-4 w-4 mr-2" />
                         Manage Agent
@@ -348,7 +348,7 @@ export default function Dashboard() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Wallet Overview */}
           <Card className="border-rollback-cream bg-white">
             <CardHeader>
@@ -361,10 +361,10 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-rollback-cream rounded-lg">
-                <span className="text-sm font-medium mb-2 sm:mb-0">Address:</span>
+              <div className="flex items-center justify-between p-3 bg-rollback-cream rounded-lg">
+                <span className="text-sm font-medium">Address:</span>
                 <div className="flex items-center space-x-2">
-                  <span className="font-mono text-xs sm:text-sm break-all">{selectedWallet.address.slice(0, 10)}...{selectedWallet.address.slice(-8)}</span>
+                  <span className="font-mono text-sm">{selectedWallet.address.slice(0, 10)}...{selectedWallet.address.slice(-8)}</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -385,12 +385,12 @@ export default function Dashboard() {
                 <span className="text-sm">Priority-based</span>
               </div>
 
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 pt-4">
-                <Button onClick={handleResetActivity} className="w-full sm:w-auto bg-rollback-primary hover:bg-rollback-primary/90 text-white">
+              <div className="flex space-x-2 pt-4">
+                <Button onClick={handleResetActivity} className="bg-rollback-primary hover:bg-rollback-primary/90 text-white">
                   <Clock className="h-4 w-4 mr-2" />
                   Reset Activity
                 </Button>
-                <Button variant="outline" className="w-full sm:w-auto border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white">
+                <Button variant="outline" className="border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white">
                   <Settings className="h-4 w-4 mr-2" />
                   Modify Config
                 </Button>
@@ -416,26 +416,24 @@ export default function Dashboard() {
               <CardDescription className="text-rollback-dark">Current balances of monitored assets</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-rollback-dark text-xs sm:text-sm">Token</TableHead>
-                      <TableHead className="text-rollback-dark text-xs sm:text-sm">Balance</TableHead>
-                      <TableHead className="text-rollback-dark text-xs sm:text-sm">Value</TableHead>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-rollback-dark">Token</TableHead>
+                    <TableHead className="text-rollback-dark">Balance</TableHead>
+                    <TableHead className="text-rollback-dark">Value</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {mockTokens.map((token, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">{token.symbol}</TableCell>
+                      <TableCell>{token.balance}</TableCell>
+                      <TableCell>{token.value}</TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {mockTokens.map((token, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium text-xs sm:text-sm">{token.symbol}</TableCell>
-                        <TableCell className="text-xs sm:text-sm">{token.balance}</TableCell>
-                        <TableCell className="text-xs sm:text-sm">{token.value}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
 
@@ -448,44 +446,42 @@ export default function Dashboard() {
             <CardContent className="space-y-4">
               <div>
                 <h4 className="text-sm font-medium text-rollback-brown mb-2">Owner Wallets</h4>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-rollback-dark text-xs sm:text-sm">Priority</TableHead>
-                        <TableHead className="text-rollback-dark text-xs sm:text-sm">Address</TableHead>
-                        <TableHead className="text-rollback-dark text-xs sm:text-sm">Action</TableHead>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-rollback-dark">Priority</TableHead>
+                      <TableHead className="text-rollback-dark">Address</TableHead>
+                      <TableHead className="text-rollback-dark">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {mockOwnerWallets.map((wallet, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">#{wallet.priority}</TableCell>
+                        <TableCell className="font-mono">
+                          {wallet.address.slice(0, 10)}...{wallet.address.slice(-8)}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCopyAddress(wallet.address)}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {mockOwnerWallets.map((wallet, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium text-xs sm:text-sm">#{wallet.priority}</TableCell>
-                          <TableCell className="font-mono text-xs break-all">
-                            {wallet.address.slice(0, 10)}...{wallet.address.slice(-8)}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCopyAddress(wallet.address)}
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
               
               <div>
                 <h4 className="text-sm font-medium text-rollback-brown mb-2">Fallback Wallet</h4>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-rollback-cream rounded-lg">
-                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mb-2 sm:mb-0">
-                    <span className="font-mono text-xs sm:text-sm break-all">{mockFallbackWallet.address.slice(0, 10)}...{mockFallbackWallet.address.slice(-8)}</span>
-                    <Badge variant="outline" className="bg-rollback-primary/10 text-rollback-primary border-rollback-primary w-fit">{mockFallbackWallet.status}</Badge>
+                <div className="flex items-center justify-between p-3 bg-rollback-cream rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-mono text-sm">{mockFallbackWallet.address.slice(0, 10)}...{mockFallbackWallet.address.slice(-8)}</span>
+                    <Badge variant="outline" className="bg-rollback-primary/10 text-rollback-primary border-rollback-primary">{mockFallbackWallet.status}</Badge>
                   </div>
                   <Button
                     variant="ghost"
@@ -501,7 +497,7 @@ export default function Dashboard() {
         </div>
 
         {/* Activity Feed */}
-        <Card className="border-rollback-cream bg-white mt-6 sm:mt-8">
+        <Card className="border-rollback-cream bg-white mt-8">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Bell className="h-5 w-5 text-rollback-primary" />
@@ -510,32 +506,30 @@ export default function Dashboard() {
             <CardDescription className="text-rollback-dark">Latest events and transactions</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-rollback-dark text-xs sm:text-sm">Date</TableHead>
-                    <TableHead className="text-rollback-dark text-xs sm:text-sm">Type</TableHead>
-                    <TableHead className="text-rollback-dark text-xs sm:text-sm">Details</TableHead>
-                    <TableHead className="text-rollback-dark text-xs sm:text-sm">Status</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-rollback-dark">Date</TableHead>
+                  <TableHead className="text-rollback-dark">Type</TableHead>
+                  <TableHead className="text-rollback-dark">Details</TableHead>
+                  <TableHead className="text-rollback-dark">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {mockActivity.map((activity, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">{activity.date}</TableCell>
+                    <TableCell>{activity.type}</TableCell>
+                    <TableCell>{activity.details}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-rollback-primary/10 text-rollback-primary border-rollback-primary">
+                        {activity.status}
+                      </Badge>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockActivity.map((activity, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-medium text-xs sm:text-sm">{activity.date}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">{activity.type}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">{activity.details}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="bg-rollback-primary/10 text-rollback-primary border-rollback-primary">
-                          {activity.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       </div>

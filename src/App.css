@@ -47,146 +47,16 @@ html, body, #root {
   @apply bg-rollback-light !important;
 }
 
-/* COMPREHENSIVE YELLOW COLOR REPLACEMENT */
-/* Background colors - all devices */
+/* Remove any yellow backgrounds */
+* {
+  background-color: inherit;
+}
+
 .bg-yellow-50,
 .bg-yellow-100,
 .bg-yellow-200,
 .bg-yellow-300,
 .bg-yellow-400,
-.bg-yellow-500,
-.bg-yellow-600,
-.bg-yellow-700,
-.bg-yellow-800,
-.bg-yellow-900 {
-  @apply bg-rollback-cream !important;
-}
-
-/* Text colors - all devices */
-.text-yellow-50,
-.text-yellow-100,
-.text-yellow-200,
-.text-yellow-300,
-.text-yellow-400,
-.text-yellow-500,
-.text-yellow-600,
-.text-yellow-700,
-.text-yellow-800,
-.text-yellow-900 {
-  @apply text-rollback-brown !important;
-}
-
-/* Border colors - all devices */
-.border-yellow-50,
-.border-yellow-100,
-.border-yellow-200,
-.border-yellow-300,
-.border-yellow-400,
-.border-yellow-500,
-.border-yellow-600,
-.border-yellow-700,
-.border-yellow-800,
-.border-yellow-900 {
-  @apply border-rollback-cream !important;
-}
-
-/* AGGRESSIVE INLINE STYLE OVERRIDES */
-*[style*="background-color: yellow"],
-*[style*="background: yellow"],
-*[style*="background-color: #ffff"],
-*[style*="background-color: #FFFF"],
-*[style*="background: #ffff"],
-*[style*="background: #FFFF"],
-*[style*="background-color: #fff700"],
-*[style*="background-color: #FFF700"],
-*[style*="background: #fff700"],
-*[style*="background: #FFF700"],
-*[style*="background-color: #ffff00"],
-*[style*="background-color: #FFFF00"],
-*[style*="background: #ffff00"],
-*[style*="background: #FFFF00"] {
-  background-color: #FAEBD1 !important;
-}
-
-*[style*="color: yellow"],
-*[style*="color: #ffff"],
-*[style*="color: #FFFF"],
-*[style*="color: #fff700"],
-*[style*="color: #FFF700"],
-*[style*="color: #ffff00"],
-*[style*="color: #FFFF00"] {
-  color: #8B5E3C !important;
-}
-
-*[style*="border-color: yellow"],
-*[style*="border-color: #ffff"],
-*[style*="border-color: #FFFF"],
-*[style*="border-color: #fff700"],
-*[style*="border-color: #FFF700"],
-*[style*="border-color: #ffff00"],
-*[style*="border-color: #FFFF00"] {
-  border-color: #FAEBD1 !important;
-}
-
-/* MOBILE SPECIFIC OVERRIDES */
-@media (max-width: 768px) {
-  /* Force all yellow backgrounds to rollback cream on mobile */
-  .bg-yellow-50,
-  .bg-yellow-100,
-  .bg-yellow-200,
-  .bg-yellow-300,
-  .bg-yellow-400,
-  .bg-yellow-500,
-  .bg-yellow-600,
-  .bg-yellow-700,
-  .bg-yellow-800,
-  .bg-yellow-900,
-  button[style*="background-color: yellow"],
-  button[style*="background: yellow"],
-  div[style*="background-color: yellow"],
-  div[style*="background: yellow"],
-  span[style*="background-color: yellow"],
-  span[style*="background: yellow"],
-  input[style*="background-color: yellow"],
-  input[style*="background: yellow"],
-  select[style*="background-color: yellow"],
-  select[style*="background: yellow"] {
-    background-color: #FAEBD1 !important;
-  }
-  
-  /* Responsive adjustments for mobile */
-  .card,
-  [data-card] {
-    padding: 1rem !important;
-    margin: 0.5rem 0 !important;
-  }
-  
-  .container {
-    padding: 1rem !important;
-  }
-  
-  /* Mobile responsive grid */
-  .grid-cols-2,
-  .grid-cols-3,
-  .grid-cols-4 {
-    grid-template-columns: 1fr !important;
-  }
-  
-  /* Mobile responsive text */
-  .text-3xl {
-    font-size: 1.875rem !important;
-  }
-  
-  .text-2xl {
-    font-size: 1.5rem !important;
-  }
-  
-  /* Mobile responsive spacing */
-  .space-x-8 > * + * {
-    margin-left: 1rem !important;
-  }
-  
-  .space-y-8 > * + * {
-    margin-top: 1rem !important;
-  }
+.bg-yellow-500 {
+  @apply bg-rollback-light !important;
 }
