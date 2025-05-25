@@ -222,12 +222,15 @@ nav {
   }
   
   /* Hamburger menu button */
-  nav button[data-mobile-menu] {
-    background-color: transparent !important;
+  nav button[data-mobile-menu],
+  button:has([data-lucide="menu"]) {
+    background-color: #E9A344 !important;
+    color: white !important;
   }
   
-  nav button[data-mobile-menu]:hover {
-    background-color: #FAEBD1 !important;
+  nav button[data-mobile-menu]:hover,
+  button:has([data-lucide="menu"]):hover {
+    background-color: rgba(233, 163, 68, 0.9) !important;
   }
   
   /* Connect Wallet button */
@@ -251,6 +254,60 @@ nav {
   nav button[data-wallet-button][data-connected="true"]:hover {
     background-color: #E9A344 !important;
     color: white !important;
+  }
+  
+  /* Specific Action Buttons - Mobile */
+  button:has(.lucide-check),
+  button[class*="approve"],
+  button:contains("Approve"),
+  button[aria-label*="approve" i] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  button:contains("Next"),
+  button[aria-label*="next" i] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  button:contains("Create Proposal"),
+  button:contains("Create"),
+  button:has(.lucide-plus),
+  button[aria-label*="create" i] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  button:contains("Assign Agent"),
+  button:contains("Assign"),
+  button[aria-label*="assign" i] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  /* Sidebar styling on mobile */
+  [data-radix-dialog-content],
+  .sheet-content,
+  [data-radix-sheet-content] {
+    background-color: #E9A344 !important;
+  }
+  
+  /* Sidebar links styling */
+  [data-radix-dialog-content] a,
+  .sheet-content a,
+  [data-radix-sheet-content] a {
+    color: white !important;
+  }
+  
+  [data-radix-dialog-content] a:hover,
+  .sheet-content a:hover,
+  [data-radix-sheet-content] a:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
   }
   
   /* Navigation links */
