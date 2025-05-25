@@ -71,7 +71,7 @@ export function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-[9999] w-full border-b border-rollback-cream !bg-rollback-light backdrop-blur supports-[backdrop-filter]:!bg-rollback-light">
+    <nav className="sticky top-0 z-[9999] w-full border-b border-rollback-cream bg-rollback-light backdrop-blur supports-[backdrop-filter]:bg-rollback-light">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -116,11 +116,10 @@ export function Navbar() {
           <div className="flex items-center space-x-4">
             <Button
               onClick={handleWalletAction}
-              variant={isConnected ? "outline" : "default"}
               className={
                 isConnected
-                  ? "border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white !bg-transparent"
-                  : "bg-rollback-primary hover:bg-rollback-primary/90 text-white"
+                  ? "bg-transparent border border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white"
+                  : "bg-rollback-primary hover:bg-rollback-primary/90 text-white border-none"
               }
               size="sm"
               data-wallet-button="true"
@@ -141,7 +140,7 @@ export function Navbar() {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="hover:bg-rollback-cream !bg-transparent"
+                  className="bg-transparent hover:bg-rollback-cream"
                   data-mobile-menu="true"
                 >
                   <div className="flex flex-col space-y-1">
@@ -151,7 +150,7 @@ export function Navbar() {
                   </div>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-64 !bg-rollback-light border-rollback-cream z-[9999]">
+              <SheetContent side="right" className="w-64 bg-rollback-light border-rollback-cream z-[9999]">
                 <div className="flex flex-col space-y-4 mt-8">
                   {navigation.map((item) => {
                     const Icon = item.icon;
