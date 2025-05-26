@@ -130,10 +130,33 @@ html, body, #root {
   html body #root [style*="background-color: rgb(255, 255, 0)"],
   html body #root [style*="background: rgb(255, 255, 0)"],
   html body #root [style*="background-color: yellow"],
-  html body #root [style*="background: yellow"] {
+  html body #root [style*="background: yellow"],
+  html body #root [data-radix-select-trigger],
+  html body #root [data-radix-select-content],
+  html body #root [data-radix-select-item],
+  html body #root [data-radix-select-viewport],
+  html body #root [data-radix-select-group] {
     background-color: #FAEBD1 !important;
     color: #8B5E3C !important;
     border-color: #FAEBD1 !important;
+  }
+  
+  /* Additional overrides for select components */
+  [data-radix-select-trigger],
+  [data-radix-select-content],
+  [data-radix-select-item],
+  [data-radix-select-viewport],
+  [data-radix-select-group] {
+    background-color: #FAEBD1 !important;
+  }
+  
+  /* Ensure select component text is visible */
+  [data-radix-select-trigger] *,
+  [data-radix-select-content] *,
+  [data-radix-select-item] *,
+  [data-radix-select-viewport] *,
+  [data-radix-select-group] * {
+    color: #8B5E3C !important;
   }
   
   /* Responsive adjustments for mobile */
