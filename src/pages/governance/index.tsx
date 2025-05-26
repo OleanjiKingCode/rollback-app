@@ -180,9 +180,9 @@ export default function Governance() {
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="reject"
                   onClick={() => handleVote(proposal.id, 'reject')}
-                  className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                  className="flex-1"
                 >
                   <X className="h-4 w-4 mr-1" />
                   Reject

@@ -415,16 +415,30 @@ nav {
 *[style*="background: rgb(255, 255, 0)"],
 *[style*="background-color: yellow"],
 *[style*="background: yellow"],
-[data-radix-select-trigger],
-[data-radix-select-content],
-[data-radix-select-item],
-[data-radix-select-viewport],
-[data-radix-select-group],
-[data-state="active"],
-[data-highlighted],
-[data-selected],
-[data-placeholder],
-[data-value],
+button[class*="reject"],
+button[class*="warning"],
+div[class*="warning"],
+*[class*="warning"] {
+  background-color: transparent !important;
+  border-color: #8B5E3C !important;
+  color: #8B5E3C !important;
+}
+
+/* Override any hover states */
+*[style*="background-color: #ffff00"]:hover,
+*[style*="background: #ffff00"]:hover,
+*[style*="background-color: yellow"]:hover,
+*[style*="background: yellow"]:hover,
+button[class*="reject"]:hover,
+button[class*="warning"]:hover,
+div[class*="warning"]:hover,
+*[class*="warning"]:hover {
+  background-color: rgba(139, 94, 60, 0.1) !important;
+  border-color: #8B5E3C !important;
+  color: #8B5E3C !important;
+}
+
+/* Override Tailwind yellow classes */
 .bg-yellow-50,
 .bg-yellow-100,
 .bg-yellow-200,
@@ -438,50 +452,58 @@ nav {
 [class*="bg-yellow-"],
 [class*="text-yellow-"],
 [class*="border-yellow-"] {
-  background-color: #FAEBD1 !important;
+  background-color: transparent !important;
+  border-color: #8B5E3C !important;
   color: #8B5E3C !important;
-  border-color: #FAEBD1 !important;
 }
 
-/* Additional overrides for warning states */
-[data-warning="true"],
-[data-state="warning"],
-[data-variant="warning"],
-[role="alert"][data-variant="warning"],
-.warning,
-.alert-warning {
-  background-color: #FAEBD1 !important;
+/* Override any hover states for Tailwind classes */
+.bg-yellow-50:hover,
+.bg-yellow-100:hover,
+.bg-yellow-200:hover,
+.bg-yellow-300:hover,
+.bg-yellow-400:hover,
+.bg-yellow-500:hover,
+.bg-yellow-600:hover,
+.bg-yellow-700:hover,
+.bg-yellow-800:hover,
+.bg-yellow-900:hover,
+[class*="bg-yellow-"]:hover,
+[class*="text-yellow-"]:hover,
+[class*="border-yellow-"]:hover {
+  background-color: rgba(139, 94, 60, 0.1) !important;
+  border-color: #8B5E3C !important;
   color: #8B5E3C !important;
-  border-color: #FAEBD1 !important;
 }
 
-/* Ensure hover states use our theme colors */
-[data-radix-select-item]:hover,
-[data-radix-select-trigger]:hover,
-[data-warning="true"]:hover,
-[data-state="warning"]:hover,
-[data-variant="warning"]:hover,
-.warning:hover,
-.alert-warning:hover {
-  background-color: #E9A344 !important;
-  color: white !important;
-}
-
-/* Additional mobile-specific overrides */
+/* Force all yellow backgrounds to use theme colors on mobile */
 @media (max-width: 768px) {
-  /* Force all yellow backgrounds to use theme colors on mobile */
   *[style*="background-color: yellow"],
   *[style*="background: yellow"],
   [class*="bg-yellow-"],
   [class*="text-yellow-"],
   [class*="border-yellow-"],
-  [data-warning="true"],
-  [data-state="warning"],
-  [data-variant="warning"],
-  .warning,
-  .alert-warning {
-    background-color: #FAEBD1 !important;
+  button[class*="reject"],
+  button[class*="warning"],
+  div[class*="warning"],
+  *[class*="warning"] {
+    background-color: transparent !important;
+    border-color: #8B5E3C !important;
     color: #8B5E3C !important;
-    border-color: #FAEBD1 !important;
+  }
+
+  /* Override any hover states on mobile */
+  *[style*="background-color: yellow"]:hover,
+  *[style*="background: yellow"]:hover,
+  [class*="bg-yellow-"]:hover,
+  [class*="text-yellow-"]:hover,
+  [class*="border-yellow-"]:hover,
+  button[class*="reject"]:hover,
+  button[class*="warning"]:hover,
+  div[class*="warning"]:hover,
+  *[class*="warning"]:hover {
+    background-color: rgba(139, 94, 60, 0.1) !important;
+    border-color: #8B5E3C !important;
+    color: #8B5E3C !important;
   }
 }
