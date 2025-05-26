@@ -218,7 +218,7 @@ export default function CreateRollbackWallet() {
                       setConfig(prev => ({ ...prev, thresholdUnit: value }))
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-rollback-cream text-rollback-brown">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -470,7 +470,7 @@ export default function CreateRollbackWallet() {
               <Button
                 variant="back"
                 onClick={() => setCurrentStep(currentStep - 1)}
-                className="flex-1"
+                className="flex-1 bg-transparent border-rollback-primary text-rollback-primary hover:bg-rollback-primary/10"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
