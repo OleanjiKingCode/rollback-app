@@ -106,100 +106,7 @@
   }
 }
 
-/* GLOBAL YELLOW COLOR REPLACEMENTS - Apply to ALL devices */
-/* Background colors */
-.bg-yellow-50,
-.bg-yellow-100,
-.bg-yellow-200,
-.bg-yellow-300,
-.bg-yellow-400,
-.bg-yellow-500,
-.bg-yellow-600,
-.bg-yellow-700,
-.bg-yellow-800,
-.bg-yellow-900,
-[style*="background-color: yellow"],
-[style*="background: yellow"],
-[style*="background-color: #ffff"],
-[style*="background-color: #FFFF"],
-[style*="background: #ffff"],
-[style*="background: #FFFF"],
-[style*="background-color: #fff700"],
-[style*="background-color: #FFF700"],
-[style*="background: #fff700"],
-[style*="background: #FFF700"] {
-  background-color: #FAEBD1 !important;
-}
-
-/* Text colors */
-.text-yellow-50,
-.text-yellow-100,
-.text-yellow-200,
-.text-yellow-300,
-.text-yellow-400,
-.text-yellow-500,
-.text-yellow-600,
-.text-yellow-700,
-.text-yellow-800,
-.text-yellow-900,
-[style*="color: yellow"],
-[style*="color: #ffff"],
-[style*="color: #FFFF"],
-[style*="color: #fff700"],
-[style*="color: #FFF700"] {
-  color: #8B5E3C !important;
-}
-
-/* Border colors */
-.border-yellow-50,
-.border-yellow-100,
-.border-yellow-200,
-.border-yellow-300,
-.border-yellow-400,
-.border-yellow-500,
-.border-yellow-600,
-.border-yellow-700,
-.border-yellow-800,
-.border-yellow-900,
-[style*="border-color: yellow"],
-[style*="border-color: #ffff"],
-[style*="border-color: #FFFF"],
-[style*="border-color: #fff700"],
-[style*="border-color: #FFF700"] {
-  border-color: #FAEBD1 !important;
-}
-
-/* Force navbar styling with highest priority */
-nav {
-  background-color: #F9F3E5 !important;
-  z-index: 9999 !important;
-  position: relative !important;
-}
-
-/* Ensure all overlays don't interfere with navbar */
-[data-radix-popper-content-wrapper] {
-  z-index: 8888 !important;
-}
-
-[data-state="open"] {
-  z-index: 8888 !important;
-}
-
-/* Custom animations for rollback branding */
-@keyframes pulse-rollback {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-.animate-pulse-rollback {
-  animation: pulse-rollback 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* MOBILE SPECIFIC STYLES - Complete override for all yellow colors */
+/* MOBILE SPECIFIC STYLES - Complete override for all button and input styling */
 @media (max-width: 768px) {
   /* Force correct background colors */
   html, body, #root {
@@ -214,22 +121,20 @@ nav {
     top: 0 !important;
   }
   
-  /* All button styling */
-  button,
-  .btn,
-  [role="button"] {
-    background-color: inherit !important;
-  }
-  
   /* Hamburger menu button */
   nav button[data-mobile-menu],
-  button:has([data-lucide="menu"]) {
+  button:has([data-lucide="menu"]),
+  nav button[aria-label*="menu" i],
+  nav .md\:hidden button {
     background-color: #E9A344 !important;
     color: white !important;
+    border: none !important;
   }
   
   nav button[data-mobile-menu]:hover,
-  button:has([data-lucide="menu"]):hover {
+  button:has([data-lucide="menu"]):hover,
+  nav button[aria-label*="menu" i]:hover,
+  nav .md\:hidden button:hover {
     background-color: rgba(233, 163, 68, 0.9) !important;
   }
   
@@ -256,18 +161,20 @@ nav {
     color: white !important;
   }
   
-  /* Specific Action Buttons - Mobile */
-  button:has(.lucide-check),
-  button[class*="approve"],
-  button:contains("Approve"),
-  button[aria-label*="approve" i] {
+  /* ALL ACTION BUTTONS - Mobile */
+  button:contains("Next"),
+  button[aria-label*="next" i],
+  .container button:contains("Next"),
+  form button:contains("Next") {
     background-color: #E9A344 !important;
     color: white !important;
     border: none !important;
   }
   
-  button:contains("Next"),
-  button[aria-label*="next" i] {
+  button:contains("Approve"),
+  button[class*="approve"],
+  button[aria-label*="approve" i],
+  button:has(.lucide-check) {
     background-color: #E9A344 !important;
     color: white !important;
     border: none !important;
@@ -275,8 +182,24 @@ nav {
   
   button:contains("Create Proposal"),
   button:contains("Create"),
-  button:has(.lucide-plus),
-  button[aria-label*="create" i] {
+  button[aria-label*="create" i],
+  button:has(.lucide-plus) {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  button:contains("View Details"),
+  button[aria-label*="view" i],
+  button[aria-label*="details" i] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  button:contains("Create Rollback Wallet"),
+  button:contains("Rollback Wallet"),
+  button[aria-label*="rollback" i] {
     background-color: #E9A344 !important;
     color: white !important;
     border: none !important;
@@ -288,6 +211,66 @@ nav {
     background-color: #E9A344 !important;
     color: white !important;
     border: none !important;
+  }
+  
+  /* Primary buttons - match desktop styling */
+  .bg-rollback-primary,
+  button[class*="bg-rollback-primary"],
+  .btn-primary,
+  [data-primary="true"] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  /* Remove ALL green colors from inputs and placeholders */
+  input,
+  textarea,
+  select,
+  [role="textbox"] {
+    background-color: white !important;
+    border-color: #FAEBD1 !important;
+    color: #3C2415 !important;
+  }
+  
+  input::placeholder,
+  textarea::placeholder,
+  [role="textbox"]::placeholder {
+    color: #8B5E3C !important;
+  }
+  
+  input:focus,
+  textarea:focus,
+  select:focus,
+  [role="textbox"]:focus {
+    background-color: white !important;
+    border-color: #E9A344 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(233, 163, 68, 0.2) !important;
+  }
+  
+  /* Remove green from any form elements */
+  .bg-green-50,
+  .bg-green-100,
+  .bg-green-200,
+  .bg-green-300,
+  .bg-green-400,
+  .bg-green-500,
+  .text-green-50,
+  .text-green-100,
+  .text-green-200,
+  .text-green-300,
+  .text-green-400,
+  .text-green-500,
+  .border-green-50,
+  .border-green-100,
+  .border-green-200,
+  .border-green-300,
+  .border-green-400,
+  .border-green-500 {
+    background-color: #FAEBD1 !important;
+    color: #8B5E3C !important;
+    border-color: #FAEBD1 !important;
   }
   
   /* Sidebar styling on mobile */
@@ -326,88 +309,12 @@ nav {
     color: white !important;
   }
   
-  /* Sheet content background */
-  [data-radix-popper-content-wrapper],
-  [data-state="open"] {
-    background-color: #F9F3E5 !important;
-    z-index: 8888 !important;
-  }
-  
-  /* Page content positioning */
-  main {
-    position: relative !important;
-    z-index: 1 !important;
-  }
-  
-  .container {
-    position: relative !important;
-    z-index: 1 !important;
-  }
-  
-  /* AGGRESSIVE YELLOW REPLACEMENT ON MOBILE */
-  .bg-yellow-50,
-  .bg-yellow-100,
-  .bg-yellow-200,
-  .bg-yellow-300,
-  .bg-yellow-400,
-  .bg-yellow-500,
-  .bg-yellow-600,
-  .bg-yellow-700,
-  .bg-yellow-800,
-  .bg-yellow-900,
-  button[style*="background-color: yellow"],
-  button[style*="background: yellow"],
-  div[style*="background-color: yellow"],
-  div[style*="background: yellow"],
-  span[style*="background-color: yellow"],
-  span[style*="background: yellow"],
-  [style*="background-color: #ffff"],
-  [style*="background-color: #FFFF"],
-  [style*="background: #ffff"],
-  [style*="background: #FFFF"],
-  [style*="background-color: #fff700"],
-  [style*="background-color: #FFF700"],
-  [style*="background: #fff700"],
-  [style*="background: #FFF700"] {
-    background-color: #FAEBD1 !important;
-  }
-  
-  /* Text color replacements on mobile */
-  .text-yellow-50,
-  .text-yellow-100,
-  .text-yellow-200,
-  .text-yellow-300,
-  .text-yellow-400,
-  .text-yellow-500,
-  .text-yellow-600,
-  .text-yellow-700,
-  .text-yellow-800,
-  .text-yellow-900,
-  [style*="color: yellow"],
-  [style*="color: #ffff"],
-  [style*="color: #FFFF"],
-  [style*="color: #fff700"],
-  [style*="color: #FFF700"] {
-    color: #8B5E3C !important;
-  }
-  
-  /* Border color replacements on mobile */
-  .border-yellow-50,
-  .border-yellow-100,
-  .border-yellow-200,
-  .border-yellow-300,
-  .border-yellow-400,
-  .border-yellow-500,
-  .border-yellow-600,
-  .border-yellow-700,
-  .border-yellow-800,
-  .border-yellow-900,
-  [style*="border-color: yellow"],
-  [style*="border-color: #ffff"],
-  [style*="border-color: #FFFF"],
-  [style*="border-color: #fff700"],
-  [style*="border-color: #FFF700"] {
-    border-color: #FAEBD1 !important;
+  /* Ensure modals and dialogs are responsive */
+  [data-radix-dialog-content] {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 1rem !important;
+    background-color: white !important;
   }
   
   /* Mobile responsive adjustments for cards and components */
@@ -435,72 +342,131 @@ nav {
     min-height: 200px !important;
   }
   
-  /* Mobile responsive dialog adjustments */
-  [data-radix-dialog-content] {
-    width: 95vw !important;
-    max-width: 95vw !important;
-    margin: 1rem !important;
-  }
-  
   /* Mobile responsive button adjustments */
   button {
     padding: 0.75rem 1rem !important;
     font-size: 0.875rem !important;
+    min-height: 44px !important;
+    touch-action: manipulation !important;
   }
   
   /* Mobile responsive select adjustments */
   [data-radix-select-trigger] {
     width: 100% !important;
     max-width: 100% !important;
+    background-color: white !important;
+    border-color: #FAEBD1 !important;
   }
 }
 
-/* TABLET RESPONSIVE STYLES */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  
-  .container {
-    padding: 1.5rem !important;
-  }
-}
-
-/* FORCE YELLOW REPLACEMENTS GLOBALLY WITH HIGHEST SPECIFICITY */
-* {
-  /* Replace any inline yellow styles */
-}
-
-*[style*="background-color: yellow"] {
+/* GLOBAL COLOR REPLACEMENTS - Apply to ALL devices */
+/* Remove ALL yellow and green colors */
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-yellow-500,
+.bg-yellow-600,
+.bg-yellow-700,
+.bg-yellow-800,
+.bg-yellow-900,
+.bg-green-50,
+.bg-green-100,
+.bg-green-200,
+.bg-green-300,
+.bg-green-400,
+.bg-green-500,
+.bg-green-600,
+.bg-green-700,
+.bg-green-800,
+.bg-green-900 {
   background-color: #FAEBD1 !important;
 }
 
-*[style*="background: yellow"] {
-  background-color: #FAEBD1 !important;
-}
-
-*[style*="color: yellow"] {
+.text-yellow-50,
+.text-yellow-100,
+.text-yellow-200,
+.text-yellow-300,
+.text-yellow-400,
+.text-yellow-500,
+.text-yellow-600,
+.text-yellow-700,
+.text-yellow-800,
+.text-yellow-900,
+.text-green-50,
+.text-green-100,
+.text-green-200,
+.text-green-300,
+.text-green-400,
+.text-green-500,
+.text-green-600,
+.text-green-700,
+.text-green-800,
+.text-green-900 {
   color: #8B5E3C !important;
 }
 
-*[style*="border-color: yellow"] {
+.border-yellow-50,
+.border-yellow-100,
+.border-yellow-200,
+.border-yellow-300,
+.border-yellow-400,
+.border-yellow-500,
+.border-yellow-600,
+.border-yellow-700,
+.border-yellow-800,
+.border-yellow-900,
+.border-green-50,
+.border-green-100,
+.border-green-200,
+.border-green-300,
+.border-green-400,
+.border-green-500,
+.border-green-600,
+.border-green-700,
+.border-green-800,
+.border-green-900 {
   border-color: #FAEBD1 !important;
 }
 
-/* Additional yellow hex variations */
-*[style*="background-color: #ffff00"],
-*[style*="background-color: #FFFF00"],
-*[style*="background: #ffff00"],
-*[style*="background: #FFFF00"] {
+/* Force navbar styling with highest priority */
+nav {
+  background-color: #F9F3E5 !important;
+  z-index: 9999 !important;
+  position: relative !important;
+}
+
+/* FORCE YELLOW AND GREEN REPLACEMENTS GLOBALLY WITH HIGHEST SPECIFICITY */
+*[style*="background-color: yellow"],
+*[style*="background: yellow"],
+*[style*="background-color: green"],
+*[style*="background: green"],
+*[style*="background-color: #ffff"],
+*[style*="background-color: #FFFF"],
+*[style*="background: #ffff"],
+*[style*="background: #FFFF"],
+*[style*="background-color: #00ff"],
+*[style*="background-color: #00FF"],
+*[style*="background: #00ff"],
+*[style*="background: #00FF"] {
   background-color: #FAEBD1 !important;
 }
 
-*[style*="color: #ffff00"],
-*[style*="color: #FFFF00"] {
+*[style*="color: yellow"],
+*[style*="color: green"],
+*[style*="color: #ffff"],
+*[style*="color: #FFFF"],
+*[style*="color: #00ff"],
+*[style*="color: #00FF"] {
   color: #8B5E3C !important;
 }
 
-*[style*="border-color: #ffff00"],
-*[style*="border-color: #FFFF00"] {
+*[style*="border-color: yellow"],
+*[style*="border-color: green"],
+*[style*="border-color: #ffff"],
+*[style*="border-color: #FFFF"],
+*[style*="border-color: #00ff"],
+*[style*="border-color: #00FF"] {
   border-color: #FAEBD1 !important;
 }
