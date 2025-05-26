@@ -42,92 +42,100 @@
   color: #888;
 }
 
-/* UNIVERSAL YELLOW ELIMINATION - NUCLEAR OPTION */
-* {
-  background-color: #ffff00 !important;
-  background: #ffff00 !important;
-  color: #ffff00 !important;
-  border-color: #ffff00 !important;
-}
-
-*:not(html):not(body):not(#root)[style*="ffff00"],
-*:not(html):not(body):not(#root)[style*="yellow"],
-*:not(html):not(body):not(#root)[class*="yellow"] {
-  background-color: #E9A344 !important;
-  background: #E9A344 !important;
-  color: white !important;
-  border-color: #E9A344 !important;
-}
-
 /* Ensure consistent background across all devices */
 html, body, #root {
   @apply bg-rollback-light !important;
 }
 
-/* COMPLETE YELLOW ELIMINATION - ALL POSSIBLE SELECTORS */
-button[style*="ffff00"],
-div[style*="ffff00"],
-span[style*="ffff00"],
-input[style*="ffff00"],
-select[style*="ffff00"],
-[role="button"][style*="ffff00"],
-[role="listbox"][style*="ffff00"],
-[role="option"][style*="ffff00"],
-[data-radix-select-trigger][style*="ffff00"],
-[data-radix-select-content][style*="ffff00"],
-[data-radix-dialog-content][style*="ffff00"],
-[data-state][style*="ffff00"],
-.bg-yellow-400,
-.bg-yellow-500 {
-  background-color: #E9A344 !important;
-  background: #E9A344 !important;
-  color: white !important;
-  border-color: #E9A344 !important;
+/* Remove green from any form elements */
+.bg-green-50,
+.bg-green-100,
+.bg-green-200,
+.bg-green-300,
+.bg-green-400,
+.bg-green-500,
+.bg-green-600,
+.bg-green-700,
+.bg-green-800,
+.bg-green-900 {
+  background-color: #FAEBD1 !important;
 }
 
-/* MOBILE SPECIFIC OVERRIDES - NUCLEAR APPROACH */
+.text-green-50,
+.text-green-100,
+.text-green-200,
+.text-green-300,
+.text-green-400,
+.text-green-500,
+.text-green-600,
+.text-green-700,
+.text-green-800,
+.text-green-900 {
+  color: #8B5E3C !important;
+}
+
+.border-green-50,
+.border-green-100,
+.border-green-200,
+.border-green-300,
+.border-green-400,
+.border-green-500,
+.border-green-600,
+.border-green-700,
+.border-green-800,
+.border-green-900 {
+  border-color: #FAEBD1 !important;
+}
+
+/* REMOVE ALL #ffff00 REFERENCES */
+*[style*="background-color: #ffff00"],
+*[style*="background: #ffff00"],
+*[style*="color: #ffff00"],
+*[style*="border-color: #ffff00"] {
+  background-color: #FAEBD1 !important;
+  color: #8B5E3C !important;
+  border-color: #FAEBD1 !important;
+}
+
+/* MOBILE SPECIFIC OVERRIDES */
 @media (max-width: 768px) {
-  /* Universal selector to catch ALL yellow */
-  * {
-    background-color: #ffff00 !important;
-    background: #ffff00 !important;
-    color: #ffff00 !important;
-    border-color: #ffff00 !important;
+  /* Force all green backgrounds to rollback cream on mobile */
+  .bg-green-50,
+  .bg-green-100,
+  .bg-green-200,
+  .bg-green-300,
+  .bg-green-400,
+  .bg-green-500,
+  .bg-green-600,
+  .bg-green-700,
+  .bg-green-800,
+  .bg-green-900,
+  button[style*="background-color: green"],
+  button[style*="background: green"],
+  div[style*="background-color: green"],
+  div[style*="background: green"],
+  span[style*="background-color: green"],
+  span[style*="background: green"],
+  input[style*="background-color: green"],
+  input[style*="background: green"],
+  select[style*="background-color: green"],
+  select[style*="background: green"] {
+    background-color: #FAEBD1 !important;
   }
   
-  *:not(html):not(body):not(#root)[style*="ffff00"],
-  *:not(html):not(body):not(#root)[style*="yellow"] {
-    background-color: #E9A344 !important;
-    background: #E9A344 !important;
-    color: white !important;
-    border-color: #E9A344 !important;
-  }
-  
-  /* Force ALL buttons to rollback colors */
-  button,
-  [role="button"],
-  input[type="button"],
-  input[type="submit"] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-  }
-  
-  /* Force ALL selects and inputs */
-  select,
-  input,
-  textarea,
-  [data-radix-select-trigger],
-  [data-radix-select-content] {
-    background-color: white !important;
-    border-color: #FAEBD1 !important;
-    color: #3C2415 !important;
-  }
-  
-  /* Force ALL dialogs and modals */
-  [data-radix-dialog-content],
-  [data-radix-dialog-overlay] {
-    background-color: white !important;
+  /* Remove all #ffff00 on mobile */
+  button[style*="background-color: #ffff00"],
+  button[style*="background: #ffff00"],
+  div[style*="background-color: #ffff00"],
+  div[style*="background: #ffff00"],
+  span[style*="background-color: #ffff00"],
+  span[style*="background: #ffff00"],
+  input[style*="background-color: #ffff00"],
+  input[style*="background: #ffff00"],
+  select[style*="background-color: #ffff00"],
+  select[style*="background: #ffff00"] {
+    background-color: #FAEBD1 !important;
+    color: #8B5E3C !important;
     border-color: #FAEBD1 !important;
   }
   
@@ -136,7 +144,6 @@ select[style*="ffff00"],
   [data-card] {
     padding: 1rem !important;
     margin: 0.5rem 0 !important;
-    background-color: white !important;
   }
   
   .container {
