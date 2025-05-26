@@ -106,7 +106,7 @@
   }
 }
 
-/* MOBILE SPECIFIC STYLES - Complete override for all button and input styling */
+/* MOBILE SPECIFIC STYLES - Complete override for all styling */
 @media (max-width: 768px) {
   /* Force correct background colors */
   html, body, #root {
@@ -121,6 +121,26 @@
     top: 0 !important;
   }
   
+  /* ALL PRIMARY BUTTONS - Mobile */
+  button[class*="bg-rollback-primary"],
+  button:contains("Next"),
+  button:contains("Approve"),
+  button:contains("Create Proposal"),
+  button:contains("Create"),
+  button:contains("View Details"),
+  button:contains("Create Rollback Wallet"),
+  button:contains("Rollback Wallet"),
+  button:contains("Assign Agent"),
+  button:contains("Assign"),
+  button:contains("Generate Agent"),
+  .bg-rollback-primary,
+  [data-primary="true"],
+  .btn-primary {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
   /* Hamburger menu button */
   nav button[data-mobile-menu],
   button:has([data-lucide="menu"]),
@@ -131,22 +151,11 @@
     border: none !important;
   }
   
-  nav button[data-mobile-menu]:hover,
-  button:has([data-lucide="menu"]):hover,
-  nav button[aria-label*="menu" i]:hover,
-  nav .md\:hidden button:hover {
-    background-color: rgba(233, 163, 68, 0.9) !important;
-  }
-  
   /* Connect Wallet button */
   nav button[data-wallet-button] {
     background-color: #E9A344 !important;
     color: white !important;
     border: none !important;
-  }
-  
-  nav button[data-wallet-button]:hover {
-    background-color: rgba(233, 163, 68, 0.9) !important;
   }
   
   /* Connected state */
@@ -156,71 +165,110 @@
     color: #E9A344 !important;
   }
   
-  nav button[data-wallet-button][data-connected="true"]:hover {
-    background-color: #E9A344 !important;
-    color: white !important;
+  /* REMOVE ALL YELLOW STYLING - HIGHEST PRIORITY */
+  .bg-yellow-50,
+  .bg-yellow-100,
+  .bg-yellow-200,
+  .bg-yellow-300,
+  .bg-yellow-400,
+  .bg-yellow-500,
+  .bg-yellow-600,
+  .bg-yellow-700,
+  .bg-yellow-800,
+  .bg-yellow-900,
+  *[style*="background-color: yellow"],
+  *[style*="background: yellow"],
+  *[style*="background-color: #ffff"],
+  *[style*="background-color: #FFFF"],
+  *[style*="background: #ffff"],
+  *[style*="background: #FFFF"],
+  *[style*="background-color: #fff700"],
+  *[style*="background-color: #FFF700"],
+  *[style*="background: #fff700"],
+  *[style*="background: #FFF700"],
+  *[style*="background-color: #ffff00"],
+  *[style*="background-color: #FFFF00"],
+  *[style*="background: #ffff00"],
+  *[style*="background: #FFFF00"] {
+    background-color: white !important;
+    color: #3C2415 !important;
   }
   
-  /* ALL ACTION BUTTONS - Mobile */
-  button:contains("Next"),
-  button[aria-label*="next" i],
-  .container button:contains("Next"),
-  form button:contains("Next") {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
+  /* TABS STYLING - Remove yellow from tabs */
+  [data-radix-tabs-trigger],
+  .tabs-trigger,
+  button[data-state="active"],
+  button[aria-selected="true"] {
+    background-color: #FAEBD1 !important;
+    color: #3C2415 !important;
+    border: 1px solid #E9A344 !important;
   }
   
-  button:contains("Approve"),
-  button[class*="approve"],
-  button[aria-label*="approve" i],
-  button:has(.lucide-check) {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
+  button[data-state="inactive"],
+  button[aria-selected="false"] {
+    background-color: white !important;
+    color: #8B5E3C !important;
+    border: 1px solid #FAEBD1 !important;
   }
   
-  button:contains("Create Proposal"),
-  button:contains("Create"),
-  button[aria-label*="create" i],
-  button:has(.lucide-plus) {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
+  /* WALLET SELECTOR AND DROPDOWNS */
+  [data-radix-select-trigger],
+  .select-trigger,
+  select {
+    background-color: white !important;
+    border: 1px solid #FAEBD1 !important;
+    color: #3C2415 !important;
   }
   
-  button:contains("View Details"),
-  button[aria-label*="view" i],
-  button[aria-label*="details" i] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
+  /* TOKEN SELECTION CARDS - Match desktop */
+  .token-card,
+  [data-token-card],
+  .card,
+  [data-card] {
+    background-color: white !important;
+    border: 1px solid #FAEBD1 !important;
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
   }
   
-  button:contains("Create Rollback Wallet"),
-  button:contains("Rollback Wallet"),
-  button[aria-label*="rollback" i] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
+  /* CHECKBOXES AND RADIO BUTTONS */
+  input[type="checkbox"],
+  input[type="radio"],
+  [data-radix-checkbox-root],
+  [data-radix-radio-group-item] {
+    border: 2px solid #E9A344 !important;
+    background-color: white !important;
   }
   
-  button:contains("Assign Agent"),
-  button:contains("Assign"),
-  button[aria-label*="assign" i] {
+  input[type="checkbox"]:checked,
+  input[type="radio"]:checked,
+  [data-radix-checkbox-root][data-state="checked"],
+  [data-radix-radio-group-item][data-state="checked"] {
     background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
+    border-color: #E9A344 !important;
   }
   
-  /* Primary buttons - match desktop styling */
-  .bg-rollback-primary,
-  button[class*="bg-rollback-primary"],
-  .btn-primary,
-  [data-primary="true"] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
+  /* ROLLBACK MECHANISM CARDS */
+  .mechanism-card,
+  [data-mechanism-card] {
+    background-color: white !important;
+    border: 1px solid #FAEBD1 !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .mechanism-card:hover,
+  [data-mechanism-card]:hover {
+    border-color: #E9A344 !important;
+    background-color: #FAEBD1 !important;
+  }
+  
+  /* SUMMARY/REVIEW CARDS */
+  .summary-card,
+  [data-summary-card] {
+    background-color: #FAEBD1 !important;
+    border: 1px solid #E9A344 !important;
+    color: #3C2415 !important;
   }
   
   /* Remove ALL green colors from inputs and placeholders */
@@ -268,8 +316,8 @@
   .border-green-300,
   .border-green-400,
   .border-green-500 {
-    background-color: #FAEBD1 !important;
-    color: #8B5E3C !important;
+    background-color: white !important;
+    color: #3C2415 !important;
     border-color: #FAEBD1 !important;
   }
   
@@ -317,31 +365,6 @@
     background-color: white !important;
   }
   
-  /* Mobile responsive adjustments for cards and components */
-  .card,
-  [data-card] {
-    padding: 1rem !important;
-    margin-bottom: 1rem !important;
-  }
-  
-  /* Mobile responsive grid adjustments */
-  .grid {
-    grid-template-columns: 1fr !important;
-    gap: 1rem !important;
-  }
-  
-  /* Mobile responsive table adjustments */
-  table {
-    font-size: 0.875rem !important;
-  }
-  
-  /* Mobile responsive chart container */
-  .recharts-wrapper {
-    width: 100% !important;
-    height: auto !important;
-    min-height: 200px !important;
-  }
-  
   /* Mobile responsive button adjustments */
   button {
     padding: 0.75rem 1rem !important;
@@ -356,6 +379,27 @@
     max-width: 100% !important;
     background-color: white !important;
     border-color: #FAEBD1 !important;
+  }
+  
+  /* PROGRESS BARS */
+  .progress-bar,
+  [data-radix-progress-indicator] {
+    background-color: #E9A344 !important;
+  }
+  
+  /* BADGES */
+  .badge {
+    background-color: #FAEBD1 !important;
+    color: #3C2415 !important;
+    border: 1px solid #E9A344 !important;
+  }
+  
+  /* BACK BUTTONS - Yellow background fix */
+  button:contains("Back"),
+  button[aria-label*="back" i] {
+    background-color: #FAEBD1 !important;
+    color: #3C2415 !important;
+    border: 1px solid #E9A344 !important;
   }
 }
 
@@ -450,7 +494,7 @@ nav {
 *[style*="background-color: #00FF"],
 *[style*="background: #00ff"],
 *[style*="background: #00FF"] {
-  background-color: #FAEBD1 !important;
+  background-color: white !important;
 }
 
 *[style*="color: yellow"],
