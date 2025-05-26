@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -142,15 +141,19 @@ export default function Dashboard() {
               const wallet = mockWallets.find(w => w.id === value);
               if (wallet) setSelectedWallet(wallet);
             }}>
-              <SelectTrigger className="w-full lg:w-80 border-rollback-cream">
-                <SelectValue />
+              <SelectTrigger className="w-full lg:w-80 border-rollback-cream bg-rollback-light">
+                <SelectValue className="text-rollback-dark" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-rollback-light border-rollback-cream">
                 {mockWallets.map((wallet) => (
-                  <SelectItem key={wallet.id} value={wallet.id}>
+                  <SelectItem 
+                    key={wallet.id} 
+                    value={wallet.id}
+                    className="bg-rollback-light hover:bg-rollback-cream focus:bg-rollback-cream"
+                  >
                     <div className="flex items-center space-x-2">
-                      <Wallet className="h-4 w-4" />
-                      <span className="text-xs sm:text-sm">{wallet.address.slice(0, 10)}...{wallet.address.slice(-8)}</span>
+                      <Wallet className="h-4 w-4 text-rollback-dark" />
+                      <span className="text-xs sm:text-sm text-rollback-dark">{wallet.address.slice(0, 10)}...{wallet.address.slice(-8)}</span>
                       <Badge variant="outline" className={getStatusColor(wallet.status)}>
                         {wallet.status}
                       </Badge>

@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -411,8 +410,95 @@ nav {
 *[style*="background-color: #ffff00"],
 *[style*="background: #ffff00"],
 *[style*="color: #ffff00"],
-*[style*="border-color: #ffff00"] {
+*[style*="border-color: #ffff00"],
+*[style*="background-color: rgb(255, 255, 0)"],
+*[style*="background: rgb(255, 255, 0)"],
+*[style*="background-color: yellow"],
+*[style*="background: yellow"],
+[data-radix-select-trigger],
+[data-radix-select-content],
+[data-radix-select-item],
+[data-radix-select-viewport],
+[data-radix-select-group],
+[data-state="active"],
+[data-highlighted],
+[data-selected],
+[data-placeholder],
+[data-value],
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-yellow-500,
+.bg-yellow-600,
+.bg-yellow-700,
+.bg-yellow-800,
+.bg-yellow-900 {
   background-color: #FAEBD1 !important;
   color: #8B5E3C !important;
   border-color: #FAEBD1 !important;
+}
+
+@media (max-width: 768px) {
+  /* Force correct background colors */
+  html, body, #root {
+    background-color: #F9F3E5 !important;
+  }
+
+  /* Additional mobile-specific overrides for yellow backgrounds */
+  *[style*="background-color: #ffff00"],
+  *[style*="background: #ffff00"],
+  *[style*="color: #ffff00"],
+  *[style*="border-color: #ffff00"],
+  *[style*="background-color: rgb(255, 255, 0)"],
+  *[style*="background: rgb(255, 255, 0)"],
+  *[style*="background-color: yellow"],
+  *[style*="background: yellow"],
+  [data-radix-select-trigger],
+  [data-radix-select-content],
+  [data-radix-select-item],
+  [data-radix-select-viewport],
+  [data-radix-select-group],
+  [data-state="active"],
+  [data-highlighted],
+  [data-selected],
+  [data-placeholder],
+  [data-value],
+  .bg-yellow-50,
+  .bg-yellow-100,
+  .bg-yellow-200,
+  .bg-yellow-300,
+  .bg-yellow-400,
+  .bg-yellow-500,
+  .bg-yellow-600,
+  .bg-yellow-700,
+  .bg-yellow-800,
+  .bg-yellow-900 {
+    background-color: #FAEBD1 !important;
+    color: #8B5E3C !important;
+    border-color: #FAEBD1 !important;
+  }
+
+  /* Ensure text colors are correct */
+  [data-radix-select-trigger] *,
+  [data-radix-select-content] *,
+  [data-radix-select-item] *,
+  [data-radix-select-value] *,
+  [data-radix-select-viewport] *,
+  [data-radix-select-group] *,
+  [data-state="active"] *,
+  [data-highlighted] *,
+  [data-selected] *,
+  [data-placeholder] *,
+  [data-value] * {
+    color: #8B5E3C !important;
+  }
+
+  /* Override hover states */
+  [data-radix-select-item]:hover,
+  [data-radix-select-trigger]:hover {
+    background-color: #E9A344 !important;
+    color: white !important;
+  }
 }
