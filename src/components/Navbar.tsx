@@ -1,39 +1,21 @@
-
 'use client';
 
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useWeb3Modal } from '@web3modal/wagmi/react';
+import { useAccount, useDisconnect } from 'wagmi';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Wallet, 
-  Home, 
-  Plus, 
-  Settings, 
-  User,
+import {
   LayoutDashboard,
-  Bell
+  Plus,
+  Settings,
+  User,
+  Bell,
+  Menu,
+  X,
+  ExternalLink,
 } from 'lucide-react';
-
-// Mock wallet connection - replace with wagmi hooks
-const useWallet = () => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [address, setAddress] = useState<string | null>(null);
-
-  const connect = () => {
-    // Mock connection - replace with useConnect from wagmi
-    setIsConnected(true);
-    setAddress('0x1234...5678');
-  };
-
-  const disconnect = () => {
-    setIsConnected(false);
-    setAddress(null);
-  };
-
-  return { isConnected, address, connect, disconnect };
-};
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -44,25 +26,23 @@ const navigation = [
 ];
 
 export function Navbar() {
-  const { isConnected, address, connect, disconnect } = useWallet();
+  const { open } = useWeb3Modal();
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
   const { toast } = useToast();
   const location = useLocation();
   const pathname = location.pathname;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleWalletAction = () => {
+  const handleWalletAction = async () => {
     if (isConnected) {
-      disconnect();
+      await disconnect();
       toast({
         title: "Wallet Disconnected",
         description: "Your wallet has been disconnected successfully.",
       });
     } else {
-      connect();
-      toast({
-        title: "Wallet Connected",
-        description: "Your wallet has been connected successfully.",
-      });
+      await open();
     }
   };
 
@@ -71,112 +51,121 @@ export function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-[9999] w-full border-b border-rollback-cream bg-rollback-light backdrop-blur supports-[backdrop-filter]:bg-rollback-light">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3">
-            <div className="relative">
-              <img
-                src="/lovable-uploads/86a7596b-4477-45a7-88bb-9de6bbadd014.png"
-                alt="Rollback Wallet"
-                width={40}
-                height={40}
-                className="h-10 w-10"
-              />
+    <nav className="sticky top-0 z-50 w-full border-b border-rollback-cream bg-rollback-light">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 justify-between">
+          <div className="flex">
+            <div className="flex flex-shrink-0 items-center">
+              <Link to="/" className="text-2xl font-bold text-rollback-dark">
+                Rollback
+              </Link>
             </div>
-            <span className="text-xl font-bold text-rollback-dark">
-              Rollback
-            </span>
-          </Link>
+          </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex md:items-center md:space-x-6">
             {navigation.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-rollback-primary text-white'
-                      : 'text-rollback-brown hover:text-rollback-dark hover:bg-rollback-cream'
+                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                    pathname === item.href
+                      ? 'text-rollback-primary'
+                      : 'text-rollback-brown hover:text-rollback-primary'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.name}</span>
+                  <Icon className="h-4 w-4 mr-2" />
+                  {item.name}
                 </Link>
               );
             })}
-          </div>
-
-          {/* Wallet Connection */}
-          <div className="flex items-center space-x-4">
             <Button
               onClick={handleWalletAction}
-              className={
-                isConnected
-                  ? "bg-transparent border border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white"
-                  : "bg-rollback-primary hover:bg-rollback-primary/90 text-white border-none"
-              }
-              size="sm"
-              data-wallet-button="true"
+              data-wallet-button
               data-connected={isConnected}
+              className={`ml-4 ${
+                isConnected
+                  ? 'border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white'
+                  : 'bg-rollback-primary text-white hover:bg-rollback-primary/90'
+              }`}
             >
-              <Wallet className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">
-                {isConnected ? formatAddress(address!) : 'Connect Wallet'}
-              </span>
-              <span className="sm:hidden">
-                {isConnected ? 'Connected' : 'Connect'}
-              </span>
+              {isConnected ? (
+                <>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  {formatAddress(address || '')}
+                </>
+              ) : (
+                'Connect Wallet'
+              )}
             </Button>
+          </div>
 
-            {/* Mobile Menu */}
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild className="md:hidden">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="bg-transparent hover:bg-rollback-cream"
-                  data-mobile-menu="true"
-                >
-                  <div className="flex flex-col space-y-1">
-                    <div className="w-4 h-0.5 bg-rollback-dark"></div>
-                    <div className="w-4 h-0.5 bg-rollback-dark"></div>
-                    <div className="w-4 h-0.5 bg-rollback-dark"></div>
-                  </div>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-64 bg-rollback-light border-rollback-cream z-[9999]">
-                <div className="flex flex-col space-y-4 mt-8">
-                  {navigation.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = pathname === item.href;
-                    return (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center space-x-3 px-4 py-3 rounded-md text-sm font-medium transition-colors ${
-                          isActive
-                            ? 'bg-rollback-primary text-white'
-                            : 'text-rollback-brown hover:text-rollback-dark hover:bg-rollback-cream'
-                        }`}
-                      >
-                        <Icon className="h-5 w-5" />
-                        <span>{item.name}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </SheetContent>
-            </Sheet>
+          {/* Mobile menu button */}
+          <div className="flex items-center md:hidden">
+            <Button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="inline-flex items-center justify-center p-2"
+              aria-label="Main menu"
+              aria-expanded="false"
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </Button>
           </div>
         </div>
       </div>
+
+      {/* Mobile menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden">
+          <div className="space-y-1 pb-3 pt-2">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`block py-2 px-3 text-base font-medium ${
+                    pathname === item.href
+                      ? 'text-rollback-primary'
+                      : 'text-rollback-brown hover:text-rollback-primary'
+                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <div className="flex items-center">
+                    <Icon className="h-5 w-5 mr-3" />
+                    {item.name}
+                  </div>
+                </Link>
+              );
+            })}
+            <div className="px-3 py-2">
+              <Button
+                onClick={handleWalletAction}
+                className={`w-full justify-center ${
+                  isConnected
+                    ? 'border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white'
+                    : 'bg-rollback-primary text-white hover:bg-rollback-primary/90'
+                }`}
+              >
+                {isConnected ? (
+                  <>
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    {formatAddress(address || '')}
+                  </>
+                ) : (
+                  'Connect Wallet'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
