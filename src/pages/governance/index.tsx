@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -293,7 +292,7 @@ export default function Governance() {
 
                 <div className="flex space-x-2">
                   <Button
-                    variant="outline"
+                    variant="back"
                     onClick={() => setIsCreatingProposal(false)}
                     className="flex-1"
                   >
@@ -422,12 +421,12 @@ export default function Governance() {
                         Approve
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="reject"
                         onClick={() => {
                           handleVote(selectedProposal.id, 'reject');
                           setSelectedProposal(null);
                         }}
-                        className="flex-1 border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                        className="flex-1"
                       >
                         <X className="h-4 w-4 mr-2" />
                         Reject

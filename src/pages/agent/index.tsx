@@ -213,7 +213,7 @@ export default function AgentManagement() {
               </div>
 
               <div className="flex space-x-2">
-                <Button onClick={handleGenerateAgent} disabled={isGenerating} variant="outline" className="flex-1 border-rollback-primary text-rollback-primary">
+                <Button onClick={handleGenerateAgent} disabled={isGenerating} variant="unit" className="flex-1">
                   {isGenerating ? 'Generating...' : 'Generate Agent'}
                 </Button>
                 <Button onClick={handleAssignAgent} disabled={isAssigning || !newAgentAddress} className="flex-1 bg-rollback-primary hover:bg-rollback-primary/90">

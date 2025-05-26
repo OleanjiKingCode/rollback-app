@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -419,7 +418,7 @@ export default function CreateRollbackWallet() {
               
               <div className="flex space-x-4">
                 <Button
-                  variant="outline"
+                  variant="back"
                   onClick={() => setCurrentStep(currentStep - 1)}
                   className="flex-1"
                 >
@@ -469,7 +468,7 @@ export default function CreateRollbackWallet() {
           <div className="flex space-x-4">
             {currentStep > 1 && (
               <Button
-                variant="outline"
+                variant="back"
                 onClick={() => setCurrentStep(currentStep - 1)}
                 className="flex-1"
               >
