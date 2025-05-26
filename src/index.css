@@ -360,17 +360,7 @@
 }
 
 /* GLOBAL COLOR REPLACEMENTS - Apply to ALL devices */
-/* Remove ALL yellow and green colors */
-.bg-yellow-50,
-.bg-yellow-100,
-.bg-yellow-200,
-.bg-yellow-300,
-.bg-yellow-400,
-.bg-yellow-500,
-.bg-yellow-600,
-.bg-yellow-700,
-.bg-yellow-800,
-.bg-yellow-900,
+/* Remove ALL green colors */
 .bg-green-50,
 .bg-green-100,
 .bg-green-200,
@@ -384,16 +374,6 @@
   background-color: #FAEBD1 !important;
 }
 
-.text-yellow-50,
-.text-yellow-100,
-.text-yellow-200,
-.text-yellow-300,
-.text-yellow-400,
-.text-yellow-500,
-.text-yellow-600,
-.text-yellow-700,
-.text-yellow-800,
-.text-yellow-900,
 .text-green-50,
 .text-green-100,
 .text-green-200,
@@ -407,16 +387,6 @@
   color: #8B5E3C !important;
 }
 
-.border-yellow-50,
-.border-yellow-100,
-.border-yellow-200,
-.border-yellow-300,
-.border-yellow-400,
-.border-yellow-500,
-.border-yellow-600,
-.border-yellow-700,
-.border-yellow-800,
-.border-yellow-900,
 .border-green-50,
 .border-green-100,
 .border-green-200,
@@ -437,36 +407,12 @@ nav {
   position: relative !important;
 }
 
-/* FORCE YELLOW AND GREEN REPLACEMENTS GLOBALLY WITH HIGHEST SPECIFICITY */
-*[style*="background-color: yellow"],
-*[style*="background: yellow"],
-*[style*="background-color: green"],
-*[style*="background: green"],
-*[style*="background-color: #ffff"],
-*[style*="background-color: #FFFF"],
-*[style*="background: #ffff"],
-*[style*="background: #FFFF"],
-*[style*="background-color: #00ff"],
-*[style*="background-color: #00FF"],
-*[style*="background: #00ff"],
-*[style*="background: #00FF"] {
+/* REMOVE ALL #ffff00 REFERENCES GLOBALLY WITH HIGHEST SPECIFICITY */
+*[style*="background-color: #ffff00"],
+*[style*="background: #ffff00"],
+*[style*="color: #ffff00"],
+*[style*="border-color: #ffff00"] {
   background-color: #FAEBD1 !important;
-}
-
-*[style*="color: yellow"],
-*[style*="color: green"],
-*[style*="color: #ffff"],
-*[style*="color: #FFFF"],
-*[style*="color: #00ff"],
-*[style*="color: #00FF"] {
   color: #8B5E3C !important;
-}
-
-*[style*="border-color: yellow"],
-*[style*="border-color: green"],
-*[style*="border-color: #ffff"],
-*[style*="border-color: #FFFF"],
-*[style*="border-color: #00ff"],
-*[style*="border-color: #00FF"] {
   border-color: #FAEBD1 !important;
 }

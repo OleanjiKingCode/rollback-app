@@ -47,111 +47,96 @@ html, body, #root {
   @apply bg-rollback-light !important;
 }
 
-/* COMPREHENSIVE YELLOW COLOR REPLACEMENT */
-/* Background colors - all devices */
-.bg-yellow-50,
-.bg-yellow-100,
-.bg-yellow-200,
-.bg-yellow-300,
-.bg-yellow-400,
-.bg-yellow-500,
-.bg-yellow-600,
-.bg-yellow-700,
-.bg-yellow-800,
-.bg-yellow-900 {
-  @apply bg-rollback-cream !important;
-}
-
-/* Text colors - all devices */
-.text-yellow-50,
-.text-yellow-100,
-.text-yellow-200,
-.text-yellow-300,
-.text-yellow-400,
-.text-yellow-500,
-.text-yellow-600,
-.text-yellow-700,
-.text-yellow-800,
-.text-yellow-900 {
-  @apply text-rollback-brown !important;
-}
-
-/* Border colors - all devices */
-.border-yellow-50,
-.border-yellow-100,
-.border-yellow-200,
-.border-yellow-300,
-.border-yellow-400,
-.border-yellow-500,
-.border-yellow-600,
-.border-yellow-700,
-.border-yellow-800,
-.border-yellow-900 {
-  @apply border-rollback-cream !important;
-}
-
-/* AGGRESSIVE INLINE STYLE OVERRIDES */
-*[style*="background-color: yellow"],
-*[style*="background: yellow"],
-*[style*="background-color: #ffff"],
-*[style*="background-color: #FFFF"],
-*[style*="background: #ffff"],
-*[style*="background: #FFFF"],
-*[style*="background-color: #fff700"],
-*[style*="background-color: #FFF700"],
-*[style*="background: #fff700"],
-*[style*="background: #FFF700"],
-*[style*="background-color: #ffff00"],
-*[style*="background-color: #FFFF00"],
-*[style*="background: #ffff00"],
-*[style*="background: #FFFF00"] {
+/* Remove green from any form elements */
+.bg-green-50,
+.bg-green-100,
+.bg-green-200,
+.bg-green-300,
+.bg-green-400,
+.bg-green-500,
+.bg-green-600,
+.bg-green-700,
+.bg-green-800,
+.bg-green-900 {
   background-color: #FAEBD1 !important;
 }
 
-*[style*="color: yellow"],
-*[style*="color: #ffff"],
-*[style*="color: #FFFF"],
-*[style*="color: #fff700"],
-*[style*="color: #FFF700"],
-*[style*="color: #ffff00"],
-*[style*="color: #FFFF00"] {
+.text-green-50,
+.text-green-100,
+.text-green-200,
+.text-green-300,
+.text-green-400,
+.text-green-500,
+.text-green-600,
+.text-green-700,
+.text-green-800,
+.text-green-900 {
   color: #8B5E3C !important;
 }
 
-*[style*="border-color: yellow"],
-*[style*="border-color: #ffff"],
-*[style*="border-color: #FFFF"],
-*[style*="border-color: #fff700"],
-*[style*="border-color: #FFF700"],
-*[style*="border-color: #ffff00"],
-*[style*="border-color: #FFFF00"] {
+.border-green-50,
+.border-green-100,
+.border-green-200,
+.border-green-300,
+.border-green-400,
+.border-green-500,
+.border-green-600,
+.border-green-700,
+.border-green-800,
+.border-green-900 {
+  border-color: #FAEBD1 !important;
+}
+
+/* REMOVE ALL #ffff00 REFERENCES */
+*[style*="background-color: #ffff00"],
+*[style*="background: #ffff00"],
+*[style*="color: #ffff00"],
+*[style*="border-color: #ffff00"] {
+  background-color: #FAEBD1 !important;
+  color: #8B5E3C !important;
   border-color: #FAEBD1 !important;
 }
 
 /* MOBILE SPECIFIC OVERRIDES */
 @media (max-width: 768px) {
-  /* Force all yellow backgrounds to rollback cream on mobile */
-  .bg-yellow-50,
-  .bg-yellow-100,
-  .bg-yellow-200,
-  .bg-yellow-300,
-  .bg-yellow-400,
-  .bg-yellow-500,
-  .bg-yellow-600,
-  .bg-yellow-700,
-  .bg-yellow-800,
-  .bg-yellow-900,
-  button[style*="background-color: yellow"],
-  button[style*="background: yellow"],
-  div[style*="background-color: yellow"],
-  div[style*="background: yellow"],
-  span[style*="background-color: yellow"],
-  span[style*="background: yellow"],
-  input[style*="background-color: yellow"],
-  input[style*="background: yellow"],
-  select[style*="background-color: yellow"],
-  select[style*="background: yellow"] {
+  /* Force all green backgrounds to rollback cream on mobile */
+  .bg-green-50,
+  .bg-green-100,
+  .bg-green-200,
+  .bg-green-300,
+  .bg-green-400,
+  .bg-green-500,
+  .bg-green-600,
+  .bg-green-700,
+  .bg-green-800,
+  .bg-green-900,
+  button[style*="background-color: green"],
+  button[style*="background: green"],
+  div[style*="background-color: green"],
+  div[style*="background: green"],
+  span[style*="background-color: green"],
+  span[style*="background: green"],
+  input[style*="background-color: green"],
+  input[style*="background: green"],
+  select[style*="background-color: green"],
+  select[style*="background: green"] {
     background-color: #FAEBD1 !important;
+  }
+  
+  /* Remove all #ffff00 on mobile */
+  button[style*="background-color: #ffff00"],
+  button[style*="background: #ffff00"],
+  div[style*="background-color: #ffff00"],
+  div[style*="background: #ffff00"],
+  span[style*="background-color: #ffff00"],
+  span[style*="background: #ffff00"],
+  input[style*="background-color: #ffff00"],
+  input[style*="background: #ffff00"],
+  select[style*="background-color: #ffff00"],
+  select[style*="background: #ffff00"] {
+    background-color: #FAEBD1 !important;
+    color: #8B5E3C !important;
+    border-color: #FAEBD1 !important;
   }
   
   /* Responsive adjustments for mobile */
