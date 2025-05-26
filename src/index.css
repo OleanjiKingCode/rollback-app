@@ -188,26 +188,32 @@
     border: none !important;
   }
   
-  button:contains("View Details"),
   button:contains("View Distribution"),
-  button[aria-label*="view" i],
-  button[aria-label*="details" i],
-  button[variant="ghost"] {
+  button:contains("View Details"),
+  button[aria-label*="view"],
+  button[aria-label*="distribution"],
+  button[aria-label*="details"] {
     background-color: transparent !important;
     color: #E9A344 !important;
-    border: 1px solid #E9A344 !important;
-    border-radius: 0.5rem !important;
+    border: 1.5px solid #E9A344 !important;
+    border-radius: 9999px !important; /* Full rounded */
+    padding: 0.5rem 1.5rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease-in-out !important;
   }
   
-  button:contains("View Details"):hover,
   button:contains("View Distribution"):hover,
-  button[aria-label*="view" i]:hover,
-  button[aria-label*="details" i]:hover,
-  button[variant="ghost"]:hover {
+  button:contains("View Details"):hover,
+  button[aria-label*="view"]:hover,
+  button[aria-label*="distribution"]:hover,
+  button[aria-label*="details"]:hover {
     background-color: rgba(233, 163, 68, 0.1) !important;
     color: #E9A344 !important;
-    border: 1px solid #E9A344 !important;
-    border-radius: 0.5rem !important;
+    border: 1.5px solid #E9A344 !important;
   }
   
   button:contains("Create Rollback Wallet"),
@@ -560,7 +566,7 @@ button[class*="back"]:hover {
   color: #E9A344 !important;
 }
 
-/* Mobile specific overrides */
+/* Mobile specific adjustments */
 @media (max-width: 768px) {
   [data-radix-select-trigger],
   button[class*="back"] {
@@ -575,4 +581,23 @@ button[class*="back"]:hover {
     border-color: #E9A344 !important;
     color: #E9A344 !important;
   }
+
+  button:contains("View Distribution"),
+  button:contains("View Details"),
+  button[aria-label*="view"],
+  button[aria-label*="distribution"],
+  button[aria-label*="details"] {
+    width: 100% !important;
+    justify-content: center !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+}
+
+/* Ensure icons in these buttons are properly styled */
+button:contains("View Distribution") svg,
+button:contains("View Details") svg {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  color: #E9A344 !important;
 }
