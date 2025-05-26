@@ -106,205 +106,22 @@
   }
 }
 
-/* AGGRESSIVE YELLOW COLOR REMOVAL - HIGHEST PRIORITY */
-* {
-  /* Remove any yellow backgrounds */
-  background-color: inherit !important;
-  color: inherit !important;
-}
-
-/* Specific yellow color overrides with maximum specificity */
-*[style*="#ffff00"],
-*[style*="#FFFF00"],
-*[style*="yellow"],
-*[style*="rgb(255, 255, 0)"],
-*[style*="hsl(60, 100%, 50%)"],
-.bg-yellow-50,
-.bg-yellow-100,
-.bg-yellow-200,
-.bg-yellow-300,
-.bg-yellow-400,
-.bg-yellow-500,
-.bg-yellow-600,
-.bg-yellow-700,
-.bg-yellow-800,
-.bg-yellow-900,
-button[style*="#ffff00"],
-div[style*="#ffff00"],
-span[style*="#ffff00"],
-input[style*="#ffff00"],
-select[style*="#ffff00"],
-section[style*="#ffff00"],
-header[style*="#ffff00"],
-nav[style*="#ffff00"],
-main[style*="#ffff00"],
-aside[style*="#ffff00"],
-footer[style*="#ffff00"],
-article[style*="#ffff00"],
-p[style*="#ffff00"],
-h1[style*="#ffff00"],
-h2[style*="#ffff00"],
-h3[style*="#ffff00"],
-h4[style*="#ffff00"],
-h5[style*="#ffff00"],
-h6[style*="#ffff00"],
-label[style*="#ffff00"],
-form[style*="#ffff00"],
-fieldset[style*="#ffff00"],
-legend[style*="#ffff00"],
-table[style*="#ffff00"],
-thead[style*="#ffff00"],
-tbody[style*="#ffff00"],
-tfoot[style*="#ffff00"],
-tr[style*="#ffff00"],
-td[style*="#ffff00"],
-th[style*="#ffff00"],
-ul[style*="#ffff00"],
-ol[style*="#ffff00"],
-li[style*="#ffff00"],
-dl[style*="#ffff00"],
-dt[style*="#ffff00"],
-dd[style*="#ffff00"] {
-  background-color: #E9A344 !important;
-  color: white !important;
-  border-color: #E9A344 !important;
-}
-
-/* Target ALL possible selectors and dialogs */
-[data-radix-dialog-content],
-[data-radix-select-content],
-[data-radix-popover-content],
-[role="dialog"],
-[role="listbox"],
-[role="combobox"],
-.sheet-content,
-.dialog-content,
-.select-content,
-.popover-content {
-  background-color: white !important;
-}
-
-/* Wallet selector specific targeting */
-[data-radix-select-trigger],
-[data-radix-select-content],
-button[role="combobox"] {
-  background-color: white !important;
-  border-color: #FAEBD1 !important;
-  color: #3C2415 !important;
-}
-
-[data-radix-select-trigger]:focus,
-[data-radix-select-content]:focus,
-button[role="combobox"]:focus {
-  background-color: white !important;
-  border-color: #E9A344 !important;
-  box-shadow: 0 0 0 2px rgba(233, 163, 68, 0.2) !important;
-}
-
-/* Force navbar styling */
-nav {
-  background-color: #F9F3E5 !important;
-  z-index: 9999 !important;
-  position: relative !important;
-}
-
-/* Mobile-specific overrides with maximum priority */
+/* MOBILE SPECIFIC STYLES - Complete override for all button and input styling */
 @media (max-width: 768px) {
   /* Force correct background colors */
   html, body, #root {
     background-color: #F9F3E5 !important;
   }
   
-  /* Target every possible element that could have yellow */
-  * {
-    background-color: inherit !important;
-    color: inherit !important;
+  /* Navbar styling - highest priority */
+  nav {
+    background-color: #F9F3E5 !important;
+    z-index: 9999 !important;
+    position: sticky !important;
+    top: 0 !important;
   }
   
-  /* Specific targeting for buttons */
-  button,
-  [role="button"],
-  input[type="button"],
-  input[type="submit"],
-  input[type="reset"] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-  }
-  
-  /* Back buttons specific styling */
-  button:contains("Back"),
-  button[aria-label*="back" i],
-  button:has([data-lucide="arrow-left"]) {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-  }
-  
-  /* Next buttons specific styling */
-  button:contains("Next"),
-  button[aria-label*="next" i],
-  button:has([data-lucide="arrow-right"]) {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-  }
-  
-  /* Create proposal buttons */
-  button:contains("Create Proposal"),
-  button:contains("Create"),
-  button[aria-label*="create" i] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-  }
-  
-  /* Approve/Reject buttons */
-  button:contains("Approve"),
-  button:contains("Reject"),
-  button[aria-label*="approve" i],
-  button[aria-label*="reject" i] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-  }
-  
-  /* View Details buttons */
-  button:contains("View Details"),
-  button[aria-label*="view" i],
-  button[aria-label*="details" i] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-  }
-  
-  /* Create Rollback Wallet buttons */
-  button:contains("Create Rollback Wallet"),
-  button:contains("Rollback Wallet"),
-  button[aria-label*="rollback" i] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-  }
-  
-  /* Generate Agent buttons */
-  button:contains("Generate Agent"),
-  button[aria-label*="generate" i] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-  }
-  
-  /* Assign Agent buttons */
-  button:contains("Assign Agent"),
-  button:contains("Assign"),
-  button[aria-label*="assign" i] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-  }
-  
-  /* Navbar hamburger menu button */
+  /* Hamburger menu button */
   nav button[data-mobile-menu],
   button:has([data-lucide="menu"]),
   nav button[aria-label*="menu" i],
@@ -314,11 +131,22 @@ nav {
     border: none !important;
   }
   
+  nav button[data-mobile-menu]:hover,
+  button:has([data-lucide="menu"]):hover,
+  nav button[aria-label*="menu" i]:hover,
+  nav .md\:hidden button:hover {
+    background-color: rgba(233, 163, 68, 0.9) !important;
+  }
+  
   /* Connect Wallet button */
   nav button[data-wallet-button] {
     background-color: #E9A344 !important;
     color: white !important;
     border: none !important;
+  }
+  
+  nav button[data-wallet-button]:hover {
+    background-color: rgba(233, 163, 68, 0.9) !important;
   }
   
   /* Connected state */
@@ -328,13 +156,78 @@ nav {
     color: #E9A344 !important;
   }
   
-  /* Input fields and selects */
+  nav button[data-wallet-button][data-connected="true"]:hover {
+    background-color: #E9A344 !important;
+    color: white !important;
+  }
+  
+  /* ALL ACTION BUTTONS - Mobile */
+  button:contains("Next"),
+  button[aria-label*="next" i],
+  .container button:contains("Next"),
+  form button:contains("Next") {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  button:contains("Approve"),
+  button[class*="approve"],
+  button[aria-label*="approve" i],
+  button:has(.lucide-check) {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  button:contains("Create Proposal"),
+  button:contains("Create"),
+  button[aria-label*="create" i],
+  button:has(.lucide-plus) {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  button:contains("View Details"),
+  button[aria-label*="view" i],
+  button[aria-label*="details" i] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  button:contains("Create Rollback Wallet"),
+  button:contains("Rollback Wallet"),
+  button[aria-label*="rollback" i] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  button:contains("Assign Agent"),
+  button:contains("Assign"),
+  button[aria-label*="assign" i] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  /* Primary buttons - match desktop styling */
+  .bg-rollback-primary,
+  button[class*="bg-rollback-primary"],
+  .btn-primary,
+  [data-primary="true"] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  /* Remove ALL green colors from inputs and placeholders */
   input,
   textarea,
   select,
-  [role="textbox"],
-  [role="combobox"],
-  [data-radix-select-trigger] {
+  [role="textbox"] {
     background-color: white !important;
     border-color: #FAEBD1 !important;
     color: #3C2415 !important;
@@ -349,79 +242,55 @@ nav {
   input:focus,
   textarea:focus,
   select:focus,
-  [role="textbox"]:focus,
-  [role="combobox"]:focus,
-  [data-radix-select-trigger]:focus {
+  [role="textbox"]:focus {
     background-color: white !important;
     border-color: #E9A344 !important;
     outline: none !important;
     box-shadow: 0 0 0 2px rgba(233, 163, 68, 0.2) !important;
   }
   
-  /* Dropdown and select content */
-  [data-radix-select-content],
-  [data-radix-popover-content],
-  [role="listbox"] {
-    background-color: white !important;
+  /* Remove green from any form elements */
+  .bg-green-50,
+  .bg-green-100,
+  .bg-green-200,
+  .bg-green-300,
+  .bg-green-400,
+  .bg-green-500,
+  .text-green-50,
+  .text-green-100,
+  .text-green-200,
+  .text-green-300,
+  .text-green-400,
+  .text-green-500,
+  .border-green-50,
+  .border-green-100,
+  .border-green-200,
+  .border-green-300,
+  .border-green-400,
+  .border-green-500 {
+    background-color: #FAEBD1 !important;
+    color: #8B5E3C !important;
     border-color: #FAEBD1 !important;
   }
   
-  /* Remove ALL possible yellow references */
-  .bg-yellow-50,
-  .bg-yellow-100,
-  .bg-yellow-200,
-  .bg-yellow-300,
-  .bg-yellow-400,
-  .bg-yellow-500,
-  .bg-yellow-600,
-  .bg-yellow-700,
-  .bg-yellow-800,
-  .bg-yellow-900,
-  .text-yellow-50,
-  .text-yellow-100,
-  .text-yellow-200,
-  .text-yellow-300,
-  .text-yellow-400,
-  .text-yellow-500,
-  .text-yellow-600,
-  .text-yellow-700,
-  .text-yellow-800,
-  .text-yellow-900,
-  .border-yellow-50,
-  .border-yellow-100,
-  .border-yellow-200,
-  .border-yellow-300,
-  .border-yellow-400,
-  .border-yellow-500,
-  .border-yellow-600,
-  .border-yellow-700,
-  .border-yellow-800,
-  .border-yellow-900,
-  *[style*="background-color: #ffff00"],
-  *[style*="background: #ffff00"],
-  *[style*="color: #ffff00"],
-  *[style*="border-color: #ffff00"],
-  *[style*="background-color: yellow"],
-  *[style*="background: yellow"],
-  *[style*="color: yellow"],
-  *[style*="border-color: yellow"] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border-color: #E9A344 !important;
-  }
-  
-  /* Card and container styling */
-  .card,
-  [data-card] {
-    background-color: white !important;
-    border-color: #FAEBD1 !important;
-  }
-  
-  /* Sidebar styling */
+  /* Sidebar styling on mobile */
   [data-radix-dialog-content],
   .sheet-content,
   [data-radix-sheet-content] {
     background-color: #E9A344 !important;
+  }
+  
+  /* Sidebar links styling */
+  [data-radix-dialog-content] a,
+  .sheet-content a,
+  [data-radix-sheet-content] a {
+    color: white !important;
+  }
+  
+  [data-radix-dialog-content] a:hover,
+  .sheet-content a:hover,
+  [data-radix-sheet-content] a:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
   }
   
   /* Navigation links */
@@ -439,82 +308,59 @@ nav {
     background-color: #E9A344 !important;
     color: white !important;
   }
+  
+  /* Ensure modals and dialogs are responsive */
+  [data-radix-dialog-content] {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 1rem !important;
+    background-color: white !important;
+  }
+  
+  /* Mobile responsive adjustments for cards and components */
+  .card,
+  [data-card] {
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  /* Mobile responsive grid adjustments */
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  
+  /* Mobile responsive table adjustments */
+  table {
+    font-size: 0.875rem !important;
+  }
+  
+  /* Mobile responsive chart container */
+  .recharts-wrapper {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 200px !important;
+  }
+  
+  /* Mobile responsive button adjustments */
+  button {
+    padding: 0.75rem 1rem !important;
+    font-size: 0.875rem !important;
+    min-height: 44px !important;
+    touch-action: manipulation !important;
+  }
+  
+  /* Mobile responsive select adjustments */
+  [data-radix-select-trigger] {
+    width: 100% !important;
+    max-width: 100% !important;
+    background-color: white !important;
+    border-color: #FAEBD1 !important;
+  }
 }
 
-/* Global aggressive yellow removal */
-.bg-yellow-50,
-.bg-yellow-100,
-.bg-yellow-200,
-.bg-yellow-300,
-.bg-yellow-400,
-.bg-yellow-500,
-.bg-yellow-600,
-.bg-yellow-700,
-.bg-yellow-800,
-.bg-yellow-900 {
-  background-color: #E9A344 !important;
-}
-
-.text-yellow-50,
-.text-yellow-100,
-.text-yellow-200,
-.text-yellow-300,
-.text-yellow-400,
-.text-yellow-500,
-.text-yellow-600,
-.text-yellow-700,
-.text-yellow-800,
-.text-yellow-900 {
-  color: white !important;
-}
-
-.border-yellow-50,
-.border-yellow-100,
-.border-yellow-200,
-.border-yellow-300,
-.border-yellow-400,
-.border-yellow-500,
-.border-yellow-600,
-.border-yellow-700,
-.border-yellow-800,
-.border-yellow-900 {
-  border-color: #E9A344 !important;
-}
-
-/* Targeted removal of #ffff00 with highest specificity */
-*[style*="background-color: #ffff00"] {
-  background-color: #E9A344 !important;
-}
-
-*[style*="background: #ffff00"] {
-  background-color: #E9A344 !important;
-}
-
-*[style*="color: #ffff00"] {
-  color: white !important;
-}
-
-*[style*="border-color: #ffff00"] {
-  border-color: #E9A344 !important;
-}
-
-*[style*="background-color: yellow"] {
-  background-color: #E9A344 !important;
-}
-
-*[style*="background: yellow"] {
-  background-color: #E9A344 !important;
-}
-
-*[style*="color: yellow"] {
-  color: white !important;
-}
-
-*[style*="border-color: yellow"] {
-  border-color: #E9A344 !important;
-}
-
-/* Remove green colors globally */
+/* GLOBAL COLOR REPLACEMENTS - Apply to ALL devices */
+/* Remove ALL green colors */
 .bg-green-50,
 .bg-green-100,
 .bg-green-200,
@@ -551,5 +397,22 @@ nav {
 .border-green-700,
 .border-green-800,
 .border-green-900 {
+  border-color: #FAEBD1 !important;
+}
+
+/* Force navbar styling with highest priority */
+nav {
+  background-color: #F9F3E5 !important;
+  z-index: 9999 !important;
+  position: relative !important;
+}
+
+/* REMOVE ALL #ffff00 REFERENCES GLOBALLY WITH HIGHEST SPECIFICITY */
+*[style*="background-color: #ffff00"],
+*[style*="background: #ffff00"],
+*[style*="color: #ffff00"],
+*[style*="border-color: #ffff00"] {
+  background-color: #FAEBD1 !important;
+  color: #8B5E3C !important;
   border-color: #FAEBD1 !important;
 }
