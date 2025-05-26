@@ -196,6 +196,7 @@
     background-color: transparent !important;
     color: #E9A344 !important;
     border: 1px solid #E9A344 !important;
+    border-radius: 0.5rem !important;
   }
   
   button:contains("View Details"):hover,
@@ -206,6 +207,7 @@
     background-color: rgba(233, 163, 68, 0.1) !important;
     color: #E9A344 !important;
     border: 1px solid #E9A344 !important;
+    border-radius: 0.5rem !important;
   }
   
   button:contains("Create Rollback Wallet"),
