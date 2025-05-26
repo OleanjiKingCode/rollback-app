@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -250,15 +249,15 @@ export default function Subscription() {
                   </tr>
                   <tr>
                     <td className="py-3 px-4 text-rollback-brown">Priority Support</td>
-                    <td className="py-3 px-4 text-center"><X className="h-4 w-4 text-red-500 mx-auto" /></td>
-                    <td className="py-3 px-4 text-center"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
-                    <td className="py-3 px-4 text-center"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><X className="h-4 w-4 text-rollback-brown mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><Check className="h-4 w-4 text-rollback-primary mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><Check className="h-4 w-4 text-rollback-primary mx-auto" /></td>
                   </tr>
                   <tr>
                     <td className="py-3 px-4 text-rollback-brown">API Access</td>
-                    <td className="py-3 px-4 text-center"><X className="h-4 w-4 text-red-500 mx-auto" /></td>
-                    <td className="py-3 px-4 text-center"><X className="h-4 w-4 text-red-500 mx-auto" /></td>
-                    <td className="py-3 px-4 text-center"><Check className="h-4 w-4 text-green-600 mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><X className="h-4 w-4 text-rollback-brown mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><X className="h-4 w-4 text-rollback-brown mx-auto" /></td>
+                    <td className="py-3 px-4 text-center"><Check className="h-4 w-4 text-rollback-primary mx-auto" /></td>
                   </tr>
                 </tbody>
               </table>

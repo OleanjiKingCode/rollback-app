@@ -91,7 +91,7 @@ export default function AgentManagement() {
       case 'active':
         return 'bg-rollback-primary/10 text-rollback-primary border-rollback-primary';
       case 'no-agent':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-rollback-cream text-rollback-brown border-rollback-brown';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -174,12 +174,12 @@ export default function AgentManagement() {
                     </ul>
                   </div>
                 </div> : <div className="space-y-4">
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="p-4 bg-rollback-cream border border-rollback-brown rounded-lg">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Shield className="h-4 w-4 text-yellow-600" />
-                      <span className="font-medium text-yellow-800">No Agent Assigned</span>
+                      <Shield className="h-4 w-4 text-rollback-brown" />
+                      <span className="font-medium text-rollback-brown">No Agent Assigned</span>
                     </div>
-                    <p className="text-sm text-yellow-700">
+                    <p className="text-sm text-rollback-brown">
                       This rollback wallet doesn't have an agent wallet assigned. 
                       Consider assigning one for enhanced features.
                     </p>
