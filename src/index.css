@@ -106,7 +106,100 @@
   }
 }
 
-/* MOBILE SPECIFIC STYLES - Complete override for all styling */
+/* GLOBAL YELLOW COLOR REPLACEMENTS - Apply to ALL devices */
+/* Background colors */
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-yellow-500,
+.bg-yellow-600,
+.bg-yellow-700,
+.bg-yellow-800,
+.bg-yellow-900,
+[style*="background-color: yellow"],
+[style*="background: yellow"],
+[style*="background-color: #ffff"],
+[style*="background-color: #FFFF"],
+[style*="background: #ffff"],
+[style*="background: #FFFF"],
+[style*="background-color: #fff700"],
+[style*="background-color: #FFF700"],
+[style*="background: #fff700"],
+[style*="background: #FFF700"] {
+  background-color: #FAEBD1 !important;
+}
+
+/* Text colors */
+.text-yellow-50,
+.text-yellow-100,
+.text-yellow-200,
+.text-yellow-300,
+.text-yellow-400,
+.text-yellow-500,
+.text-yellow-600,
+.text-yellow-700,
+.text-yellow-800,
+.text-yellow-900,
+[style*="color: yellow"],
+[style*="color: #ffff"],
+[style*="color: #FFFF"],
+[style*="color: #fff700"],
+[style*="color: #FFF700"] {
+  color: #8B5E3C !important;
+}
+
+/* Border colors */
+.border-yellow-50,
+.border-yellow-100,
+.border-yellow-200,
+.border-yellow-300,
+.border-yellow-400,
+.border-yellow-500,
+.border-yellow-600,
+.border-yellow-700,
+.border-yellow-800,
+.border-yellow-900,
+[style*="border-color: yellow"],
+[style*="border-color: #ffff"],
+[style*="border-color: #FFFF"],
+[style*="border-color: #fff700"],
+[style*="border-color: #FFF700"] {
+  border-color: #FAEBD1 !important;
+}
+
+/* Force navbar styling with highest priority */
+nav {
+  background-color: #F9F3E5 !important;
+  z-index: 9999 !important;
+  position: relative !important;
+}
+
+/* Ensure all overlays don't interfere with navbar */
+[data-radix-popper-content-wrapper] {
+  z-index: 8888 !important;
+}
+
+[data-state="open"] {
+  z-index: 8888 !important;
+}
+
+/* Custom animations for rollback branding */
+@keyframes pulse-rollback {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-rollback {
+  animation: pulse-rollback 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* MOBILE SPECIFIC STYLES - Complete override for all yellow colors */
 @media (max-width: 768px) {
   /* Force correct background colors */
   html, body, #root {
@@ -121,34 +214,23 @@
     top: 0 !important;
   }
   
-  /* ALL PRIMARY BUTTONS - Mobile */
-  button[class*="bg-rollback-primary"],
-  button:contains("Next"),
-  button:contains("Approve"),
-  button:contains("Create Proposal"),
-  button:contains("Create"),
-  button:contains("View Details"),
-  button:contains("Create Rollback Wallet"),
-  button:contains("Rollback Wallet"),
-  button:contains("Assign Agent"),
-  button:contains("Assign"),
-  button:contains("Generate Agent"),
-  .bg-rollback-primary,
-  [data-primary="true"],
-  .btn-primary {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
+  /* All button styling */
+  button,
+  .btn,
+  [role="button"] {
+    background-color: inherit !important;
   }
   
   /* Hamburger menu button */
   nav button[data-mobile-menu],
-  button:has([data-lucide="menu"]),
-  nav button[aria-label*="menu" i],
-  nav .md\:hidden button {
+  button:has([data-lucide="menu"]) {
     background-color: #E9A344 !important;
     color: white !important;
-    border: none !important;
+  }
+  
+  nav button[data-mobile-menu]:hover,
+  button:has([data-lucide="menu"]):hover {
+    background-color: rgba(233, 163, 68, 0.9) !important;
   }
   
   /* Connect Wallet button */
@@ -158,6 +240,10 @@
     border: none !important;
   }
   
+  nav button[data-wallet-button]:hover {
+    background-color: rgba(233, 163, 68, 0.9) !important;
+  }
+  
   /* Connected state */
   nav button[data-wallet-button][data-connected="true"] {
     background-color: transparent !important;
@@ -165,160 +251,43 @@
     color: #E9A344 !important;
   }
   
-  /* REMOVE ALL YELLOW STYLING - HIGHEST PRIORITY */
-  .bg-yellow-50,
-  .bg-yellow-100,
-  .bg-yellow-200,
-  .bg-yellow-300,
-  .bg-yellow-400,
-  .bg-yellow-500,
-  .bg-yellow-600,
-  .bg-yellow-700,
-  .bg-yellow-800,
-  .bg-yellow-900,
-  *[style*="background-color: yellow"],
-  *[style*="background: yellow"],
-  *[style*="background-color: #ffff"],
-  *[style*="background-color: #FFFF"],
-  *[style*="background: #ffff"],
-  *[style*="background: #FFFF"],
-  *[style*="background-color: #fff700"],
-  *[style*="background-color: #FFF700"],
-  *[style*="background: #fff700"],
-  *[style*="background: #FFF700"],
-  *[style*="background-color: #ffff00"],
-  *[style*="background-color: #FFFF00"],
-  *[style*="background: #ffff00"],
-  *[style*="background: #FFFF00"] {
-    background-color: white !important;
-    color: #3C2415 !important;
-  }
-  
-  /* TABS STYLING - Remove yellow from tabs */
-  [data-radix-tabs-trigger],
-  .tabs-trigger,
-  button[data-state="active"],
-  button[aria-selected="true"] {
-    background-color: #FAEBD1 !important;
-    color: #3C2415 !important;
-    border: 1px solid #E9A344 !important;
-  }
-  
-  button[data-state="inactive"],
-  button[aria-selected="false"] {
-    background-color: white !important;
-    color: #8B5E3C !important;
-    border: 1px solid #FAEBD1 !important;
-  }
-  
-  /* WALLET SELECTOR AND DROPDOWNS */
-  [data-radix-select-trigger],
-  .select-trigger,
-  select {
-    background-color: white !important;
-    border: 1px solid #FAEBD1 !important;
-    color: #3C2415 !important;
-  }
-  
-  /* TOKEN SELECTION CARDS - Match desktop */
-  .token-card,
-  [data-token-card],
-  .card,
-  [data-card] {
-    background-color: white !important;
-    border: 1px solid #FAEBD1 !important;
-    padding: 1rem !important;
-    margin-bottom: 1rem !important;
-  }
-  
-  /* CHECKBOXES AND RADIO BUTTONS */
-  input[type="checkbox"],
-  input[type="radio"],
-  [data-radix-checkbox-root],
-  [data-radix-radio-group-item] {
-    border: 2px solid #E9A344 !important;
-    background-color: white !important;
-  }
-  
-  input[type="checkbox"]:checked,
-  input[type="radio"]:checked,
-  [data-radix-checkbox-root][data-state="checked"],
-  [data-radix-radio-group-item][data-state="checked"] {
+  nav button[data-wallet-button][data-connected="true"]:hover {
     background-color: #E9A344 !important;
-    border-color: #E9A344 !important;
+    color: white !important;
   }
   
-  /* ROLLBACK MECHANISM CARDS */
-  .mechanism-card,
-  [data-mechanism-card] {
-    background-color: white !important;
-    border: 1px solid #FAEBD1 !important;
-    padding: 1.5rem !important;
-    margin-bottom: 1rem !important;
+  /* Specific Action Buttons - Mobile */
+  button:has(.lucide-check),
+  button[class*="approve"],
+  button:contains("Approve"),
+  button[aria-label*="approve" i] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
   }
   
-  .mechanism-card:hover,
-  [data-mechanism-card]:hover {
-    border-color: #E9A344 !important;
-    background-color: #FAEBD1 !important;
+  button:contains("Next"),
+  button[aria-label*="next" i] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
   }
   
-  /* SUMMARY/REVIEW CARDS */
-  .summary-card,
-  [data-summary-card] {
-    background-color: #FAEBD1 !important;
-    border: 1px solid #E9A344 !important;
-    color: #3C2415 !important;
+  button:contains("Create Proposal"),
+  button:contains("Create"),
+  button:has(.lucide-plus),
+  button[aria-label*="create" i] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
   }
   
-  /* Remove ALL green colors from inputs and placeholders */
-  input,
-  textarea,
-  select,
-  [role="textbox"] {
-    background-color: white !important;
-    border-color: #FAEBD1 !important;
-    color: #3C2415 !important;
-  }
-  
-  input::placeholder,
-  textarea::placeholder,
-  [role="textbox"]::placeholder {
-    color: #8B5E3C !important;
-  }
-  
-  input:focus,
-  textarea:focus,
-  select:focus,
-  [role="textbox"]:focus {
-    background-color: white !important;
-    border-color: #E9A344 !important;
-    outline: none !important;
-    box-shadow: 0 0 0 2px rgba(233, 163, 68, 0.2) !important;
-  }
-  
-  /* Remove green from any form elements */
-  .bg-green-50,
-  .bg-green-100,
-  .bg-green-200,
-  .bg-green-300,
-  .bg-green-400,
-  .bg-green-500,
-  .text-green-50,
-  .text-green-100,
-  .text-green-200,
-  .text-green-300,
-  .text-green-400,
-  .text-green-500,
-  .border-green-50,
-  .border-green-100,
-  .border-green-200,
-  .border-green-300,
-  .border-green-400,
-  .border-green-500 {
-    background-color: white !important;
-    color: #3C2415 !important;
-    border-color: #FAEBD1 !important;
+  button:contains("Assign Agent"),
+  button:contains("Assign"),
+  button[aria-label*="assign" i] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
   }
   
   /* Sidebar styling on mobile */
@@ -357,160 +326,181 @@
     color: white !important;
   }
   
-  /* Ensure modals and dialogs are responsive */
+  /* Sheet content background */
+  [data-radix-popper-content-wrapper],
+  [data-state="open"] {
+    background-color: #F9F3E5 !important;
+    z-index: 8888 !important;
+  }
+  
+  /* Page content positioning */
+  main {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  
+  .container {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  
+  /* AGGRESSIVE YELLOW REPLACEMENT ON MOBILE */
+  .bg-yellow-50,
+  .bg-yellow-100,
+  .bg-yellow-200,
+  .bg-yellow-300,
+  .bg-yellow-400,
+  .bg-yellow-500,
+  .bg-yellow-600,
+  .bg-yellow-700,
+  .bg-yellow-800,
+  .bg-yellow-900,
+  button[style*="background-color: yellow"],
+  button[style*="background: yellow"],
+  div[style*="background-color: yellow"],
+  div[style*="background: yellow"],
+  span[style*="background-color: yellow"],
+  span[style*="background: yellow"],
+  [style*="background-color: #ffff"],
+  [style*="background-color: #FFFF"],
+  [style*="background: #ffff"],
+  [style*="background: #FFFF"],
+  [style*="background-color: #fff700"],
+  [style*="background-color: #FFF700"],
+  [style*="background: #fff700"],
+  [style*="background: #FFF700"] {
+    background-color: #FAEBD1 !important;
+  }
+  
+  /* Text color replacements on mobile */
+  .text-yellow-50,
+  .text-yellow-100,
+  .text-yellow-200,
+  .text-yellow-300,
+  .text-yellow-400,
+  .text-yellow-500,
+  .text-yellow-600,
+  .text-yellow-700,
+  .text-yellow-800,
+  .text-yellow-900,
+  [style*="color: yellow"],
+  [style*="color: #ffff"],
+  [style*="color: #FFFF"],
+  [style*="color: #fff700"],
+  [style*="color: #FFF700"] {
+    color: #8B5E3C !important;
+  }
+  
+  /* Border color replacements on mobile */
+  .border-yellow-50,
+  .border-yellow-100,
+  .border-yellow-200,
+  .border-yellow-300,
+  .border-yellow-400,
+  .border-yellow-500,
+  .border-yellow-600,
+  .border-yellow-700,
+  .border-yellow-800,
+  .border-yellow-900,
+  [style*="border-color: yellow"],
+  [style*="border-color: #ffff"],
+  [style*="border-color: #FFFF"],
+  [style*="border-color: #fff700"],
+  [style*="border-color: #FFF700"] {
+    border-color: #FAEBD1 !important;
+  }
+  
+  /* Mobile responsive adjustments for cards and components */
+  .card,
+  [data-card] {
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  /* Mobile responsive grid adjustments */
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  
+  /* Mobile responsive table adjustments */
+  table {
+    font-size: 0.875rem !important;
+  }
+  
+  /* Mobile responsive chart container */
+  .recharts-wrapper {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 200px !important;
+  }
+  
+  /* Mobile responsive dialog adjustments */
   [data-radix-dialog-content] {
     width: 95vw !important;
     max-width: 95vw !important;
     margin: 1rem !important;
-    background-color: white !important;
   }
   
   /* Mobile responsive button adjustments */
   button {
     padding: 0.75rem 1rem !important;
     font-size: 0.875rem !important;
-    min-height: 44px !important;
-    touch-action: manipulation !important;
   }
   
   /* Mobile responsive select adjustments */
   [data-radix-select-trigger] {
     width: 100% !important;
     max-width: 100% !important;
-    background-color: white !important;
-    border-color: #FAEBD1 !important;
-  }
-  
-  /* PROGRESS BARS */
-  .progress-bar,
-  [data-radix-progress-indicator] {
-    background-color: #E9A344 !important;
-  }
-  
-  /* BADGES */
-  .badge {
-    background-color: #FAEBD1 !important;
-    color: #3C2415 !important;
-    border: 1px solid #E9A344 !important;
-  }
-  
-  /* BACK BUTTONS - Yellow background fix */
-  button:contains("Back"),
-  button[aria-label*="back" i] {
-    background-color: #FAEBD1 !important;
-    color: #3C2415 !important;
-    border: 1px solid #E9A344 !important;
   }
 }
 
-/* GLOBAL COLOR REPLACEMENTS - Apply to ALL devices */
-/* Remove ALL yellow and green colors */
-.bg-yellow-50,
-.bg-yellow-100,
-.bg-yellow-200,
-.bg-yellow-300,
-.bg-yellow-400,
-.bg-yellow-500,
-.bg-yellow-600,
-.bg-yellow-700,
-.bg-yellow-800,
-.bg-yellow-900,
-.bg-green-50,
-.bg-green-100,
-.bg-green-200,
-.bg-green-300,
-.bg-green-400,
-.bg-green-500,
-.bg-green-600,
-.bg-green-700,
-.bg-green-800,
-.bg-green-900 {
+/* TABLET RESPONSIVE STYLES */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .container {
+    padding: 1.5rem !important;
+  }
+}
+
+/* FORCE YELLOW REPLACEMENTS GLOBALLY WITH HIGHEST SPECIFICITY */
+* {
+  /* Replace any inline yellow styles */
+}
+
+*[style*="background-color: yellow"] {
   background-color: #FAEBD1 !important;
 }
 
-.text-yellow-50,
-.text-yellow-100,
-.text-yellow-200,
-.text-yellow-300,
-.text-yellow-400,
-.text-yellow-500,
-.text-yellow-600,
-.text-yellow-700,
-.text-yellow-800,
-.text-yellow-900,
-.text-green-50,
-.text-green-100,
-.text-green-200,
-.text-green-300,
-.text-green-400,
-.text-green-500,
-.text-green-600,
-.text-green-700,
-.text-green-800,
-.text-green-900 {
+*[style*="background: yellow"] {
+  background-color: #FAEBD1 !important;
+}
+
+*[style*="color: yellow"] {
   color: #8B5E3C !important;
 }
 
-.border-yellow-50,
-.border-yellow-100,
-.border-yellow-200,
-.border-yellow-300,
-.border-yellow-400,
-.border-yellow-500,
-.border-yellow-600,
-.border-yellow-700,
-.border-yellow-800,
-.border-yellow-900,
-.border-green-50,
-.border-green-100,
-.border-green-200,
-.border-green-300,
-.border-green-400,
-.border-green-500,
-.border-green-600,
-.border-green-700,
-.border-green-800,
-.border-green-900 {
+*[style*="border-color: yellow"] {
   border-color: #FAEBD1 !important;
 }
 
-/* Force navbar styling with highest priority */
-nav {
-  background-color: #F9F3E5 !important;
-  z-index: 9999 !important;
-  position: relative !important;
+/* Additional yellow hex variations */
+*[style*="background-color: #ffff00"],
+*[style*="background-color: #FFFF00"],
+*[style*="background: #ffff00"],
+*[style*="background: #FFFF00"] {
+  background-color: #FAEBD1 !important;
 }
 
-/* FORCE YELLOW AND GREEN REPLACEMENTS GLOBALLY WITH HIGHEST SPECIFICITY */
-*[style*="background-color: yellow"],
-*[style*="background: yellow"],
-*[style*="background-color: green"],
-*[style*="background: green"],
-*[style*="background-color: #ffff"],
-*[style*="background-color: #FFFF"],
-*[style*="background: #ffff"],
-*[style*="background: #FFFF"],
-*[style*="background-color: #00ff"],
-*[style*="background-color: #00FF"],
-*[style*="background: #00ff"],
-*[style*="background: #00FF"] {
-  background-color: white !important;
-}
-
-*[style*="color: yellow"],
-*[style*="color: green"],
-*[style*="color: #ffff"],
-*[style*="color: #FFFF"],
-*[style*="color: #00ff"],
-*[style*="color: #00FF"] {
+*[style*="color: #ffff00"],
+*[style*="color: #FFFF00"] {
   color: #8B5E3C !important;
 }
 
-*[style*="border-color: yellow"],
-*[style*="border-color: green"],
-*[style*="border-color: #ffff"],
-*[style*="border-color: #FFFF"],
-*[style*="border-color: #00ff"],
-*[style*="border-color: #00FF"] {
+*[style*="border-color: #ffff00"],
+*[style*="border-color: #FFFF00"] {
   border-color: #FAEBD1 !important;
 }
