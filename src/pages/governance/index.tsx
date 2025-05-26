@@ -191,7 +191,6 @@ export default function Governance() {
                   size="sm"
                   variant="ghost"
                   onClick={() => setSelectedProposal(proposal)}
-                  className="border border-rollback-primary text-rollback-primary hover:bg-rollback-primary/10"
                 >
                   View Details
                 </Button>
