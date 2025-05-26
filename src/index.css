@@ -418,10 +418,12 @@ nav {
 button[class*="reject"],
 button[class*="warning"],
 div[class*="warning"],
-*[class*="warning"] {
+*[class*="warning"],
+[data-radix-select-trigger],
+button[class*="back"] {
   background-color: transparent !important;
-  border-color: #8B5E3C !important;
-  color: #8B5E3C !important;
+  border-color: #E9A344 !important;
+  color: #E9A344 !important;
 }
 
 /* Override any hover states */
@@ -432,10 +434,12 @@ div[class*="warning"],
 button[class*="reject"]:hover,
 button[class*="warning"]:hover,
 div[class*="warning"]:hover,
-*[class*="warning"]:hover {
-  background-color: rgba(139, 94, 60, 0.1) !important;
-  border-color: #8B5E3C !important;
-  color: #8B5E3C !important;
+*[class*="warning"]:hover,
+[data-radix-select-trigger]:hover,
+button[class*="back"]:hover {
+  background-color: rgba(233, 163, 68, 0.1) !important;
+  border-color: #E9A344 !important;
+  color: #E9A344 !important;
 }
 
 /* Override Tailwind yellow classes */
@@ -505,5 +509,56 @@ div[class*="warning"]:hover,
     background-color: rgba(139, 94, 60, 0.1) !important;
     border-color: #8B5E3C !important;
     color: #8B5E3C !important;
+  }
+}
+
+/* Select component specific overrides */
+[data-radix-select-trigger] {
+  background-color: white !important;
+  border-color: #FAEBD1 !important;
+  color: #8B5E3C !important;
+}
+
+[data-radix-select-content] {
+  background-color: white !important;
+  border-color: #FAEBD1 !important;
+}
+
+[data-radix-select-item] {
+  color: #8B5E3C !important;
+}
+
+[data-radix-select-item]:hover {
+  background-color: #FAEBD1 !important;
+  color: #8B5E3C !important;
+}
+
+/* Back button specific overrides */
+button[class*="back"] {
+  background-color: transparent !important;
+  border-color: #E9A344 !important;
+  color: #E9A344 !important;
+}
+
+button[class*="back"]:hover {
+  background-color: rgba(233, 163, 68, 0.1) !important;
+  border-color: #E9A344 !important;
+  color: #E9A344 !important;
+}
+
+/* Mobile specific overrides */
+@media (max-width: 768px) {
+  [data-radix-select-trigger],
+  button[class*="back"] {
+    background-color: transparent !important;
+    border-color: #E9A344 !important;
+    color: #E9A344 !important;
+  }
+
+  [data-radix-select-trigger]:hover,
+  button[class*="back"]:hover {
+    background-color: rgba(233, 163, 68, 0.1) !important;
+    border-color: #E9A344 !important;
+    color: #E9A344 !important;
   }
 }
