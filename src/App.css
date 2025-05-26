@@ -47,6 +47,93 @@ html, body, #root {
   @apply bg-rollback-light !important;
 }
 
+/* AGGRESSIVE YELLOW REMOVAL - MAXIMUM SPECIFICITY */
+*[style*="#ffff00"],
+*[style*="#FFFF00"],
+*[style*="yellow"],
+*[style*="rgb(255, 255, 0)"],
+*[style*="hsl(60, 100%, 50%)"],
+button[style*="#ffff00"],
+button[style*="#FFFF00"],
+button[style*="yellow"],
+div[style*="#ffff00"],
+div[style*="#FFFF00"],
+div[style*="yellow"],
+span[style*="#ffff00"],
+span[style*="#FFFF00"],
+span[style*="yellow"],
+input[style*="#ffff00"],
+input[style*="#FFFF00"],
+input[style*="yellow"],
+select[style*="#ffff00"],
+select[style*="#FFFF00"],
+select[style*="yellow"],
+section[style*="#ffff00"],
+section[style*="#FFFF00"],
+section[style*="yellow"],
+header[style*="#ffff00"],
+header[style*="#FFFF00"],
+header[style*="yellow"],
+nav[style*="#ffff00"],
+nav[style*="#FFFF00"],
+nav[style*="yellow"],
+main[style*="#ffff00"],
+main[style*="#FFFF00"],
+main[style*="yellow"],
+aside[style*="#ffff00"],
+aside[style*="#FFFF00"],
+aside[style*="yellow"],
+footer[style*="#ffff00"],
+footer[style*="#FFFF00"],
+footer[style*="yellow"],
+article[style*="#ffff00"],
+article[style*="#FFFF00"],
+article[style*="yellow"],
+p[style*="#ffff00"],
+p[style*="#FFFF00"],
+p[style*="yellow"],
+h1[style*="#ffff00"],
+h1[style*="#FFFF00"],
+h1[style*="yellow"],
+h2[style*="#ffff00"],
+h2[style*="#FFFF00"],
+h2[style*="yellow"],
+h3[style*="#ffff00"],
+h3[style*="#FFFF00"],
+h3[style*="yellow"],
+h4[style*="#ffff00"],
+h4[style*="#FFFF00"],
+h4[style*="yellow"],
+h5[style*="#ffff00"],
+h5[style*="#FFFF00"],
+h5[style*="yellow"],
+h6[style*="#ffff00"],
+h6[style*="#FFFF00"],
+h6[style*="yellow"],
+label[style*="#ffff00"],
+label[style*="#FFFF00"],
+label[style*="yellow"],
+form[style*="#ffff00"],
+form[style*="#FFFF00"],
+form[style*="yellow"],
+fieldset[style*="#ffff00"],
+fieldset[style*="#FFFF00"],
+fieldset[style*="yellow"],
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-yellow-500,
+.bg-yellow-600,
+.bg-yellow-700,
+.bg-yellow-800,
+.bg-yellow-900 {
+  background-color: #E9A344 !important;
+  color: white !important;
+  border-color: #E9A344 !important;
+}
+
 /* Remove green from any form elements */
 .bg-green-50,
 .bg-green-100,
@@ -87,18 +174,88 @@ html, body, #root {
   border-color: #FAEBD1 !important;
 }
 
-/* REMOVE ALL #ffff00 REFERENCES */
-*[style*="background-color: #ffff00"],
-*[style*="background: #ffff00"],
-*[style*="color: #ffff00"],
-*[style*="border-color: #ffff00"] {
-  background-color: #FAEBD1 !important;
-  color: #8B5E3C !important;
-  border-color: #FAEBD1 !important;
-}
-
-/* MOBILE SPECIFIC OVERRIDES */
+/* MOBILE SPECIFIC OVERRIDES WITH MAXIMUM PRIORITY */
 @media (max-width: 768px) {
+  /* Force all backgrounds to correct colors on mobile */
+  html, body, #root {
+    background-color: #F9F3E5 !important;
+  }
+  
+  /* Aggressively target ALL buttons */
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  .btn,
+  [data-button] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  /* Specific button targeting */
+  button:contains("Back"),
+  button:contains("Next"),
+  button:contains("Create"),
+  button:contains("Approve"),
+  button:contains("Reject"),
+  button:contains("View Details"),
+  button:contains("Generate"),
+  button:contains("Assign"),
+  button[aria-label*="back" i],
+  button[aria-label*="next" i],
+  button[aria-label*="create" i],
+  button[aria-label*="approve" i],
+  button[aria-label*="reject" i],
+  button[aria-label*="view" i],
+  button[aria-label*="generate" i],
+  button[aria-label*="assign" i] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  /* Force all yellow backgrounds to rollback primary on mobile */
+  .bg-yellow-50,
+  .bg-yellow-100,
+  .bg-yellow-200,
+  .bg-yellow-300,
+  .bg-yellow-400,
+  .bg-yellow-500,
+  .bg-yellow-600,
+  .bg-yellow-700,
+  .bg-yellow-800,
+  .bg-yellow-900,
+  *[style*="#ffff00"],
+  *[style*="#FFFF00"],
+  *[style*="yellow"],
+  *[style*="rgb(255, 255, 0)"],
+  button[style*="background-color: #ffff00"],
+  button[style*="background: #ffff00"],
+  button[style*="background-color: yellow"],
+  button[style*="background: yellow"],
+  div[style*="background-color: #ffff00"],
+  div[style*="background: #ffff00"],
+  div[style*="background-color: yellow"],
+  div[style*="background: yellow"],
+  span[style*="background-color: #ffff00"],
+  span[style*="background: #ffff00"],
+  span[style*="background-color: yellow"],
+  span[style*="background: yellow"],
+  input[style*="background-color: #ffff00"],
+  input[style*="background: #ffff00"],
+  input[style*="background-color: yellow"],
+  input[style*="background: yellow"],
+  select[style*="background-color: #ffff00"],
+  select[style*="background: #ffff00"],
+  select[style*="background-color: yellow"],
+  select[style*="background: yellow"] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border-color: #E9A344 !important;
+  }
+  
   /* Force all green backgrounds to rollback cream on mobile */
   .bg-green-50,
   .bg-green-100,
@@ -121,22 +278,57 @@ html, body, #root {
   select[style*="background-color: green"],
   select[style*="background: green"] {
     background-color: #FAEBD1 !important;
-  }
-  
-  /* Remove all #ffff00 on mobile */
-  button[style*="background-color: #ffff00"],
-  button[style*="background: #ffff00"],
-  div[style*="background-color: #ffff00"],
-  div[style*="background: #ffff00"],
-  span[style*="background-color: #ffff00"],
-  span[style*="background: #ffff00"],
-  input[style*="background-color: #ffff00"],
-  input[style*="background: #ffff00"],
-  select[style*="background-color: #ffff00"],
-  select[style*="background: #ffff00"] {
-    background-color: #FAEBD1 !important;
     color: #8B5E3C !important;
     border-color: #FAEBD1 !important;
+  }
+  
+  /* Input fields on mobile */
+  input,
+  textarea,
+  select,
+  [role="textbox"],
+  [role="combobox"] {
+    background-color: white !important;
+    border-color: #FAEBD1 !important;
+    color: #3C2415 !important;
+  }
+  
+  input::placeholder,
+  textarea::placeholder,
+  [role="textbox"]::placeholder {
+    color: #8B5E3C !important;
+  }
+  
+  /* Navbar styling - highest priority */
+  nav {
+    background-color: #F9F3E5 !important;
+    z-index: 9999 !important;
+    position: sticky !important;
+    top: 0 !important;
+  }
+  
+  /* Hamburger menu button */
+  nav button[data-mobile-menu],
+  button:has([data-lucide="menu"]),
+  nav button[aria-label*="menu" i],
+  nav .md\:hidden button {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  /* Connect Wallet button */
+  nav button[data-wallet-button] {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  /* Connected state */
+  nav button[data-wallet-button][data-connected="true"] {
+    background-color: transparent !important;
+    border: 1px solid #E9A344 !important;
+    color: #E9A344 !important;
   }
   
   /* Responsive adjustments for mobile */
@@ -144,6 +336,7 @@ html, body, #root {
   [data-card] {
     padding: 1rem !important;
     margin: 0.5rem 0 !important;
+    background-color: white !important;
   }
   
   .container {
