@@ -1,4 +1,3 @@
-
 #root {
   @apply bg-rollback-light min-h-screen;
   margin: 0;
@@ -124,16 +123,14 @@ html, body, #root {
   }
   
   /* Remove all #ffff00 on mobile */
-  button[style*="background-color: #ffff00"],
-  button[style*="background: #ffff00"],
-  div[style*="background-color: #ffff00"],
-  div[style*="background: #ffff00"],
-  span[style*="background-color: #ffff00"],
-  span[style*="background: #ffff00"],
-  input[style*="background-color: #ffff00"],
-  input[style*="background: #ffff00"],
-  select[style*="background-color: #ffff00"],
-  select[style*="background: #ffff00"] {
+  html body #root *[style*="background-color: #ffff00"],
+  html body #root *[style*="background: #ffff00"],
+  html body #root *[style*="color: #ffff00"],
+  html body #root *[style*="border-color: #ffff00"],
+  html body #root [style*="background-color: rgb(255, 255, 0)"],
+  html body #root [style*="background: rgb(255, 255, 0)"],
+  html body #root [style*="background-color: yellow"],
+  html body #root [style*="background: yellow"] {
     background-color: #FAEBD1 !important;
     color: #8B5E3C !important;
     border-color: #FAEBD1 !important;
