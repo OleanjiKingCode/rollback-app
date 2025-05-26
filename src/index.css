@@ -106,124 +106,147 @@
   }
 }
 
-/* MOBILE SPECIFIC STYLES - Complete override for all button and input styling */
+/* UNIVERSAL YELLOW COLOR ELIMINATION - HIGHEST PRIORITY */
+* {
+  background-color: #ffff00 !important;
+  background: #ffff00 !important;
+  color: #ffff00 !important;
+  border-color: #ffff00 !important;
+  box-shadow: none !important;
+}
+
+*[style*="ffff00"],
+*[style*="yellow"],
+*[class*="yellow"],
+*[data-state*="yellow"] {
+  background-color: #E9A344 !important;
+  background: #E9A344 !important;
+  color: white !important;
+  border-color: #E9A344 !important;
+}
+
+/* AGGRESSIVE YELLOW REMOVAL FOR ALL ELEMENTS */
+button[style*="ffff00"],
+div[style*="ffff00"],
+span[style*="ffff00"],
+input[style*="ffff00"],
+select[style*="ffff00"],
+[role="button"][style*="ffff00"],
+[role="listbox"][style*="ffff00"],
+[role="option"][style*="ffff00"],
+[data-radix-select-trigger][style*="ffff00"],
+[data-radix-select-content][style*="ffff00"],
+[data-radix-dialog-content][style*="ffff00"] {
+  background-color: #E9A344 !important;
+  background: #E9A344 !important;
+  color: white !important;
+  border-color: #E9A344 !important;
+}
+
+/* TARGET ALL RADIX UI COMPONENTS */
+[data-radix-select-trigger],
+[data-radix-select-content],
+[data-radix-select-item],
+[data-radix-dialog-content],
+[data-radix-dialog-overlay] {
+  background-color: white !important;
+  border-color: #FAEBD1 !important;
+  color: #3C2415 !important;
+}
+
+/* MOBILE SPECIFIC OVERRIDES - COMPLETE ELIMINATION */
 @media (max-width: 768px) {
   /* Force correct background colors */
   html, body, #root {
     background-color: #F9F3E5 !important;
   }
   
-  /* Navbar styling - highest priority */
-  nav {
-    background-color: #F9F3E5 !important;
-    z-index: 9999 !important;
-    position: sticky !important;
-    top: 0 !important;
+  /* Universal yellow elimination on mobile */
+  * {
+    background-color: #ffff00 !important;
+    background: #ffff00 !important;
+    color: #ffff00 !important;
+    border-color: #ffff00 !important;
   }
   
-  /* Hamburger menu button */
-  nav button[data-mobile-menu],
-  button:has([data-lucide="menu"]),
-  nav button[aria-label*="menu" i],
-  nav .md\:hidden button {
+  *:not(html):not(body):not(#root)[style*="ffff00"],
+  *:not(html):not(body):not(#root)[style*="yellow"] {
+    background-color: #E9A344 !important;
+    background: #E9A344 !important;
+    color: white !important;
+    border-color: #E9A344 !important;
+  }
+  
+  /* Wallet selector styling */
+  [data-radix-select-trigger] {
+    background-color: white !important;
+    border: 1px solid #FAEBD1 !important;
+    color: #3C2415 !important;
+  }
+  
+  [data-radix-select-content] {
+    background-color: white !important;
+    border: 1px solid #FAEBD1 !important;
+  }
+  
+  [data-radix-select-item] {
+    background-color: white !important;
+    color: #3C2415 !important;
+  }
+  
+  [data-radix-select-item]:hover {
+    background-color: #FAEBD1 !important;
+  }
+  
+  /* Dialog/Modal styling */
+  [data-radix-dialog-content] {
+    background-color: white !important;
+    border: 1px solid #FAEBD1 !important;
+  }
+  
+  /* Button styling - all buttons */
+  button,
+  [role="button"] {
     background-color: #E9A344 !important;
     color: white !important;
     border: none !important;
   }
   
-  nav button[data-mobile-menu]:hover,
-  button:has([data-lucide="menu"]):hover,
-  nav button[aria-label*="menu" i]:hover,
-  nav .md\:hidden button:hover {
+  button:hover,
+  [role="button"]:hover {
     background-color: rgba(233, 163, 68, 0.9) !important;
   }
   
-  /* Connect Wallet button */
-  nav button[data-wallet-button] {
+  /* Specific button overrides */
+  button:contains("Back"),
+  button[aria-label*="back" i] {
     background-color: #E9A344 !important;
     color: white !important;
     border: none !important;
   }
   
-  nav button[data-wallet-button]:hover {
-    background-color: rgba(233, 163, 68, 0.9) !important;
-  }
-  
-  /* Connected state */
-  nav button[data-wallet-button][data-connected="true"] {
-    background-color: transparent !important;
-    border: 1px solid #E9A344 !important;
-    color: #E9A344 !important;
-  }
-  
-  nav button[data-wallet-button][data-connected="true"]:hover {
-    background-color: #E9A344 !important;
-    color: white !important;
-  }
-  
-  /* ALL ACTION BUTTONS - Mobile */
   button:contains("Next"),
-  button[aria-label*="next" i],
-  .container button:contains("Next"),
-  form button:contains("Next") {
+  button[aria-label*="next" i] {
     background-color: #E9A344 !important;
     color: white !important;
     border: none !important;
   }
   
-  button:contains("Approve"),
-  button[class*="approve"],
-  button[aria-label*="approve" i],
-  button:has(.lucide-check) {
+  button:contains("Reject"),
+  button[aria-label*="reject" i] {
     background-color: #E9A344 !important;
     color: white !important;
     border: none !important;
   }
   
-  button:contains("Create Proposal"),
-  button:contains("Create"),
-  button[aria-label*="create" i],
-  button:has(.lucide-plus) {
+  button:contains("Generate"),
+  button[aria-label*="generate" i] {
     background-color: #E9A344 !important;
     color: white !important;
     border: none !important;
   }
   
-  button:contains("View Details"),
-  button[aria-label*="view" i],
-  button[aria-label*="details" i] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-  }
-  
-  button:contains("Create Rollback Wallet"),
-  button:contains("Rollback Wallet"),
-  button[aria-label*="rollback" i] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-  }
-  
-  button:contains("Assign Agent"),
-  button:contains("Assign"),
-  button[aria-label*="assign" i] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-  }
-  
-  /* Primary buttons - match desktop styling */
-  .bg-rollback-primary,
-  button[class*="bg-rollback-primary"],
-  .btn-primary,
-  [data-primary="true"] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
-  }
-  
-  /* Remove ALL green colors from inputs and placeholders */
+  /* Input and form styling */
   input,
   textarea,
   select,
@@ -234,132 +257,92 @@
   }
   
   input::placeholder,
-  textarea::placeholder,
-  [role="textbox"]::placeholder {
+  textarea::placeholder {
     color: #8B5E3C !important;
   }
   
-  input:focus,
-  textarea:focus,
-  select:focus,
-  [role="textbox"]:focus {
+  /* Navbar styling */
+  nav {
+    background-color: #F9F3E5 !important;
+  }
+  
+  nav button {
+    background-color: #E9A344 !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  /* Card styling */
+  .card,
+  [data-card] {
     background-color: white !important;
-    border-color: #E9A344 !important;
-    outline: none !important;
-    box-shadow: 0 0 0 2px rgba(233, 163, 68, 0.2) !important;
-  }
-  
-  /* Remove green from any form elements */
-  .bg-green-50,
-  .bg-green-100,
-  .bg-green-200,
-  .bg-green-300,
-  .bg-green-400,
-  .bg-green-500,
-  .text-green-50,
-  .text-green-100,
-  .text-green-200,
-  .text-green-300,
-  .text-green-400,
-  .text-green-500,
-  .border-green-50,
-  .border-green-100,
-  .border-green-200,
-  .border-green-300,
-  .border-green-400,
-  .border-green-500 {
-    background-color: #FAEBD1 !important;
-    color: #8B5E3C !important;
     border-color: #FAEBD1 !important;
   }
   
-  /* Sidebar styling on mobile */
-  [data-radix-dialog-content],
-  .sheet-content,
-  [data-radix-sheet-content] {
+  /* Badge styling */
+  .badge,
+  [data-badge] {
     background-color: #E9A344 !important;
-  }
-  
-  /* Sidebar links styling */
-  [data-radix-dialog-content] a,
-  .sheet-content a,
-  [data-radix-sheet-content] a {
     color: white !important;
+    border-color: #E9A344 !important;
   }
   
-  [data-radix-dialog-content] a:hover,
-  .sheet-content a:hover,
-  [data-radix-sheet-content] a:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-  }
-  
-  /* Navigation links */
-  nav a {
-    color: #8B5E3C !important;
-  }
-  
-  nav a:hover {
-    color: #3C2415 !important;
+  /* Progress bar styling */
+  .progress,
+  [data-progress] {
     background-color: #FAEBD1 !important;
   }
   
-  /* Active navigation links */
-  nav a[class*="bg-rollback-primary"] {
+  .progress > * {
     background-color: #E9A344 !important;
-    color: white !important;
   }
   
-  /* Ensure modals and dialogs are responsive */
-  [data-radix-dialog-content] {
-    width: 95vw !important;
-    max-width: 95vw !important;
-    margin: 1rem !important;
-    background-color: white !important;
-  }
-  
-  /* Mobile responsive adjustments for cards and components */
-  .card,
-  [data-card] {
-    padding: 1rem !important;
-    margin-bottom: 1rem !important;
-  }
-  
-  /* Mobile responsive grid adjustments */
-  .grid {
-    grid-template-columns: 1fr !important;
-    gap: 1rem !important;
-  }
-  
-  /* Mobile responsive table adjustments */
+  /* Table styling */
   table {
-    font-size: 0.875rem !important;
-  }
-  
-  /* Mobile responsive chart container */
-  .recharts-wrapper {
-    width: 100% !important;
-    height: auto !important;
-    min-height: 200px !important;
-  }
-  
-  /* Mobile responsive button adjustments */
-  button {
-    padding: 0.75rem 1rem !important;
-    font-size: 0.875rem !important;
-    min-height: 44px !important;
-    touch-action: manipulation !important;
-  }
-  
-  /* Mobile responsive select adjustments */
-  [data-radix-select-trigger] {
-    width: 100% !important;
-    max-width: 100% !important;
     background-color: white !important;
+  }
+  
+  th, td {
     border-color: #FAEBD1 !important;
   }
 }
 
-/* GLOBAL COLOR REPLACEMENTS - Apply to ALL devices */
+/* GLOBAL OVERRIDES FOR ALL DEVICES */
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-yellow-500,
+.bg-yellow-600,
+.bg-yellow-700,
+.bg-yellow-800,
+.bg-yellow-900,
+.text-yellow-50,
+.text-yellow-100,
+.text-yellow-200,
+.text-yellow-300,
+.text-yellow-400,
+.text-yellow-500,
+.text-yellow-600,
+.text-yellow-700,
+.text-yellow-800,
+.text-yellow-900,
+.border-yellow-50,
+.border-yellow-100,
+.border-yellow-200,
+.border-yellow-300,
+.border-yellow-400,
+.border-yellow-500,
+.border-yellow-600,
+.border-yellow-700,
+.border-yellow-800,
+.border-yellow-900 {
+  background-color: #E9A344 !important;
+  color: white !important;
+  border-color: #E9A344 !important;
+}
+
 /* Remove ALL green colors */
 .bg-green-50,
 .bg-green-100,
@@ -405,14 +388,4 @@ nav {
   background-color: #F9F3E5 !important;
   z-index: 9999 !important;
   position: relative !important;
-}
-
-/* REMOVE ALL #ffff00 REFERENCES GLOBALLY WITH HIGHEST SPECIFICITY */
-*[style*="background-color: #ffff00"],
-*[style*="background: #ffff00"],
-*[style*="color: #ffff00"],
-*[style*="border-color: #ffff00"] {
-  background-color: #FAEBD1 !important;
-  color: #8B5E3C !important;
-  border-color: #FAEBD1 !important;
 }
