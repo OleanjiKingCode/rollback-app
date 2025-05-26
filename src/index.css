@@ -189,11 +189,11 @@
   }
   
   button:contains("View Details"),
-  button[aria-label*="view" i],
-  button[aria-label*="details" i] {
-    background-color: #E9A344 !important;
-    color: white !important;
-    border: none !important;
+  button[aria-label*="view details" i],
+  button[class*="view-details"] {
+    background-color: transparent !important;
+    border: 1px solid #E9A344 !important;
+    color: #E9A344 !important;
   }
   
   button:contains("Create Rollback Wallet"),
@@ -559,6 +559,53 @@ button[class*="back"]:hover {
   button[class*="back"]:hover {
     background-color: rgba(233, 163, 68, 0.1) !important;
     border-color: #E9A344 !important;
+    color: #E9A344 !important;
+  }
+}
+
+/* View Details button specific overrides */
+button:contains("View Details"),
+button[aria-label*="view details" i],
+button[class*="view-details"] {
+  background-color: transparent !important;
+  border: 1px solid #E9A344 !important;
+  color: #E9A344 !important;
+}
+
+button:contains("View Details"):hover,
+button[aria-label*="view details" i]:hover,
+button[class*="view-details"]:hover {
+  background-color: rgba(233, 163, 68, 0.1) !important;
+  border-color: #E9A344 !important;
+  color: #E9A344 !important;
+}
+
+/* Mobile specific overrides */
+@media (max-width: 768px) {
+  button:contains("View Details"),
+  button[aria-label*="view details" i],
+  button[class*="view-details"] {
+    background-color: transparent !important;
+    border: 1px solid #E9A344 !important;
+    color: #E9A344 !important;
+  }
+
+  button:contains("View Details"):hover,
+  button[aria-label*="view details" i]:hover,
+  button[class*="view-details"]:hover {
+    background-color: rgba(233, 163, 68, 0.1) !important;
+    border-color: #E9A344 !important;
+    color: #E9A344 !important;
+  }
+}
+
+/* Override any existing mobile styles that might conflict */
+@media (max-width: 768px) {
+  button:contains("View Details"),
+  button[aria-label*="view" i],
+  button[aria-label*="details" i] {
+    background-color: transparent !important;
+    border: 1px solid #E9A344 !important;
     color: #E9A344 !important;
   }
 }
