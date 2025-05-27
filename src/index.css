@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -129,10 +130,10 @@
 [role="status"],
 div[style*="background-color: rgb(255, 255, 0)"],
 div[style*="background: rgb(255, 255, 0)"] {
-  background-color: #F9F3E5 !important;
-  background: #F9F3E5 !important;
-  border: 1px solid #E9A344 !important;
-  color: #8B5E3C !important;
+  background-color: white !important;
+  background: white !important;
+  border: 1px solid #FAEBD1 !important;
+  color: #3C2415 !important;
 }
 
 /* Text color overrides */
@@ -147,20 +148,63 @@ div[style*="background: rgb(255, 255, 0)"] {
 .text-yellow-800,
 .text-yellow-900,
 [class*="text-yellow-"] {
-  color: #8B5E3C !important;
+  color: #3C2415 !important;
+}
+
+/* SUCCESS AND GREEN TEXT OVERRIDES */
+.text-green-50,
+.text-green-100,
+.text-green-200,
+.text-green-300,
+.text-green-400,
+.text-green-500,
+.text-green-600,
+.text-green-700,
+.text-green-800,
+.text-green-900,
+[class*="text-green-"] {
+  color: #3C2415 !important;
 }
 
 /* Success toast specific overrides */
 [data-sonner-toast][data-type="success"] {
-  background-color: #F9F3E5 !important;
-  border-color: #22c55e !important;
-  color: #15803d !important;
+  background-color: white !important;
+  border-color: #E9A344 !important;
+  color: #3C2415 !important;
 }
 
 /* Toast title and description */
 [data-sonner-toast] [data-title],
 [data-sonner-toast] [data-description] {
-  color: #15803d !important;
+  color: #3C2415 !important;
+}
+
+/* Chart tooltip specific overrides */
+.recharts-tooltip-wrapper,
+.recharts-default-tooltip {
+  background-color: white !important;
+  border: 1px solid #FAEBD1 !important;
+  border-radius: 8px !important;
+  color: #3C2415 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.recharts-tooltip-label {
+  color: #8B5E3C !important;
+  font-weight: 600 !important;
+}
+
+.recharts-tooltip-item {
+  color: #3C2415 !important;
+}
+
+.recharts-tooltip-item-name {
+  color: #8B5E3C !important;
+}
+
+.recharts-tooltip-item-value {
+  color: #3C2415 !important;
+  font-weight: 600 !important;
 }
 
 /* MOBILE SPECIFIC STYLES - Complete override for all button and input styling */
@@ -419,6 +463,17 @@ div[style*="background: rgb(255, 255, 0)"] {
     min-height: 200px !important;
   }
   
+  /* Chart tooltip mobile styling */
+  .recharts-tooltip-wrapper,
+  .recharts-default-tooltip {
+    background-color: white !important;
+    border: 1px solid #FAEBD1 !important;
+    border-radius: 8px !important;
+    color: #3C2415 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    font-size: 0.875rem !important;
+  }
+  
   /* Mobile responsive button adjustments */
   button {
     padding: 0.75rem 1rem !important;
@@ -443,10 +498,10 @@ div[style*="background: rgb(255, 255, 0)"] {
   *[style*="background: yellow"],
   *[style*="background-color: #ffff00"],
   *[style*="background: #ffff00"] {
-    background-color: #F9F3E5 !important;
-    background: #F9F3E5 !important;
-    border: 1px solid #E9A344 !important;
-    color: #8B5E3C !important;
+    background-color: white !important;
+    background: white !important;
+    border: 1px solid #FAEBD1 !important;
+    color: #3C2415 !important;
   }
   
   /* Dropdown menu mobile styling */
@@ -486,32 +541,6 @@ div[style*="background: rgb(255, 255, 0)"] {
 .bg-green-800,
 .bg-green-900 {
   background-color: #FAEBD1 !important;
-}
-
-.text-green-50,
-.text-green-100,
-.text-green-200,
-.text-green-300,
-.text-green-400,
-.text-green-500,
-.text-green-600,
-.text-green-700,
-.text-green-800,
-.text-green-900 {
-  color: #8B5E3C !important;
-}
-
-.border-green-50,
-.border-green-100,
-.border-green-200,
-.border-green-300,
-.border-green-400,
-.border-green-500,
-.border-green-600,
-.border-green-700,
-.border-green-800,
-.border-green-900 {
-  border-color: #FAEBD1 !important;
 }
 
 /* Force navbar styling with highest priority */
