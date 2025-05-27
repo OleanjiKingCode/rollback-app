@@ -1,55 +1,45 @@
-import { BrowserRouter } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
-import { WagmiConfig } from 'wagmi';
-import { wagmiConfig } from '@/lib/web3Config';
-import Router from '@/Router';
-import { useEffect } from 'react';
-import { createWeb3Modal } from '@web3modal/wagmi/react';
 
-function App() {
-  useEffect(() => {
-    // Initialize Web3Modal on mount
-    const initWeb3Modal = async () => {
-      try {
-        // Handle wallet events
-        if (typeof window !== 'undefined' && window.ethereum) {
-          window.ethereum.on('accountsChanged', () => {
-            window.location.reload();
-          });
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import Dashboard from "./pages/dashboard/index";
+import CreateWallet from "./pages/create/index";
+import Governance from "./pages/governance/index";
+import Agent from "./pages/agent/index";
+import Subscribe from "./pages/subscribe/index";
+import NotFound from "./pages/NotFound";
 
-          window.ethereum.on('chainChanged', () => {
-            window.location.reload();
-          });
+const queryClient = new QueryClient();
 
-          window.ethereum.on('disconnect', () => {
-            window.location.reload();
-          });
-        }
-      } catch (error) {
-        console.error('Failed to initialize Web3Modal:', error);
-      }
-    };
-
-    initWeb3Modal();
-
-    // Cleanup event listeners
-    return () => {
-      if (typeof window !== 'undefined' && window.ethereum) {
-        window.ethereum.removeListener('accountsChanged', () => {});
-        window.ethereum.removeListener('chainChanged', () => {});
-        window.ethereum.removeListener('disconnect', () => {});
-      }
-    };
-  }, []);
-
-  return (
-    <WagmiConfig config={wagmiConfig}>
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
       <BrowserRouter>
-        <Router />
-        <Toaster />
+        <div className="min-h-screen flex flex-col bg-rollback-light">
+          <Navbar />
+          <main className="flex-1">
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/create" element={<CreateWallet />} />
+              <Route path="/governance" element={<Governance />} />
+              <Route path="/agent" element={<Agent />} />
+              <Route path="/subscribe" element={<Subscribe />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
       </BrowserRouter>
-    </WagmiConfig>
-  );
-}
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
