@@ -7,7 +7,7 @@ interface WalletContextType {
   address: string | null;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
-  provider: EthereumProvider | null;
+  provider: InstanceType<typeof EthereumProvider> | null;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -19,7 +19,7 @@ interface WalletProviderProps {
 export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [address, setAddress] = useState<string | null>(null);
-  const [provider, setProvider] = useState<EthereumProvider | null>(null);
+  const [provider, setProvider] = useState<InstanceType<typeof EthereumProvider> | null>(null);
 
   const projectId = '39e3c29daea8e6f80deddfda5fb0d606';
 
