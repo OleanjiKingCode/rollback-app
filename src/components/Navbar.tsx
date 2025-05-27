@@ -5,13 +5,6 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { useWallet } from '@/contexts/WalletContext';
 import { 
@@ -22,8 +15,6 @@ import {
   User,
   LayoutDashboard,
   Bell,
-  ChevronDown,
-  LogOut
 } from 'lucide-react';
 
 const navigation = [
@@ -122,50 +113,21 @@ export function Navbar() {
           {/* Wallet Connection */}
           <div className="flex items-center space-x-4">
             {isConnected && address ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    className="bg-transparent border border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white"
-                    size="sm"
-                    data-wallet-button="true"
-                    data-connected={isConnected}
-                  >
-                    <Wallet className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">
-                      {formatAddress(address)}
-                    </span>
-                    <span className="sm:hidden">
-                      Connected
-                    </span>
-                    <ChevronDown className="h-4 w-4 ml-2" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  align="end" 
-                  className="w-80 bg-white border border-rollback-cream shadow-lg rounded-lg p-0"
-                  style={{ zIndex: 99999 }}
-                >
-                  <div className="p-4 border-b border-rollback-cream bg-rollback-light rounded-t-lg">
-                    <div className="flex flex-col space-y-1">
-                      <span className="text-xs font-medium text-rollback-brown uppercase tracking-wide">
-                        Connected Address
-                      </span>
-                      <span className="text-sm font-mono text-rollback-dark break-all">
-                        {address}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-2">
-                    <DropdownMenuItem 
-                      onClick={handleDisconnect} 
-                      className="flex items-center space-x-2 px-3 py-2 text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer rounded-md transition-colors"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span>Disconnect</span>
-                    </DropdownMenuItem>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button
+                onClick={handleDisconnect}
+                className="bg-transparent border border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white"
+                size="sm"
+                data-wallet-button="true"
+                data-connected={isConnected}
+              >
+                <Wallet className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">
+                  {formatAddress(address)}
+                </span>
+                <span className="sm:hidden">
+                  {formatAddress(address)}
+                </span>
+              </Button>
             ) : (
               <Button
                 onClick={handleConnect}
