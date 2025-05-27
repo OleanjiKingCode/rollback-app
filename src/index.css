@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -449,6 +448,29 @@ div[style*="background: rgb(255, 255, 0)"] {
     border: 1px solid #E9A344 !important;
     color: #8B5E3C !important;
   }
+  
+  /* Dropdown menu mobile styling */
+  [data-radix-dropdown-menu-content] {
+    width: 95vw !important;
+    max-width: 350px !important;
+    margin: 0.5rem !important;
+    background-color: white !important;
+    border: 1px solid #FAEBD1 !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  }
+  
+  .wallet-dropdown-header {
+    padding: 1.25rem !important;
+    background-color: #F9F3E5 !important;
+    border-bottom: 1px solid #FAEBD1 !important;
+    border-radius: 0.75rem 0.75rem 0 0 !important;
+  }
+  
+  .wallet-dropdown-address {
+    font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
+  }
 }
 
 /* GLOBAL COLOR REPLACEMENTS - Apply to ALL devices */
@@ -571,26 +593,46 @@ button[class*="back"]:hover {
   color: #E9A344 !important;
 }
 
-/* Dropdown menu styling */
+/* Dropdown menu styling - highest priority */
 [data-radix-dropdown-menu-content] {
   background-color: white !important;
   border: 1px solid #FAEBD1 !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-  z-index: 50 !important;
+  z-index: 99999 !important;
+  border-radius: 0.5rem !important;
 }
 
 [data-radix-dropdown-menu-item] {
   color: #8B5E3C !important;
+  transition: all 0.2s ease-in-out !important;
 }
 
-[data-radix-dropdown-menu-item]:hover {
-  background-color: #FAEBD1 !important;
-  color: #8B5E3C !important;
-}
-
+[data-radix-dropdown-menu-item]:hover,
 [data-radix-dropdown-menu-item][data-highlighted] {
   background-color: #FAEBD1 !important;
   color: #8B5E3C !important;
+}
+
+/* Wallet dropdown specific styling */
+.wallet-dropdown-header {
+  background-color: #F9F3E5 !important;
+  border-bottom: 1px solid #FAEBD1 !important;
+  padding: 1rem !important;
+}
+
+.wallet-dropdown-address {
+  color: #3C2415 !important;
+  font-family: monospace !important;
+  word-break: break-all !important;
+}
+
+.wallet-dropdown-disconnect {
+  color: #dc2626 !important;
+}
+
+.wallet-dropdown-disconnect:hover {
+  background-color: #fef2f2 !important;
+  color: #b91c1c !important;
 }
 
 /* Ensure icons in these buttons are properly styled */
