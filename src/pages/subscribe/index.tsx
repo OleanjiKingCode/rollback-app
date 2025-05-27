@@ -278,8 +278,8 @@ export default function Subscription() {
                   Can I upgrade my plan anytime?
                 </h3>
                 <p className="text-sm text-rollback-brown">
-                  Yes, you can upgrade your subscription at any time. The new features will be 
-                  available immediately, and billing will be prorated.
+                  Yes, you can upgrade your subscription at any time, The new features will be 
+                  available immediately.
                 </p>
               </CardContent>
             </Card>
@@ -291,22 +291,22 @@ export default function Subscription() {
                 </h3>
                 <p className="text-sm text-rollback-brown">
                   Existing rollback wallets remain active, but you may lose access to advanced 
-                  features like Agent Wallets and priority support.
+                  features.
                 </p>
               </CardContent>
             </Card>
             
-            <Card className="border-rollback-cream">
+            {/* <Card className="border-rollback-cream">
               <CardContent className="p-6">
                 <h3 className="font-semibold text-rollback-dark mb-2">
                   Is there a trial period?
                 </h3>
                 <p className="text-sm text-rollback-brown">
-                  The Basic plan is free forever. Pro and Enterprise plans offer a 14-day 
+                  The Basic plan is free forever. Pro and Enterprise plans doesnt offer a 14-day 
                   trial period with full access to all features.
                 </p>
               </CardContent>
-            </Card>
+            </Card> */}
             
             <Card className="border-rollback-cream">
               <CardContent className="p-6">
