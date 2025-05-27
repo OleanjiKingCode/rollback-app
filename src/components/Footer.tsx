@@ -66,19 +66,25 @@ export function Footer() {
             </h4>
             <div className="space-y-2">
               <Link
-                to="#"
+                to="https://x.com/rollbacklabs"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block text-sm text-rollback-brown hover:text-rollback-dark"
               >
                 Twitter
               </Link>
               <Link
-                to="#"
+                to="https://t.me/rollbackwallet"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block text-sm text-rollback-brown hover:text-rollback-dark"
               >
-                Discord
+                Telegram
               </Link>
               <Link
                 to="#"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block text-sm text-rollback-brown hover:text-rollback-dark"
               >
                 GitHub
