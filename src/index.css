@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -103,6 +104,64 @@
   #root {
     @apply bg-rollback-light min-h-screen;
   }
+}
+
+/* REMOVE ALL YELLOW BACKGROUNDS AND TEXT GLOBALLY - HIGHEST PRIORITY */
+*[style*="background-color: yellow"],
+*[style*="background: yellow"],
+*[style*="background-color: #ffff00"],
+*[style*="background: #ffff00"],
+*[style*="background-color: rgb(255, 255, 0)"],
+*[style*="background: rgb(255, 255, 0)"],
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-yellow-500,
+.bg-yellow-600,
+.bg-yellow-700,
+.bg-yellow-800,
+.bg-yellow-900,
+[class*="bg-yellow-"],
+[data-sonner-toast][data-type="success"],
+[data-sonner-toast],
+.sonner-toast,
+[role="status"],
+div[style*="background-color: rgb(255, 255, 0)"],
+div[style*="background: rgb(255, 255, 0)"] {
+  background-color: #F9F3E5 !important;
+  background: #F9F3E5 !important;
+  border: 1px solid #E9A344 !important;
+  color: #8B5E3C !important;
+}
+
+/* Text color overrides */
+.text-yellow-50,
+.text-yellow-100,
+.text-yellow-200,
+.text-yellow-300,
+.text-yellow-400,
+.text-yellow-500,
+.text-yellow-600,
+.text-yellow-700,
+.text-yellow-800,
+.text-yellow-900,
+[class*="text-yellow-"] {
+  color: #8B5E3C !important;
+}
+
+/* Success toast specific overrides */
+[data-sonner-toast][data-type="success"] {
+  background-color: #F9F3E5 !important;
+  border-color: #22c55e !important;
+  color: #15803d !important;
+}
+
+/* Toast title and description */
+[data-sonner-toast] [data-title],
+[data-sonner-toast] [data-description] {
+  color: #15803d !important;
 }
 
 /* MOBILE SPECIFIC STYLES - Complete override for all button and input styling */
@@ -376,6 +435,20 @@
     background-color: white !important;
     border-color: #FAEBD1 !important;
   }
+
+  /* Remove yellow from any mobile toasts */
+  [data-sonner-toast],
+  .sonner-toast,
+  [role="status"],
+  *[style*="background-color: yellow"],
+  *[style*="background: yellow"],
+  *[style*="background-color: #ffff00"],
+  *[style*="background: #ffff00"] {
+    background-color: #F9F3E5 !important;
+    background: #F9F3E5 !important;
+    border: 1px solid #E9A344 !important;
+    color: #8B5E3C !important;
+  }
 }
 
 /* GLOBAL COLOR REPLACEMENTS - Apply to ALL devices */
@@ -426,42 +499,6 @@ nav {
   position: relative !important;
 }
 
-/* REMOVE ALL YELLOW BACKGROUNDS GLOBALLY WITH HIGHEST SPECIFICITY */
-*[style*="background-color: #ffff00"],
-*[style*="background: #ffff00"],
-*[style*="color: #ffff00"],
-*[style*="border-color: #ffff00"],
-*[style*="background-color: rgb(255, 255, 0)"],
-*[style*="background: rgb(255, 255, 0)"],
-*[style*="background-color: yellow"],
-*[style*="background: yellow"],
-button[class*="reject"],
-button[class*="warning"],
-div[class*="warning"],
-*[class*="warning"],
-[data-radix-select-trigger],
-button[class*="back"] {
-  background-color: transparent !important;
-  border-color: #E9A344 !important;
-  color: #E9A344 !important;
-}
-
-/* Override any hover states */
-*[style*="background-color: #ffff00"]:hover,
-*[style*="background: #ffff00"]:hover,
-*[style*="background-color: yellow"]:hover,
-*[style*="background: yellow"]:hover,
-button[class*="reject"]:hover,
-button[class*="warning"]:hover,
-div[class*="warning"]:hover,
-*[class*="warning"]:hover,
-[data-radix-select-trigger]:hover,
-button[class*="back"]:hover {
-  background-color: rgba(233, 163, 68, 0.1) !important;
-  border-color: #E9A344 !important;
-  color: #E9A344 !important;
-}
-
 /* Override Tailwind yellow classes */
 .bg-yellow-50,
 .bg-yellow-100,
@@ -500,38 +537,6 @@ button[class*="back"]:hover {
   color: #8B5E3C !important;
 }
 
-/* Force all yellow backgrounds to use theme colors on mobile */
-@media (max-width: 768px) {
-  *[style*="background-color: yellow"],
-  *[style*="background: yellow"],
-  [class*="bg-yellow-"],
-  [class*="text-yellow-"],
-  [class*="border-yellow-"],
-  button[class*="reject"],
-  button[class*="warning"],
-  div[class*="warning"],
-  *[class*="warning"] {
-    background-color: transparent !important;
-    border-color: #8B5E3C !important;
-    color: #8B5E3C !important;
-  }
-
-  /* Override any hover states on mobile */
-  *[style*="background-color: yellow"]:hover,
-  *[style*="background: yellow"]:hover,
-  [class*="bg-yellow-"]:hover,
-  [class*="text-yellow-"]:hover,
-  [class*="border-yellow-"]:hover,
-  button[class*="reject"]:hover,
-  button[class*="warning"]:hover,
-  div[class*="warning"]:hover,
-  *[class*="warning"]:hover {
-    background-color: rgba(139, 94, 60, 0.1) !important;
-    border-color: #8B5E3C !important;
-    color: #8B5E3C !important;
-  }
-}
-
 /* Select component specific overrides */
 [data-radix-select-trigger] {
   background-color: white !important;
@@ -566,32 +571,26 @@ button[class*="back"]:hover {
   color: #E9A344 !important;
 }
 
-/* Mobile specific adjustments */
-@media (max-width: 768px) {
-  [data-radix-select-trigger],
-  button[class*="back"] {
-    background-color: transparent !important;
-    border-color: #E9A344 !important;
-    color: #E9A344 !important;
-  }
+/* Dropdown menu styling */
+[data-radix-dropdown-menu-content] {
+  background-color: white !important;
+  border: 1px solid #FAEBD1 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  z-index: 50 !important;
+}
 
-  [data-radix-select-trigger]:hover,
-  button[class*="back"]:hover {
-    background-color: rgba(233, 163, 68, 0.1) !important;
-    border-color: #E9A344 !important;
-    color: #E9A344 !important;
-  }
+[data-radix-dropdown-menu-item] {
+  color: #8B5E3C !important;
+}
 
-  button:contains("View Distribution"),
-  button:contains("View Details"),
-  button[aria-label*="view"],
-  button[aria-label*="distribution"],
-  button[aria-label*="details"] {
-    width: 100% !important;
-    justify-content: center !important;
-    margin-top: 0.5rem !important;
-    margin-bottom: 0.5rem !important;
-  }
+[data-radix-dropdown-menu-item]:hover {
+  background-color: #FAEBD1 !important;
+  color: #8B5E3C !important;
+}
+
+[data-radix-dropdown-menu-item][data-highlighted] {
+  background-color: #FAEBD1 !important;
+  color: #8B5E3C !important;
 }
 
 /* Ensure icons in these buttons are properly styled */

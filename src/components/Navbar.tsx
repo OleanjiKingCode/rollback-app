@@ -5,6 +5,13 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { useWallet } from '@/contexts/WalletContext';
 import { 
@@ -14,7 +21,9 @@ import {
   Settings, 
   User,
   LayoutDashboard,
-  Bell
+  Bell,
+  ChevronDown,
+  LogOut
 } from 'lucide-react';
 
 const navigation = [
@@ -32,25 +41,33 @@ export function Navbar() {
   const pathname = location.pathname;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleWalletAction = async () => {
+  const handleConnect = async () => {
     try {
-      if (isConnected) {
-        await disconnect();
-        toast({
-          title: "Wallet Disconnected",
-          description: "Your wallet has been disconnected successfully.",
-        });
-      } else {
-        await connect();
-        toast({
-          title: "Wallet Connected",
-          description: "Your wallet has been connected successfully.",
-        });
-      }
+      await connect();
+      toast({
+        title: "Wallet Connected",
+        description: "Your wallet has been connected successfully.",
+      });
     } catch (error) {
       toast({
         title: "Connection Error",
-        description: "Failed to connect/disconnect wallet. Please try again.",
+        description: "Failed to connect wallet. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      await disconnect();
+      toast({
+        title: "Wallet Disconnected",
+        description: "Your wallet has been disconnected successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Disconnect Error",
+        description: "Failed to disconnect wallet. Please try again.",
         variant: "destructive",
       });
     }
@@ -104,25 +121,54 @@ export function Navbar() {
 
           {/* Wallet Connection */}
           <div className="flex items-center space-x-4">
-            <Button
-              onClick={handleWalletAction}
-              className={
-                isConnected
-                  ? "bg-transparent border border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white"
-                  : "bg-rollback-primary hover:bg-rollback-primary/90 text-white border-none"
-              }
-              size="sm"
-              data-wallet-button="true"
-              data-connected={isConnected}
-            >
-              <Wallet className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">
-                {isConnected && address ? formatAddress(address) : 'Connect Wallet'}
-              </span>
-              <span className="sm:hidden">
-                {isConnected ? 'Connected' : 'Connect'}
-              </span>
-            </Button>
+            {isConnected && address ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    className="bg-transparent border border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white"
+                    size="sm"
+                    data-wallet-button="true"
+                    data-connected={isConnected}
+                  >
+                    <Wallet className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">
+                      {formatAddress(address)}
+                    </span>
+                    <span className="sm:hidden">
+                      Connected
+                    </span>
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem disabled className="flex flex-col items-start">
+                    <span className="text-xs text-muted-foreground">Connected Address</span>
+                    <span className="text-sm font-mono">{address}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleDisconnect} className="text-destructive">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Disconnect
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                onClick={handleConnect}
+                className="bg-rollback-primary hover:bg-rollback-primary/90 text-white border-none"
+                size="sm"
+                data-wallet-button="true"
+                data-connected={false}
+              >
+                <Wallet className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">
+                  Connect Wallet
+                </span>
+                <span className="sm:hidden">
+                  Connect
+                </span>
+              </Button>
+            )}
 
             {/* Mobile Menu */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
