@@ -6,6 +6,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useToast } from '@/hooks/use-toast';
+import { useWallet } from '@/contexts/WalletContext';
 import { 
   Wallet, 
   Home, 
@@ -15,25 +16,6 @@ import {
   LayoutDashboard,
   Bell
 } from 'lucide-react';
-
-// Mock wallet connection - replace with wagmi hooks
-const useWallet = () => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [address, setAddress] = useState<string | null>(null);
-
-  const connect = () => {
-    // Mock connection - replace with useConnect from wagmi
-    setIsConnected(true);
-    setAddress('0x1234...5678');
-  };
-
-  const disconnect = () => {
-    setIsConnected(false);
-    setAddress(null);
-  };
-
-  return { isConnected, address, connect, disconnect };
-};
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -50,18 +32,26 @@ export function Navbar() {
   const pathname = location.pathname;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleWalletAction = () => {
-    if (isConnected) {
-      disconnect();
+  const handleWalletAction = async () => {
+    try {
+      if (isConnected) {
+        await disconnect();
+        toast({
+          title: "Wallet Disconnected",
+          description: "Your wallet has been disconnected successfully.",
+        });
+      } else {
+        await connect();
+        toast({
+          title: "Wallet Connected",
+          description: "Your wallet has been connected successfully.",
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Wallet Disconnected",
-        description: "Your wallet has been disconnected successfully.",
-      });
-    } else {
-      connect();
-      toast({
-        title: "Wallet Connected",
-        description: "Your wallet has been connected successfully.",
+        title: "Connection Error",
+        description: "Failed to connect/disconnect wallet. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -127,7 +117,7 @@ export function Navbar() {
             >
               <Wallet className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">
-                {isConnected ? formatAddress(address!) : 'Connect Wallet'}
+                {isConnected && address ? formatAddress(address) : 'Connect Wallet'}
               </span>
               <span className="sm:hidden">
                 {isConnected ? 'Connected' : 'Connect'}
