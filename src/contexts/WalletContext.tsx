@@ -78,10 +78,11 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
 
     try {
-      const accounts = await provider.connect();
-      if (accounts.length > 0) {
+      await provider.connect();
+      // After connection, check the accounts from the provider
+      if (provider.accounts.length > 0) {
         setIsConnected(true);
-        setAddress(accounts[0]);
+        setAddress(provider.accounts[0]);
       }
     } catch (error) {
       console.error('Failed to connect wallet:', error);
