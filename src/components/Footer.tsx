@@ -82,7 +82,7 @@ export function Footer() {
                 Telegram
               </Link>
               <Link
-                to="#"
+                to="https://github.com/Rollback-Labs"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block text-sm text-rollback-brown hover:text-rollback-dark"
