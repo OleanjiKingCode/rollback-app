@@ -55,7 +55,7 @@ export default function CreateRollbackWallet() {
   const progress = (currentStep / totalSteps) * 100;
 
   const addFallbackWallet = () => {
-    if (config.fallbackWallets.length < 10) {
+    if (config.fallbackWallets.length < 1) {
       setConfig(prev => ({
         ...prev,
         fallbackWallets: [...prev.fallbackWallets, '']
@@ -144,10 +144,10 @@ export default function CreateRollbackWallet() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Wallet className="h-5 w-5 text-rollback-primary" />
-                <span>Fallback Wallets</span>
+                <span>Fallback Wallet</span>
               </CardTitle>
               <CardDescription className="text-rollback-dark">
-                Add up to 10 fallback wallet addresses for recovery (max 10)
+                Add 1 fallback wallet address for recovery
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -160,28 +160,8 @@ export default function CreateRollbackWallet() {
                     onChange={(e) => updateFallbackWallet(index, e.target.value)}
                     className="flex-1"
                   />
-                  {config.fallbackWallets.length > 1 && (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => removeFallbackWallet(index)}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                  )}
                 </div>
               ))}
-              
-              {config.fallbackWallets.length < 10 && (
-                <Button
-                  variant="outline"
-                  onClick={addFallbackWallet}
-                  className="w-full border-rollback-primary text-rollback-primary"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Fallback Wallet
-                </Button>
-              )}
             </CardContent>
           </Card>
         );
@@ -372,7 +352,7 @@ export default function CreateRollbackWallet() {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="p-4 bg-rollback-cream rounded-lg">
-                  <h4 className="font-medium mb-2">Fallback Wallets ({config.fallbackWallets.filter(addr => addr).length})</h4>
+                  <h4 className="font-medium mb-2">Fallback Wallet ({config.fallbackWallets.filter(addr => addr).length})</h4>
                   {config.fallbackWallets.filter(addr => addr).map((addr, index) => (
                     <p key={index} className="text-sm text-rollback-brown font-mono">
                       #{index + 1}: {addr}

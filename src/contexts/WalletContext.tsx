@@ -48,6 +48,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
         // Listen for account changes
         walletConnectProvider.on('accountsChanged', (accounts: string[]) => {
+          console.log('Accounts changed:', accounts);
           if (accounts.length > 0) {
             setAddress(accounts[0]);
             setIsConnected(true);
@@ -59,8 +60,19 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
         // Listen for disconnect
         walletConnectProvider.on('disconnect', () => {
+          console.log('Provider disconnected');
           setIsConnected(false);
           setAddress(null);
+        });
+
+        // Listen for session events
+        walletConnectProvider.on('session_event', (event) => {
+          console.log('Session event:', event);
+        });
+
+        // Listen for session updates
+        walletConnectProvider.on('session_update', (event) => {
+          console.log('Session update:', event);
         });
 
       } catch (error) {
@@ -78,14 +90,20 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
 
     try {
-      await provider.connect();
-      // After connection, check the accounts from the provider
-      if (provider.accounts.length > 0) {
+      console.log('Attempting to connect...');
+      
+      // Enable the provider (this should trigger the connection modal)
+      const accounts = await provider.enable();
+      console.log('Connection successful, accounts:', accounts);
+      
+      if (accounts && accounts.length > 0) {
         setIsConnected(true);
-        setAddress(provider.accounts[0]);
+        setAddress(accounts[0]);
+        console.log('Connected to account:', accounts[0]);
       }
     } catch (error) {
       console.error('Failed to connect wallet:', error);
+      throw error;
     }
   };
 
@@ -96,8 +114,10 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       await provider.disconnect();
       setIsConnected(false);
       setAddress(null);
+      console.log('Wallet disconnected successfully');
     } catch (error) {
       console.error('Failed to disconnect wallet:', error);
+      throw error;
     }
   };
 
