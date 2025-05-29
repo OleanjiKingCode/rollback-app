@@ -547,6 +547,15 @@ div[style*="background: rgb(255, 255, 0)"] {
   fill: #000000 !important;
 }
 
+/* Chart line styling override */
+.recharts-line-curve {
+  stroke: #FAEBD1 !important;
+}
+
+.recharts-dot {
+  fill: #FAEBD1 !important;
+}
+
 /* Force navbar styling with highest priority */
 nav {
   background-color: #F9F3E5 !important;
