@@ -40,6 +40,7 @@ export function Navbar() {
         description: "Your wallet has been connected successfully.",
       });
     } catch (error) {
+      console.error('Connection error:', error);
       toast({
         title: "Connection Error",
         description: "Failed to connect wallet. Please try again.",
@@ -115,7 +116,7 @@ export function Navbar() {
             {isConnected && address ? (
               <Button
                 onClick={handleDisconnect}
-                className="bg-transparent border border-rollback-primary text-rollback-primary hover:bg-rollback-primary hover:text-white"
+                className="bg-rollback-primary hover:bg-rollback-primary/90 text-white"
                 size="sm"
                 data-wallet-button="true"
                 data-connected={isConnected}
@@ -131,7 +132,7 @@ export function Navbar() {
             ) : (
               <Button
                 onClick={handleConnect}
-                className="bg-rollback-primary hover:bg-rollback-primary/90 text-white border-none"
+                className="bg-rollback-primary hover:bg-rollback-primary/90 text-white"
                 size="sm"
                 data-wallet-button="true"
                 data-connected={false}
