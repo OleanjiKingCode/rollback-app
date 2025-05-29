@@ -110,7 +110,7 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Wallet Connection */}
+          {/* Wallet Connection, with wallet connect, wagmi, web3modal ,metamask, coinbase, magic, walletlink, ledger, trezor, etc*/}
           <div className="flex items-center space-x-4">
             {isConnected && address ? (
               <Button
