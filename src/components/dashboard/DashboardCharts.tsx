@@ -9,7 +9,7 @@ export function DashboardCharts({ mockAnalytics }: DashboardChartsProps) {
   return (
     <ChartContainer
       config={{
-        value: { label: "Value ($)", color: "#000000" }
+        value: { label: "Value ($)", color: "#FAEBD1" }
       }}
       className="h-[200px]"
     >
@@ -42,9 +42,9 @@ export function DashboardCharts({ mockAnalytics }: DashboardChartsProps) {
           <Line 
             type="monotone" 
             dataKey="value" 
-            stroke="#000000" 
+            stroke="#FAEBD1" 
             strokeWidth={2}
-            dot={{ fill: '#000000' }}
+            dot={{ fill: '#FAEBD1' }}
           />
         </LineChart>
       </ResponsiveContainer>
