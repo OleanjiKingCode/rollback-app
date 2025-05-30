@@ -1,73 +1,61 @@
-# Welcome to your Lovable project
+# Rollback Crypto Shield
 
-## Project info
+A secure crypto wallet management system that provides a safety net for your digital assets through an innovative rollback mechanism.
 
-**URL**: https://lovable.dev/projects/10314fc8-a1d9-4e4d-a1d2-273152017f77
+## Features
 
-## How can I edit this code?
+- **Smart Wallet Monitoring**: Continuously tracks wallet activity and inactivity periods
+- **Automated Rollback Protection**: Triggers safety measures when inactivity thresholds are reached
+- **Multi-Token Support**: Manages multiple cryptocurrencies (ETH, USDC, DAI, etc.)
+- **Value Analytics**: Real-time tracking and visualization of wallet values
+- **Agent System**: Designate trusted agents to manage rollback procedures
+- **Configurable Thresholds**: Customize inactivity periods and security parameters
+- **Modern UI/UX**: Clean, intuitive interface built with React and shadcn-ui
 
-There are several ways of editing your application.
+## Technology Stack
 
-**Use Lovable**
+- **Frontend**: React + TypeScript + Vite
+- **Styling**: Tailwind CSS + shadcn-ui
+- **Charts**: Recharts for data visualization
+- **State Management**: React Context + Hooks
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/10314fc8-a1d9-4e4d-a1d2-273152017f77) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
+1. Clone the repository:
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+git clone <repository-url>
+cd rollback-crypto-shield
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Install dependencies:
+```sh
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Start the development server:
+```sh
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Configuration
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Set up your wallet monitoring parameters in the dashboard
+2. Configure inactivity thresholds
+3. Add trusted agent wallets
+4. Select tokens to monitor
 
-**Use GitHub Codespaces**
+## Security Features
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Secure wallet monitoring
+- Configurable inactivity thresholds
+- Multi-signature support for critical operations
+- Automated safety triggers
+- Transparent transaction history
 
-## What technologies are used for this project?
+## Contributing
 
-This project is built with:
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## License
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/10314fc8-a1d9-4e4d-a1d2-273152017f77) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+[MIT License](LICENSE)
