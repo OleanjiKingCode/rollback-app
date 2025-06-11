@@ -55,7 +55,7 @@ export default function CreateRollbackWallet() {
   const progress = (currentStep / totalSteps) * 100;
 
   const addFallbackWallet = () => {
-    if (config.fallbackWallets.length < 1) {
+    if (config.fallbackWallets.length < 5) {
       setConfig(prev => ({
         ...prev,
         fallbackWallets: [...prev.fallbackWallets, '']
@@ -144,10 +144,10 @@ export default function CreateRollbackWallet() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Wallet className="h-5 w-5 text-rollback-primary" />
-                <span>Fallback Wallet</span>
+                <span>Rollback Wallets</span>
               </CardTitle>
               <CardDescription className="text-rollback-dark">
-                Add 1 fallback wallet address for recovery
+                Add up to 5 rollback wallet addresses for recovery
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -160,8 +160,29 @@ export default function CreateRollbackWallet() {
                     onChange={(e) => updateFallbackWallet(index, e.target.value)}
                     className="flex-1"
                   />
+                  {config.fallbackWallets.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeFallbackWallet(index)}
+                      className="h-10 w-10 text-rollback-brown hover:text-red-500"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               ))}
+              
+              {config.fallbackWallets.length < 5 && (
+                <Button
+                  variant="outline"
+                  onClick={addFallbackWallet}
+                  className="w-full border-rollback-primary text-rollback-primary hover:bg-rollback-primary/10"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add wallet ({config.fallbackWallets.length}/5)
+                </Button>
+              )}
             </CardContent>
           </Card>
         );
