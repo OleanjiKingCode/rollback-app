@@ -1,0 +1,70 @@
+{
+  "name": "Rollback Wallet - Crypto Protection",
+  "short_name": "Rollback",
+  "description": "Advanced crypto protection with automated rollback functionality for ERC-20 tokens and NFTs",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#E9A344",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "productivity", "utilities"],
+  "scope": "/",
+  "lang": "en-US",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/lovable-uploads/86a7596b-4477-45a7-88bb-9de6bbadd014.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/lovable-uploads/86a7596b-4477-45a7-88bb-9de6bbadd014.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/lovable-uploads/86a7596b-4477-45a7-88bb-9de6bbadd014.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Rollback Wallet Dashboard"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your protected wallets",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/lovable-uploads/86a7596b-4477-45a7-88bb-9de6bbadd014.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Create Wallet",
+      "short_name": "Create",
+      "description": "Setup new wallet protection",
+      "url": "/create",
+      "icons": [
+        {
+          "src": "/lovable-uploads/86a7596b-4477-45a7-88bb-9de6bbadd014.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

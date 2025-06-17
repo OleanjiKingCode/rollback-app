@@ -1,13 +1,19 @@
-
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { EthereumProvider } from '@walletconnect/ethereum-provider';
+import React, {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  useEffect,
+} from "react";
+import { appKit } from "@/config/wallet";
 
 interface WalletContextType {
   isConnected: boolean;
+  isConnecting: boolean;
+  isDisconnecting: boolean;
   address: string | null;
-  connect: () => Promise<void>;
+  connect: () => void;
   disconnect: () => Promise<void>;
-  provider: InstanceType<typeof EthereumProvider> | null;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -18,106 +24,44 @@ interface WalletProviderProps {
 
 export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [address, setAddress] = useState<string | null>(null);
-  const [provider, setProvider] = useState<InstanceType<typeof EthereumProvider> | null>(null);
-
-  const projectId = '39e3c29daea8e6f80deddfda5fb0d606';
 
   useEffect(() => {
-    const initProvider = async () => {
-      try {
-        const walletConnectProvider = await EthereumProvider.init({
-          projectId,
-          chains: [1], // Ethereum mainnet
-          showQrModal: true,
-          metadata: {
-            name: 'Rollback Wallet',
-            description: 'Rollback Crypto Shield',
-            url: window.location.origin,
-            icons: ['https://walletconnect.com/walletconnect-logo.png']
-          }
-        });
+    // Subscribe to account changes
+    const unsubscribeAccount = appKit.subscribeAccount((account) => {
+      setAddress(account.address || null);
+      setIsConnected(!!account.address);
+      setIsConnecting(false);
+    });
 
-        setProvider(walletConnectProvider);
+    // Subscribe to state changes
+    const unsubscribeState = appKit.subscribeState((state) => {
+      setIsConnecting(state.loading);
+    });
 
-        // Check for existing session
-        if (walletConnectProvider.accounts.length > 0) {
-          setIsConnected(true);
-          setAddress(walletConnectProvider.accounts[0]);
-        }
-
-        // Listen for account changes
-        walletConnectProvider.on('accountsChanged', (accounts: string[]) => {
-          console.log('Accounts changed:', accounts);
-          if (accounts.length > 0) {
-            setAddress(accounts[0]);
-            setIsConnected(true);
-          } else {
-            setAddress(null);
-            setIsConnected(false);
-          }
-        });
-
-        // Listen for disconnect
-        walletConnectProvider.on('disconnect', () => {
-          console.log('Provider disconnected');
-          setIsConnected(false);
-          setAddress(null);
-        });
-
-        // Listen for session events
-        walletConnectProvider.on('session_event', (event) => {
-          console.log('Session event:', event);
-        });
-
-        // Listen for session updates
-        walletConnectProvider.on('session_update', (event) => {
-          console.log('Session update:', event);
-        });
-
-      } catch (error) {
-        console.error('Failed to initialize WalletConnect:', error);
-      }
+    return () => {
+      unsubscribeAccount();
+      unsubscribeState();
     };
-
-    initProvider();
   }, []);
 
-  const connect = async () => {
-    if (!provider) {
-      console.error('Provider not initialized');
-      return;
-    }
-
-    try {
-      console.log('Attempting to connect...');
-      
-      // Enable the provider (this should trigger the connection modal)
-      const accounts = await provider.enable();
-      console.log('Connection successful, accounts:', accounts);
-      
-      if (accounts && accounts.length > 0) {
-        setIsConnected(true);
-        setAddress(accounts[0]);
-        console.log('Connected to account:', accounts[0]);
-      }
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      throw error;
-    }
+  const connect = () => {
+    setIsConnecting(true);
+    appKit.open();
   };
 
-  const disconnect = async () => {
-    if (!provider) return;
-
+  const handleDisconnect = async () => {
+    setIsDisconnecting(true);
     try {
-      await provider.disconnect();
+      await appKit.disconnect();
       setIsConnected(false);
       setAddress(null);
-      console.log('Wallet disconnected successfully');
     } catch (error) {
-      console.error('Failed to disconnect wallet:', error);
-      throw error;
+      console.error("Failed to disconnect:", error);
+    } finally {
+      setIsDisconnecting(false);
     }
   };
 
@@ -125,10 +69,11 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     <WalletContext.Provider
       value={{
         isConnected,
+        isConnecting,
+        isDisconnecting,
         address,
         connect,
-        disconnect,
-        provider
+        disconnect: handleDisconnect,
       }}
     >
       {children}
@@ -139,7 +84,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 export const useWallet = () => {
   const context = useContext(WalletContext);
   if (context === undefined) {
-    throw new Error('useWallet must be used within a WalletProvider');
+    throw new Error("useWallet must be used within a WalletProvider");
   }
   return context;
 };
