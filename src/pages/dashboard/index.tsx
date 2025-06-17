@@ -760,7 +760,7 @@ export default function Dashboard() {
                       className={`w-2 h-2 rounded-full mt-2 ${
                         activity.status === "completed"
                           ? "bg-blue-500"
-                          : "bg-yellow-500"
+                          : "bg-rollback-primary"
                       }`}
                     />
                     <div className="flex-1 min-w-0">

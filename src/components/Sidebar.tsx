@@ -60,10 +60,15 @@ export function Sidebar() {
   };
 
   const NavContent = ({ isMobile = false }) => (
-    <div className="flex flex-col h-full gap-4 ">
+    <div
+      className={`flex flex-col h-full gap-4 ${
+        isMobile ? "!bg-[#F9F3E5]" : "bg-rollback-light"
+      }`}
+      style={isMobile ? { backgroundColor: "#F9F3E5" } : undefined}
+    >
       {/* Header with Original Logo */}
       <div
-        onClick={() => isCollapsed && !isMobile ?  setIsCollapsed(false) : {}}
+        onClick={() => (isCollapsed && !isMobile ? setIsCollapsed(false) : {})}
         className={`flex items-center py-3 bg-rollback-light ${
           isCollapsed && !isMobile
             ? "justify-center px-2"
@@ -234,7 +239,11 @@ export function Sidebar() {
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0">
+          <SheetContent
+            side="left"
+            className="w-72 p-0 !bg-[#F9F3E5]"
+            style={{ backgroundColor: "#F9F3E5" }}
+          >
             <NavContent isMobile={true} />
           </SheetContent>
         </Sheet>
