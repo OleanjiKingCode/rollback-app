@@ -21,29 +21,29 @@
     --secondary: 36 82% 71%; /* rollback-secondary */
     --secondary-foreground: 60 36 21;
 
-    --muted: 250 30% 87%; /* rollback-cream */
-    --muted-foreground: 60 7% 3%;
+    --muted: 43 82% 89%; /* rollback-cream */
+    --muted-foreground: 60 36 21; /* rollback-dark */
 
-    --accent: 250 30% 87%;
-    --accent-foreground: 60 36 21;
+    --accent: 43 82% 89%; /* rollback-cream */
+    --accent-foreground: 60 36 21; /* rollback-dark */
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 250 30% 87%;
-    --input: 250 30% 87%;
+    --border: 43 82% 89%; /* rollback-cream */
+    --input: 43 82% 89%; /* rollback-cream */
     --ring: 36 73% 58%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 249 243 229;
-    --sidebar-foreground: 60 36 21;
-    --sidebar-primary: 36 73% 58%;
-    --sidebar-primary-foreground: 60 36 21;
-    --sidebar-accent: 250 30% 87%;
-    --sidebar-accent-foreground: 60 36 21;
-    --sidebar-border: 250 30% 87%;
-    --sidebar-ring: 36 73% 58%;
+    --sidebar-background: 249 243 229; /* rollback-light */
+    --sidebar-foreground: 60 36 21; /* rollback-dark */
+    --sidebar-primary: 36 73% 58%; /* rollback-primary */
+    --sidebar-primary-foreground: 60 36 21; /* rollback-dark */
+    --sidebar-accent: 43 82% 89%; /* rollback-cream */
+    --sidebar-accent-foreground: 60 36 21; /* rollback-dark */
+    --sidebar-border: 43 82% 89%; /* rollback-cream */
+    --sidebar-ring: 36 73% 58%; /* rollback-primary */
   }
 
   .dark {
@@ -59,30 +59,30 @@
     --primary: 36 73% 58%; /* rollback-primary */
     --primary-foreground: 60 36 21;
 
-    --secondary: 139 94 60; /* rollback-brown */
-    --secondary-foreground: 249 243 229;
+    --secondary: 44 85% 72%; /* rollback-secondary */
+    --secondary-foreground: 60 36 21; /* rollback-dark */
 
-    --muted: 139 94 60;
-    --muted-foreground: 250 30% 87%;
+    --muted: 30 39% 39%; /* rollback-brown */
+    --muted-foreground: 249 243 229; /* rollback-light */
 
-    --accent: 139 94 60;
-    --accent-foreground: 249 243 229;
+    --accent: 30 39% 39%; /* rollback-brown */
+    --accent-foreground: 249 243 229; /* rollback-light */
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 139 94 60;
-    --input: 139 94 60;
+    --border: 30 39% 39%; /* rollback-brown */
+    --input: 30 39% 39%; /* rollback-brown */
     --ring: 36 73% 58%;
 
-    --sidebar-background: 60 36 21;
-    --sidebar-foreground: 249 243 229;
-    --sidebar-primary: 36 73% 58%;
-    --sidebar-primary-foreground: 60 36 21;
-    --sidebar-accent: 139 94 60;
-    --sidebar-accent-foreground: 249 243 229;
-    --sidebar-border: 139 94 60;
-    --sidebar-ring: 36 73% 58%;
+    --sidebar-background: 60 36 21; /* rollback-dark */
+    --sidebar-foreground: 249 243 229; /* rollback-light */
+    --sidebar-primary: 36 73% 58%; /* rollback-primary */
+    --sidebar-primary-foreground: 60 36 21; /* rollback-dark */
+    --sidebar-accent: 30 39% 39%; /* rollback-brown */
+    --sidebar-accent-foreground: 249 243 229; /* rollback-light */
+    --sidebar-border: 30 39% 39%; /* rollback-brown */
+    --sidebar-ring: 36 73% 58%; /* rollback-primary */
   }
 }
 
@@ -112,7 +112,7 @@
 @layer utilities {
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: #e9a344 #f1f5f9;
+    scrollbar-color: #e9a344 #f9f3e5;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
@@ -120,16 +120,16 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: #f9f3e5; /* rollback-light */
     border-radius: 3px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #e9a344;
+    background: #e9a344; /* rollback-primary */
     border-radius: 3px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #d4941a;
+    background: #8b5e3c; /* rollback-brown */
   }
 }
