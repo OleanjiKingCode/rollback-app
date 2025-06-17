@@ -207,7 +207,7 @@ const WalletConnectionState = ({ isConnected, isConnecting, address }: any) => {
 
   if (isConnecting) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
           <div className="text-center max-w-md">
             <Loader2 className="h-12 w-12 animate-spin mx-auto mb-6 text-rollback-primary" />
@@ -225,7 +225,7 @@ const WalletConnectionState = ({ isConnected, isConnecting, address }: any) => {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
           <div className="text-center max-w-lg">
             <WifiOff className="h-16 w-16 mx-auto mb-6 text-gray-400" />
@@ -356,7 +356,7 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16 lg:pt-0">
+    <div className="min-h-screen bg-rollback-light pt-16 lg:pt-0">
       <div className="container mx-auto px-4 py-6 lg:py-8">
         {/* Enhanced Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
@@ -573,7 +573,7 @@ export default function Dashboard() {
                 </div>
                 <span>Wallet Configuration</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-gray-900">
                 Current settings for {selectedWallet.address.slice(0, 10)}...
                 {selectedWallet.address.slice(-8)}
               </CardDescription>
@@ -807,7 +807,7 @@ export default function Dashboard() {
               </div>
               <span>Portfolio Analytics</span>
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-900">
               Portfolio value and activity trends over time
             </CardDescription>
           </CardHeader>

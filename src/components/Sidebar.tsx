@@ -60,13 +60,14 @@ export function Sidebar() {
   };
 
   const NavContent = ({ isMobile = false }) => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full gap-4 ">
       {/* Header with Original Logo */}
       <div
-        className={`flex items-center ${
+        onClick={() => isCollapsed && !isMobile ?  setIsCollapsed(false) : {}}
+        className={`flex items-center py-3 bg-rollback-light ${
           isCollapsed && !isMobile
-            ? "justify-center p-4"
-            : "justify-between p-6"
+            ? "justify-center px-2"
+            : "justify-between px-6"
         }`}
       >
         {(!isCollapsed || isMobile) && (
@@ -81,25 +82,23 @@ export function Sidebar() {
         )}
 
         {isCollapsed && !isMobile && (
-          <img
-            src="/lovable-uploads/86a7596b-4477-45a7-88bb-9de6bbadd014.png"
-            alt="Rollback Wallet"
-            className="h-10 w-10 rounded-xl"
-          />
+          <div onClick={() => setIsCollapsed(false)}>
+            <img
+              src="/lovable-uploads/86a7596b-4477-45a7-88bb-9de6bbadd014.png"
+              alt="Rollback Wallet"
+              className="h-10 w-10 rounded-xl"
+            />
+          </div>
         )}
 
-        {!isMobile && (
+        {!isMobile && !isCollapsed && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setIsCollapsed(!isCollapsed)}
+            onClick={() => setIsCollapsed(true)}
             className="hidden lg:flex h-8 w-8 p-0 hover:bg-gray-100 transition-colors"
           >
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
+            <ChevronRight className="h-4 w-4" />
           </Button>
         )}
       </div>
