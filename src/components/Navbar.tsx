@@ -1,73 +1,34 @@
+"use client";
 
-'use client';
+import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useToast } from '@/hooks/use-toast';
-import { useWallet } from '@/contexts/WalletContext';
-import { 
-  Wallet, 
-  Home, 
-  Plus, 
-  Settings, 
+import { useAccount } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import {
+  Wallet,
+  Home,
+  Plus,
+  Settings,
   User,
   LayoutDashboard,
   Bell,
-} from 'lucide-react';
+} from "lucide-react";
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Create Wallet', href: '/create', icon: Plus },
-  { name: 'Governance', href: '/governance', icon: Settings },
-  { name: 'Agent Management', href: '/agent', icon: User },
-  { name: 'Subscription', href: '/subscribe', icon: Bell },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Create Wallet", href: "/create", icon: Plus },
+  { name: "Governance", href: "/governance", icon: Settings },
+  { name: "Agent Management", href: "/agent", icon: User },
+  { name: "Subscription", href: "/subscribe", icon: Bell },
 ];
 
 export function Navbar() {
-  const { isConnected, address, connect, disconnect } = useWallet();
-  const { toast } = useToast();
   const location = useLocation();
   const pathname = location.pathname;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const handleConnect = async () => {
-    try {
-      await connect();
-      toast({
-        title: "Wallet Connected",
-        description: "Your wallet has been connected successfully.",
-      });
-    } catch (error) {
-      console.error('Connection error:', error);
-      toast({
-        title: "Connection Error",
-        description: "Failed to connect wallet. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDisconnect = async () => {
-    try {
-      await disconnect();
-      toast({
-        title: "Wallet Disconnected",
-        description: "Your wallet has been disconnected successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Disconnect Error",
-        description: "Failed to disconnect wallet. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-  };
 
   return (
     <nav className="sticky top-0 z-[9999] w-full border-b border-rollback-cream bg-rollback-light backdrop-blur supports-[backdrop-filter]:bg-rollback-light">
@@ -100,8 +61,8 @@ export function Navbar() {
                   to={item.href}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-rollback-primary text-white'
-                      : 'text-rollback-brown hover:text-rollback-dark hover:bg-rollback-cream'
+                      ? "bg-rollback-primary text-white"
+                      : "text-rollback-brown hover:text-rollback-dark hover:bg-rollback-cream"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -111,48 +72,96 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Wallet Connection, with wallet connect, wagmi, web3modal ,metamask, coinbase, magic, walletlink, ledger, trezor, etc*/}
+          {/* Wallet Connection */}
           <div className="flex items-center space-x-4">
-            {isConnected && address ? (
-              <Button
-                onClick={handleDisconnect}
-                className="bg-rollback-primary hover:bg-rollback-primary/90 text-white"
-                size="sm"
-                data-wallet-button="true"
-                data-connected={isConnected}
-              >
-                <Wallet className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">
-                  {formatAddress(address)}
-                </span>
-                <span className="sm:hidden">
-                  {formatAddress(address)}
-                </span>
-              </Button>
-            ) : (
-              <Button
-                onClick={handleConnect}
-                className="bg-rollback-primary hover:bg-rollback-primary/90 text-white"
-                size="sm"
-                data-wallet-button="true"
-                data-connected={false}
-              >
-                <Wallet className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">
-                  Connect Wallet
-                </span>
-                <span className="sm:hidden">
-                  Connect
-                </span>
-              </Button>
-            )}
+            <ConnectButton.Custom>
+              {({
+                account,
+                chain,
+                openAccountModal,
+                openChainModal,
+                openConnectModal,
+                authenticationStatus,
+                mounted,
+              }) => {
+                const ready = mounted && authenticationStatus !== "loading";
+                const connected =
+                  ready &&
+                  account &&
+                  chain &&
+                  (!authenticationStatus ||
+                    authenticationStatus === "authenticated");
+
+                return (
+                  <div
+                    {...(!ready && {
+                      "aria-hidden": true,
+                      style: {
+                        opacity: 0,
+                        pointerEvents: "none",
+                        userSelect: "none",
+                      },
+                    })}
+                  >
+                    {(() => {
+                      if (!connected) {
+                        return (
+                          <Button
+                            onClick={openConnectModal}
+                            type="button"
+                            className="bg-rollback-primary hover:bg-rollback-primary/90 text-white text-sm"
+                            size="sm"
+                          >
+                            <Wallet className="h-4 w-4 mr-2" />
+                            <span className="hidden sm:inline">
+                              Connect Wallet
+                            </span>
+                            <span className="sm:hidden">Connect</span>
+                          </Button>
+                        );
+                      }
+
+                      if (chain.unsupported) {
+                        return (
+                          <Button
+                            onClick={openChainModal}
+                            type="button"
+                            className="bg-red-500 hover:bg-red-600 text-white text-sm"
+                            size="sm"
+                          >
+                            Wrong network
+                          </Button>
+                        );
+                      }
+
+                      return (
+                        <Button
+                          onClick={openAccountModal}
+                          type="button"
+                          className="bg-rollback-primary hover:bg-rollback-primary/90 text-white text-sm"
+                          size="sm"
+                        >
+                          <Wallet className="h-4 w-4 mr-2" />
+                          <span className="hidden sm:inline">
+                            {account.displayName}
+                          </span>
+                          <span className="sm:hidden">
+                            {account.displayName}
+                          </span>
+                        </Button>
+                      );
+                    })()}
+                  </div>
+                );
+              }}
+            </ConnectButton.Custom>
 
             {/* Mobile Menu */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="bg-transparent hover:bg-rollback-cream"
                   data-mobile-menu="true"
                 >
@@ -163,7 +172,10 @@ export function Navbar() {
                   </div>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-64 bg-rollback-light border-rollback-cream z-[9999]">
+              <SheetContent
+                side="right"
+                className="w-64 bg-rollback-light border-rollback-cream z-[9999]"
+              >
                 <div className="flex flex-col space-y-4 mt-8">
                   {navigation.map((item) => {
                     const Icon = item.icon;
@@ -175,8 +187,8 @@ export function Navbar() {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={`flex items-center space-x-3 px-4 py-3 rounded-md text-sm font-medium transition-colors ${
                           isActive
-                            ? 'bg-rollback-primary text-white'
-                            : 'text-rollback-brown hover:text-rollback-dark hover:bg-rollback-cream'
+                            ? "bg-rollback-primary text-white"
+                            : "text-rollback-brown hover:text-rollback-dark hover:bg-rollback-cream"
                         }`}
                       >
                         <Icon className="h-5 w-5" />

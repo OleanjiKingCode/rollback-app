@@ -1,8 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useWallet } from "@/contexts/WalletContext";
+import { useAccount } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useRollbackWallet, useTokenPortfolio } from "@/hooks/useRollback";
 import { CustomModal, InfoModal } from "@/components/CustomModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Card,
   CardContent,
@@ -54,6 +65,9 @@ import {
   BarChart3,
   Loader2,
   WifiOff,
+  Plus,
+  Zap,
+  ArrowRightLeft,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -73,155 +87,69 @@ import {
   Bar,
 } from "recharts";
 
-// Enhanced mock data - removed ETH references
-const mockWallets = [
-  {
-    id: "1",
-    address: "0x1234567890123456789012345678901234567890",
-    status: "active",
-    threshold: 30,
-    daysRemaining: 3,
-    totalValue: "125,500 USDC",
-    totalValueUSD: 125500,
-    agentWallet: "0xabcd...efgh",
-    lastActivity: "2024-01-20T10:30:00Z",
-    rollbackMethod: "priority",
-    ownerWallets: [
-      { address: "0x1111...1111", priority: 1, status: "active" },
-      { address: "0x2222...2222", priority: 2, status: "active" },
-      { address: "0x3333...3333", priority: 3, status: "inactive" },
-    ],
-    monitoredTokens: ["USDC", "DAI", "WBTC"],
-    warningsSent: 2,
-    email: "user@example.com",
-  },
-  {
-    id: "2",
-    address: "0x0987654321098765432109876543210987654321",
-    status: "warning",
-    threshold: 60,
-    daysRemaining: 4,
-    totalValue: "89,200 USDC",
-    totalValueUSD: 89200,
-    agentWallet: "0x1234...5678",
-    lastActivity: "2024-01-15T14:20:00Z",
-    rollbackMethod: "randomized",
-    ownerWallets: [
-      { address: "0x4444...4444", priority: 1, status: "active" },
-      { address: "0x5555...5555", priority: 2, status: "active" },
-    ],
-    monitoredTokens: ["USDC", "WBTC", "LINK"],
-    warningsSent: 1,
-    email: "user2@example.com",
-  },
-];
+// Helper function to format token balance
+const formatBalance = (balance: string, decimals: number, symbol: string) => {
+  const value = parseFloat(balance) / Math.pow(10, decimals);
+  return `${value.toFixed(2)} ${symbol}`;
+};
 
-const mockTokens = [
-  {
-    symbol: "USDC",
-    balance: "75,000",
-    value: "$75,000",
-    address: "0xa0b86a33e6ba",
-    valueNum: 75000,
-    change24h: 0.1,
-  },
-  {
-    symbol: "DAI",
-    balance: "25,000",
-    value: "$25,000",
-    address: "0x6B175474E89",
-    valueNum: 25000,
-    change24h: -0.2,
-  },
-  {
-    symbol: "WBTC",
-    balance: "1.5",
-    value: "$60,000",
-    address: "0x2260FAC5E552",
-    valueNum: 60000,
-    change24h: 1.8,
-  },
-  {
-    symbol: "LINK",
-    balance: "2,500",
-    value: "$40,000",
-    address: "0x514910771AF9",
-    valueNum: 40000,
-    change24h: 3.2,
-  },
-];
+// Generate activity data from user wallets
+const generateActivityData = (userData: any) => {
+  if (!userData?.wallets) return [];
 
-const mockActivity = [
-  {
-    date: "2024-01-20",
-    type: "Activity Reset",
-    details: "Manual reset by user",
+  const activities = [];
+
+  // Add wallet creation activity
+  activities.push({
+    date: userData.user?.created_at
+      ? new Date(userData.user.created_at).toLocaleDateString()
+      : new Date().toLocaleDateString(),
+    type: "Rollback Wallet Created",
+    details: "Rollback protection system initialized",
     status: "completed",
-    wallet: "0x1234...7890",
-    txHash: "0xabc123...",
-  },
-  {
-    date: "2024-01-19",
-    type: "Warning Sent",
-    details: "Email warning sent - 3 days remaining",
-    status: "completed",
-    wallet: "0x1234...7890",
+    wallet: "System",
     txHash: null,
-  },
-  {
-    date: "2024-01-15",
-    type: "Config Update",
-    details: "Updated inactivity threshold to 30 days",
-    status: "completed",
-    wallet: "0x1234...7890",
-    txHash: "0xdef456...",
-  },
-  {
-    date: "2024-01-10",
-    type: "Token Added",
-    details: "Added LINK to monitoring list",
-    status: "completed",
-    wallet: "0x1234...7890",
-    txHash: "0x789abc...",
-  },
-];
+  });
 
-const portfolioData = [
-  { date: "Jan 1", value: 150000, tokens: 4 },
-  { date: "Jan 8", value: 165000, tokens: 4 },
-  { date: "Jan 15", value: 180000, tokens: 5 },
-  { date: "Jan 22", value: 200000, tokens: 5 },
-  { date: "Jan 29", value: 185000, tokens: 4 },
-];
+  // Add wallet status activities
+  userData.wallets.forEach((wallet: any, index: number) => {
+    if (wallet.is_obsolete) {
+      activities.push({
+        date: wallet.updated_at
+          ? new Date(wallet.updated_at).toLocaleDateString()
+          : new Date().toLocaleDateString(),
+        type: "Wallet Marked Obsolete",
+        details: `Wallet ${wallet.address.slice(0, 6)}...${wallet.address.slice(
+          -4
+        )} marked as obsolete`,
+        status: "completed",
+        wallet: wallet.address,
+        txHash: null,
+      });
+    } else if (wallet.last_activity) {
+      activities.push({
+        date: new Date(wallet.last_activity).toLocaleDateString(),
+        type: "Wallet Activity Detected",
+        details: `Recent activity on wallet ${wallet.address.slice(
+          0,
+          6
+        )}...${wallet.address.slice(-4)}`,
+        status: "completed",
+        wallet: wallet.address,
+        txHash: null,
+      });
+    }
+  });
 
-const tokenDistribution = [
-  { name: "USDC", value: 75000, fill: "#E9A344", percentage: 37.5 },
-  { name: "WBTC", value: 60000, fill: "#F5C678", percentage: 30.0 },
-  { name: "LINK", value: 40000, fill: "#8B5E3C", percentage: 20.0 },
-  { name: "DAI", value: 25000, fill: "#FAEBD1", percentage: 12.5 },
-];
+  // Sort by date (most recent first) and limit to 4
+  return activities
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 4);
+};
 
 // Wallet connection states
-const WalletConnectionState = ({ isConnected, isConnecting, address }: any) => {
-  const { connect } = useWallet();
-
-  if (isConnecting) {
-    return (
-      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-center max-w-md">
-            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-6 text-rollback-primary" />
-            <h3 className="text-2xl font-semibold text-rollback-dark mb-3">
-              Connecting Wallet
-            </h3>
-            <p className="text-gray-600 text-lg">
-              Please approve the connection in your wallet...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+const WalletConnectionState = ({ isConnected, address }: any) => {
+  const { openConnectModal } = useConnectModal();
 
   if (!isConnected) {
     return (
@@ -237,7 +165,7 @@ const WalletConnectionState = ({ isConnected, isConnecting, address }: any) => {
               manage your secured assets.
             </p>
             <Button
-              onClick={connect}
+              onClick={openConnectModal}
               className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-8 py-3 text-lg"
             >
               <Wallet className="h-5 w-5 mr-3" />
@@ -252,37 +180,136 @@ const WalletConnectionState = ({ isConnected, isConnecting, address }: any) => {
   return null;
 };
 
+// No Rollback Wallet State
+const NoRollbackWalletState = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+        <div className="text-center max-w-2xl">
+          <div className="w-20 h-20 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-full flex items-center justify-center mx-auto mb-8">
+            <Shield className="h-6 w-6 text-white" />
+          </div>
+
+          <h2 className="text-lg font-bold text-rollback-dark mb-4">
+            No Rollback Wallet Found
+          </h2>
+
+          <p className="text-gray-600 mb-8 text-sm leading-relaxed">
+            You don't have a rollback wallet yet. Create one to protect your
+            assets with automated rollback capabilities when wallets become
+            inactive.
+          </p>
+
+          <div className="bg-white rounded-2xl p-6 mb-8 border border-gray-200">
+            <h3 className="text-sm font-semibold text-rollback-dark mb-3">
+              What is a Rollback Wallet?
+            </h3>
+            <ul className="text-left space-y-2 text-gray-600 text-xs">
+              <li className="flex items-start">
+                <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                Automatically monitors your wallet activity
+              </li>
+              <li className="flex items-start">
+                <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                Transfers assets to backup wallets if inactive too long
+              </li>
+              <li className="flex items-start">
+                <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                Customizable inactivity thresholds and rollback rules
+              </li>
+              <li className="flex items-start">
+                <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                Multi-signature protection with your trusted wallets
+              </li>
+            </ul>
+          </div>
+
+          <Button
+            onClick={() => navigate("/create")}
+            className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-8 py-4 text-sm rounded-xl"
+            size="lg"
+          >
+            <Plus className="h-5 w-5 mr-3" />
+            Create Rollback Wallet
+          </Button>
+
+          <p className="text-sm text-gray-500 mt-4">
+            The creation process involves multiple signatures from your wallet
+            owners
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Loading State
+const LoadingState = () => (
+  <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
+    <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+      <div className="text-center max-w-md">
+        <Loader2 className="h-6 w-6 animate-spin mx-auto mb-6 text-rollback-primary" />
+        <h3 className="text-lg font-semibold text-rollback-dark mb-3">
+          Loading Dashboard
+        </h3>
+        <p className="text-gray-600 text-sm">
+          Fetching your rollback wallet information...
+        </p>
+      </div>
+    </div>
+  </div>
+);
+
+// Main Dashboard Component
 export default function Dashboard() {
-  const { isConnected, isConnecting, address } = useWallet();
-  const [selectedWallet, setSelectedWallet] = useState(mockWallets[0]);
-  const [isValueModalOpen, setIsValueModalOpen] = useState(false);
-  const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
-  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
-  const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
+  const { isConnected, address } = useAccount();
+  const {
+    user,
+    hasRollbackWallet,
+    rollbackWalletAddress,
+    isLoading,
+    isError,
+    checkRollbackWallet,
+    refetch,
+  } = useRollbackWallet();
+
+  const {
+    portfolio,
+    isLoading: portfolioLoading,
+    error: portfolioError,
+    fetchPortfolioData,
+  } = useTokenPortfolio(user);
+
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [isEmergencyRollback, setIsEmergencyRollback] = useState(false);
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleResetActivity = () => {
-    toast({
-      title: "🔄 Activity Reset",
-      description:
-        "Your activity timer has been reset successfully. You'll receive a confirmation email shortly.",
-    });
+  // Check for rollback wallet on mount and when address changes
+  useEffect(() => {
+    if (isConnected && address) {
+      checkRollbackWallet();
+    }
+  }, [isConnected, address, checkRollbackWallet]);
 
-    setSelectedWallet((prev) => ({
-      ...prev,
-      lastActivity: new Date().toISOString(),
-      daysRemaining: prev.threshold,
-    }));
-  };
+  // Fetch portfolio data when user is available
+  useEffect(() => {
+    if (user && user.rollbackConfig) {
+      fetchPortfolioData();
+    }
+  }, [user, fetchPortfolioData]);
 
-  const handleRefreshData = () => {
+  const handleRefreshData = async () => {
     setLastRefresh(new Date());
+    await checkRollbackWallet();
+    await refetch();
+    await fetchPortfolioData();
     toast({
       title: "🔄 Data Refreshed",
-      description:
-        "Wallet data has been updated with the latest blockchain information.",
+      description: "Wallet data has been updated with the latest information.",
     });
   };
 
@@ -294,71 +321,103 @@ export default function Dashboard() {
     });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-blue-100 text-blue-800 border-blue-300";
-      case "warning":
-        return "bg-yellow-100 text-yellow-800 border-yellow-300";
-      case "obsolete":
-        return "bg-red-100 text-red-800 border-red-300";
-      case "inactive":
-        return "bg-gray-100 text-gray-800 border-gray-300";
-      default:
-        return "bg-rollback-cream text-rollback-dark border-rollback-light";
-    }
-  };
+  const handleEmergencyRollback = async () => {
+    setIsEmergencyRollback(true);
+    setShowEmergencyModal(false);
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "active":
-        return <CheckCircle2 className="h-4 w-4" />;
-      case "warning":
-        return <AlertTriangle className="h-4 w-4" />;
-      case "obsolete":
-        return <Clock className="h-4 w-4" />;
-      case "inactive":
-        return <Clock className="h-4 w-4" />;
-      default:
-        return <Info className="h-4 w-4" />;
-    }
-  };
+    try {
+      // Here you would call your emergency rollback API
+      // await triggerEmergencyRollback(user.user.id);
 
-  const getUrgencyLevel = (daysRemaining: number, threshold: number) => {
-    const percentage = (daysRemaining / threshold) * 100;
-    if (percentage <= 10)
-      return { level: "critical", color: "text-red-600", bg: "bg-red-50" };
-    if (percentage <= 25)
-      return { level: "high", color: "text-orange-600", bg: "bg-orange-50" };
-    if (percentage <= 50)
-      return { level: "medium", color: "text-yellow-600", bg: "bg-yellow-50" };
-    return { level: "low", color: "text-blue-600", bg: "bg-blue-50" };
+      // Mock emergency rollback process
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      toast({
+        title: "🚨 Emergency Rollback Initiated",
+        description:
+          "Your assets are being transferred to recovery wallets. This may take several minutes.",
+        variant: "destructive",
+      });
+
+      // Refresh data after rollback
+      await handleRefreshData();
+    } catch (error) {
+      toast({
+        title: "❌ Emergency Rollback Failed",
+        description:
+          "Failed to initiate emergency rollback. Please contact support immediately.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsEmergencyRollback(false);
+    }
   };
 
   // Show wallet connection state if not connected
-  if (!isConnected || isConnecting) {
+  if (!isConnected) {
     return (
-      <WalletConnectionState
-        isConnected={isConnected}
-        isConnecting={isConnecting}
-        address={address}
-      />
+      <WalletConnectionState isConnected={isConnected} address={address} />
     );
   }
 
-  const progressPercentage =
-    ((selectedWallet.threshold - selectedWallet.daysRemaining) /
-      selectedWallet.threshold) *
-    100;
-  const urgency = getUrgencyLevel(
-    selectedWallet.daysRemaining,
-    selectedWallet.threshold
-  );
+  // Show loading state
+  if (isLoading) {
+    return <LoadingState />;
+  }
 
+  // Show error state
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+          <div className="text-center max-w-lg">
+            <AlertTriangle className="h-6 w-6 mx-auto mb-6 text-red-500" />
+            <h3 className="text-lg font-semibold text-rollback-dark mb-3">
+              Error Loading Dashboard
+            </h3>
+            <p className="text-gray-600 mb-8 text-sm leading-relaxed">
+              There was an error loading your dashboard. Please try refreshing
+              or check your connection.
+            </p>
+            <Button
+              onClick={handleRefreshData}
+              className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-8 py-3 text-sm"
+            >
+              <RefreshCw className="h-5 w-5 mr-3" />
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show no rollback wallet state
+  if (hasRollbackWallet === false) {
+    return <NoRollbackWalletState />;
+  }
+
+  // Enhanced debugging
+  console.log("Dashboard Debug:", {
+    user,
+    hasRollbackWallet,
+    rollbackWalletAddress,
+    isLoading,
+    isError,
+    isConnected,
+    address,
+  });
+
+  // Show loading if no wallet data yet
+  if (!user) {
+    return <LoadingState />;
+  }
+
+  // Main dashboard for users with rollback wallet
   return (
     <div className="min-h-screen bg-rollback-light pt-16 lg:pt-0">
       <div className="container mx-auto px-4 py-6 lg:py-8">
-        {/* Enhanced Header */}
+        {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
           <div className="mb-4 lg:mb-0">
             <h1 className="text-2xl font-bold text-rollback-dark mb-2">
@@ -372,6 +431,25 @@ export default function Dashboard() {
 
           <div className="flex items-center space-x-3 w-full lg:w-auto">
             <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setShowEmergencyModal(true)}
+              disabled={!user?.rollbackConfig?.is_active}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              <Zap className="h-4 w-4 mr-2" />
+              Emergency Rollback
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/settings")}
+              className="border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               onClick={handleRefreshData}
@@ -380,417 +458,470 @@ export default function Dashboard() {
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
-
-            <Select
-              value={selectedWallet.id}
-              onValueChange={(value) => {
-                const wallet = mockWallets.find((w) => w.id === value);
-                if (wallet) setSelectedWallet(wallet);
-              }}
-            >
-              <SelectTrigger className="w-full lg:w-80 border-gray-300 bg-white hover:bg-gray-50 transition-colors duration-200">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-gray-300">
-                {mockWallets.map((wallet) => (
-                  <SelectItem
-                    key={wallet.id}
-                    value={wallet.id}
-                    className="hover:bg-gray-100 focus:bg-gray-100 transition-colors duration-200"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Wallet className="h-4 w-4 text-rollback-dark" />
-                      <span className="text-sm text-rollback-dark">
-                        {wallet.address.slice(0, 10)}...
-                        {wallet.address.slice(-8)}
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className={getStatusColor(wallet.status)}
-                      >
-                        {getStatusIcon(wallet.status)}
-                        <span className="ml-1">{wallet.status}</span>
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
-        {/* Status Alerts */}
-        {selectedWallet.status === "warning" && (
-          <Alert className="mb-6 border-yellow-300 bg-yellow-50">
-            <AlertTriangle className="h-4 w-4 text-yellow-600" />
-            <AlertDescription className="text-yellow-800">
-              <strong>Warning:</strong> This wallet will trigger rollback in{" "}
-              {selectedWallet.daysRemaining} days. Consider resetting activity
-              or reviewing your configuration.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Wallet Status Card */}
-          <Card className="border-gray-200 bg-white hover:shadow-xl hover:shadow-[#E9A344]/10 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20 flex flex-col">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-900 flex items-center">
-                <div className="w-6 h-6 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-xl flex items-center justify-center mr-2">
-                  <Shield className="h-3 w-3 text-white" />
+        {/* Status Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="border-gray-200 bg-white hover:shadow-lg transition-all duration-300 rounded-2xl">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Total Tokens
+                  </p>
+                  <p className="text-2xl font-bold text-rollback-dark">
+                    {portfolio?.tokens?.length ? (
+                      <div className="flex flex-col">
+                        {portfolio.tokens.slice(0, 2).map((token, index) => (
+                          <span key={index} className="text-sm">
+                            {formatBalance(
+                              token.totalBalance,
+                              token.decimals,
+                              token.symbol
+                            )}
+                          </span>
+                        ))}
+                        {portfolio.tokens.length > 2 && (
+                          <span className="text-xs text-gray-500">
+                            +{portfolio.tokens.length - 2} more
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      "No tokens"
+                    )}
+                  </p>
                 </div>
-                Wallet Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col">
-              <div className="flex items-center space-x-2 mb-2">
-                <Badge className={getStatusColor(selectedWallet.status)}>
-                  {getStatusIcon(selectedWallet.status)}
-                  <span className="ml-1 capitalize">
-                    {selectedWallet.status}
-                  </span>
-                </Badge>
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                  <DollarSign className="h-6 w-6 text-white" />
+                </div>
               </div>
-              <p className="text-xs text-gray-600 flex-1">
-                {selectedWallet.status === "active"
-                  ? `${selectedWallet.daysRemaining} days until threshold`
-                  : selectedWallet.status === "warning"
-                  ? `${selectedWallet.daysRemaining} days remaining`
-                  : "No longer monitored"}
-              </p>
-              {selectedWallet.status !== "obsolete" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2 w-full border-[#E9A344] text-[#E9A344] hover:bg-[#E9A344] hover:text-white transition-all duration-200 rounded-xl"
-                  onClick={handleResetActivity}
-                >
-                  <Activity className="h-4 w-4 mr-2" />
-                  Reset Activity
-                </Button>
-              )}
             </CardContent>
           </Card>
 
-          {/* System Stats Card */}
-          <Card className="border-gray-200 bg-white hover:shadow-xl hover:shadow-[#E9A344]/10 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20 flex flex-col">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-900 flex items-center">
-                <div className="w-6 h-6 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-xl flex items-center justify-center mr-2">
-                  <BarChart3 className="h-3 w-3 text-white" />
+          <Card className="border-gray-200 bg-white hover:shadow-lg transition-all duration-300 rounded-2xl">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Threshold Days
+                  </p>
+                  <p className="text-2xl font-bold text-rollback-dark">
+                    {user.rollbackConfig?.inactivity_threshold || 30}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Inactivity threshold
+                  </p>
                 </div>
-                System Stats
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col">
-              <div className="text-xl font-bold text-gray-900">
-                {mockWallets.filter((w) => w.status === "active").length}/
-                {mockWallets.length}
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
+                  <Timer className="h-6 w-6 text-white" />
+                </div>
               </div>
-              <p className="text-xs text-gray-600 mt-1 flex-1">
-                Active wallets
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-2 w-full border-[#E9A344] text-[#E9A344] hover:bg-[#E9A344] hover:text-white transition-all duration-200 rounded-xl"
-                onClick={() => setIsStatsModalOpen(true)}
-              >
-                <TrendingUp className="h-4 w-4 mr-2" />
-                View Details
-              </Button>
             </CardContent>
           </Card>
 
-          {/* Total Value Card */}
-          <Card className="border-gray-200 bg-white hover:shadow-xl hover:shadow-[#E9A344]/10 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20 flex flex-col">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-900 flex items-center">
-                <div className="w-6 h-6 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-xl flex items-center justify-center mr-2">
-                  <DollarSign className="h-3 w-3 text-white" />
+          <Card className="border-gray-200 bg-white hover:shadow-lg transition-all duration-300 rounded-2xl">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Monitored Tokens
+                  </p>
+                  <p className="text-2xl font-bold text-rollback-dark">
+                    {user.rollbackConfig?.tokens_to_monitor?.length || 0}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Active monitoring
+                  </p>
                 </div>
-                Total Value
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col">
-              <div className="text-xl font-bold text-gray-900">
-                ${selectedWallet.totalValueUSD.toLocaleString()}
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                  <Coins className="h-6 w-6 text-white" />
+                </div>
               </div>
-              <p className="text-xs text-gray-600 mt-1 flex-1">
-                {selectedWallet.totalValue}
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-2 w-full border-[#E9A344] text-[#E9A344] hover:bg-[#E9A344] hover:text-white transition-all duration-200 rounded-xl"
-                onClick={() => setIsValueModalOpen(true)}
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                View Breakdown
-              </Button>
             </CardContent>
           </Card>
 
-          {/* Activity Timer Card */}
-          <Card className="border-gray-200 bg-white hover:shadow-xl hover:shadow-[#E9A344]/10 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20 flex flex-col">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-900 flex items-center">
-                <div className="w-6 h-6 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-xl flex items-center justify-center mr-2">
-                  <Timer className="h-3 w-3 text-white" />
+          <Card className="border-gray-200 bg-white hover:shadow-lg transition-all duration-300 rounded-2xl">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Status</p>
+                  <p
+                    className={`text-2xl font-bold ${
+                      user.rollbackConfig?.is_active
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {user.rollbackConfig?.is_active ? "Active" : "Inactive"}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {user.rollbackConfig?.is_active
+                      ? "Protection enabled"
+                      : "Protection disabled"}
+                  </p>
                 </div>
-                Activity Timer
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col">
-              <div className={`text-xl font-bold mb-2 ${urgency.color}`}>
-                {selectedWallet.daysRemaining} days
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-white" />
+                </div>
               </div>
-              <Progress
-                value={progressPercentage}
-                className="h-3 mb-2 rounded-full"
-              />
-              <div
-                className={`text-xs px-2 py-1 rounded-full ${urgency.bg} ${urgency.color} mb-1`}
-              >
-                {urgency.level.toUpperCase()} URGENCY
-              </div>
-              <p className="text-xs text-gray-600 mt-1 flex-1">
-                Threshold: {selectedWallet.threshold} days
-              </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Wallet Configuration */}
-          <Card className="lg:col-span-2 border-gray-200 bg-white hover:shadow-xl hover:shadow-[#E9A344]/10 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-xl flex items-center justify-center">
-                  <Settings className="h-4 w-4 text-white" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Portfolio Overview */}
+          <div className="lg:col-span-2">
+            <Card className="border-gray-200 bg-white rounded-2xl h-full">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+                  <BarChart3 className="h-5 w-5 mr-2 text-rollback-primary" />
+                  Portfolio Overview
+                </CardTitle>
+                <CardDescription>
+                  Track your portfolio value over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={portfolio?.chartData || []}>
+                      <defs>
+                        <linearGradient
+                          id="colorValue"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#E9A344"
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#E9A344"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="date" stroke="#6b7280" fontSize={12} />
+                      <YAxis stroke="#6b7280" fontSize={12} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#fff",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#E9A344"
+                        strokeWidth={2}
+                        fillOpacity={1}
+                        fill="url(#colorValue)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
-                <span>Wallet Configuration</span>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Token Distribution */}
+          <div>
+            <Card className="border-gray-200 bg-white rounded-2xl h-full">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+                  <Activity className="h-5 w-5 mr-2 text-rollback-primary" />
+                  Token Distribution
+                </CardTitle>
+                <CardDescription>Current allocation breakdown</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 mb-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={portfolio?.distributionData || []}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {(portfolio?.distributionData || []).map(
+                          (entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          )
+                        )}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value: any) => [
+                          `$${value.toLocaleString()}`,
+                          "Value",
+                        ]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-2">
+                  {(portfolio?.distributionData || []).map((token, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <div className="flex items-center">
+                        <div
+                          className="w-3 h-3 rounded-full mr-2"
+                          style={{ backgroundColor: token.fill }}
+                        ></div>
+                        <span className="font-medium">{token.name}</span>
+                      </div>
+                      <span className="text-gray-600">{token.percentage}%</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Detailed Sections */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Wallet Configuration */}
+          <Card className="border-gray-200 bg-white rounded-2xl">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+                <Settings className="h-5 w-5 mr-2 text-rollback-primary" />
+                Wallet Configuration
               </CardTitle>
-              <CardDescription className="text-gray-900">
-                Current settings for {selectedWallet.address.slice(0, 10)}...
-                {selectedWallet.address.slice(-8)}
-              </CardDescription>
+              <CardDescription>Current rollback settings</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-2">
-                      Basic Information
-                    </h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">
-                          Wallet Address:
-                        </span>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-mono text-gray-900">
-                            {selectedWallet.address.slice(0, 6)}...
-                            {selectedWallet.address.slice(-4)}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              handleCopyAddress(selectedWallet.address)
-                            }
-                            className="h-6 w-6 p-0 hover:bg-gray-100 transition-colors duration-200 rounded-lg"
-                          >
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">
-                          Threshold:
-                        </span>
-                        <span className="text-sm text-gray-900">
-                          {selectedWallet.threshold} days
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Method:</span>
-                        <Badge
-                          variant="outline"
-                          className="border-[#E9A344] text-[#E9A344] rounded-full"
-                        >
-                          {selectedWallet.rollbackMethod}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-2">
-                      Monitored Tokens
-                    </h3>
-                    <div className="flex flex-wrap gap-1">
-                      {selectedWallet.monitoredTokens.map((token) => (
-                        <Badge
-                          key={token}
-                          variant="secondary"
-                          className="text-xs rounded-full"
-                        >
-                          {token}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">
+                    Inactivity Threshold
+                  </label>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {user.rollbackConfig?.inactivity_threshold || 30} days
+                  </p>
                 </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-2">
-                      Owner Wallets
-                    </h3>
-                    <div className="space-y-2">
-                      {selectedWallet.ownerWallets.map((owner, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors duration-200"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <span className="text-xs text-gray-600">
-                              #{owner.priority}
-                            </span>
-                            <span className="text-xs font-mono text-gray-900">
-                              {owner.address.slice(0, 6)}...
-                              {owner.address.slice(-4)}
-                            </span>
-                          </div>
-                          <Badge
-                            variant="outline"
-                            className={`text-xs rounded-full ${getStatusColor(
-                              owner.status
-                            )}`}
-                          >
-                            {owner.status}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">
+                    Rollback Method
+                  </label>
+                  <p className="text-lg font-semibold text-gray-900 capitalize">
+                    {user.rollbackConfig?.rollback_method || "sequential"}
+                  </p>
                 </div>
               </div>
 
-              <Separator />
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    Last Activity
+              <div>
+                <label className="text-sm font-medium text-gray-600">
+                  Agent Wallet
+                </label>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-sm font-mono text-gray-700">
+                    {user.rollbackConfig?.agent_wallet
+                      ? `${user.rollbackConfig.agent_wallet.slice(
+                          0,
+                          6
+                        )}...${user.rollbackConfig.agent_wallet.slice(-4)}`
+                      : "Not set"}
                   </p>
-                  <p className="text-xs text-gray-600">
-                    {new Date(selectedWallet.lastActivity).toLocaleString()}
-                  </p>
-                </div>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEmergencyModalOpen(true)}
-                    className="border-red-500 text-red-600 hover:bg-red-500 hover:text-white transition-all duration-200 rounded-xl"
-                  >
-                    <AlertTriangle className="h-4 w-4 mr-2" />
-                    Emergency
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate("/governance")}
-                    className="border-[#E9A344] text-[#E9A344] hover:bg-[#E9A344] hover:text-white transition-all duration-200 rounded-xl"
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Configure
-                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      window.open(
-                        `https://etherscan.io/address/${selectedWallet.address}`,
-                        "_blank"
+                      handleCopyAddress(user.rollbackConfig?.agent_wallet || "")
+                    }
+                    className="border-gray-300"
+                    disabled={!user.rollbackConfig?.agent_wallet}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-600">
+                  Fallback Wallet
+                </label>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-sm font-mono text-gray-700">
+                    {user.rollbackConfig?.fallback_wallet
+                      ? `${user.rollbackConfig.fallback_wallet.slice(
+                          0,
+                          6
+                        )}...${user.rollbackConfig.fallback_wallet.slice(-4)}`
+                      : "Not set"}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      handleCopyAddress(
+                        user.rollbackConfig?.fallback_wallet || ""
                       )
                     }
-                    className="border-[#E9A344] text-[#E9A344] hover:bg-[#E9A344] hover:text-white transition-all duration-200 rounded-xl"
+                    className="border-gray-300"
+                    disabled={!user.rollbackConfig?.fallback_wallet}
                   >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Explorer
+                    <Copy className="h-4 w-4" />
                   </Button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-600">
+                  Recovery Wallets ({user.wallets?.length || 0})
+                </label>
+                <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
+                  {user.wallets?.map((wallet, index) => (
+                    <div
+                      key={wallet.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex items-center">
+                        <div
+                          className={`w-2 h-2 rounded-full mr-3 ${
+                            wallet.is_obsolete ? "bg-red-500" : "bg-green-500"
+                          }`}
+                        ></div>
+                        <p className="text-sm font-mono text-gray-700">
+                          {wallet.address?.slice(0, 6)}...
+                          {wallet.address?.slice(-4)}
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge
+                          variant={
+                            wallet.is_obsolete ? "destructive" : "secondary"
+                          }
+                        >
+                          {wallet.is_obsolete
+                            ? "Obsolete"
+                            : `Priority ${wallet.priority_position}`}
+                        </Badge>
+                      </div>
+                    </div>
+                  )) || (
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                        <p className="text-sm font-mono text-gray-700">
+                          {address?.slice(0, 6)}...{address?.slice(-4)}
+                        </p>
+                      </div>
+                      <Badge variant="secondary">Primary</Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-600">
+                  Monitored Tokens (
+                  {user.rollbackConfig?.tokens_to_monitor?.length || 0})
+                </label>
+                <div className="mt-2 space-y-2 max-h-32 overflow-y-auto">
+                  {portfolioLoading ? (
+                    <div className="flex items-center justify-center p-3">
+                      <Loader2 className="h-4 w-4 animate-spin text-rollback-primary" />
+                      <span className="ml-2 text-sm text-gray-600">
+                        Loading tokens...
+                      </span>
+                    </div>
+                  ) : portfolio?.tokens?.length ? (
+                    portfolio.tokens.map((token, index) => (
+                      <div
+                        key={token.address}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex items-center">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {token.symbol}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {token.name}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-900">
+                            {formatBalance(
+                              token.totalBalance,
+                              token.decimals,
+                              token.symbol
+                            )}
+                          </p>
+                          <p className="text-xs text-gray-600">{token.type}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex items-center justify-center p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-600">
+                        No tokens configured
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Activity Feed */}
-          <Card className="border-gray-200 bg-white hover:shadow-xl hover:shadow-[#E9A344]/10 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-xl flex items-center justify-center">
-                    <Activity className="h-4 w-4 text-white" />
-                  </div>
-                  <span>Recent Activity</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsActivityModalOpen(true)}
-                  className="hover:bg-gray-100 transition-colors duration-200 rounded-xl"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
+          {/* Recent Activity */}
+          <Card className="border-gray-200 bg-white rounded-2xl">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+                <Clock className="h-5 w-5 mr-2 text-rollback-primary" />
+                Recent Activity
               </CardTitle>
+              <CardDescription>
+                Latest wallet events and actions
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {mockActivity.slice(0, 5).map((activity, index) => (
+              <div className="space-y-4">
+                {generateActivityData(user).map((activity, index) => (
                   <div
                     key={index}
-                    className="flex items-start space-x-3 p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors duration-200"
+                    className="flex items-start space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors"
                   >
-                    <div
-                      className={`w-2 h-2 rounded-full mt-2 ${
-                        activity.status === "completed"
-                          ? "bg-blue-500"
-                          : "bg-rollback-primary"
-                      }`}
-                    />
+                    <div className="w-2 h-2 bg-rollback-primary rounded-full mt-2 flex-shrink-0"></div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-medium text-gray-900">
-                          {activity.type}
-                        </p>
-                        <span className="text-xs text-gray-600">
-                          {new Date(activity.date).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-sm font-medium text-gray-900">
+                        {activity.type}
+                      </p>
+                      <p className="text-sm text-gray-600">
                         {activity.details}
                       </p>
-                      {activity.txHash && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 p-0 text-xs text-[#E9A344] hover:text-[#E9A344]/80 hover:bg-transparent transition-colors duration-200"
-                          onClick={() =>
-                            window.open(
-                              `https://etherscan.io/tx/${activity.txHash}`,
-                              "_blank"
-                            )
-                          }
-                        >
-                          View Transaction
-                        </Button>
-                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        {activity.date}
+                      </p>
                     </div>
+                    <Badge
+                      variant={
+                        activity.status === "completed"
+                          ? "default"
+                          : "secondary"
+                      }
+                      className="flex-shrink-0"
+                    >
+                      {activity.status}
+                    </Badge>
                   </div>
                 ))}
               </div>
@@ -798,231 +929,81 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Portfolio Analytics */}
-        <Card className="border-gray-200 bg-white mb-8 hover:shadow-xl hover:shadow-[#E9A344]/10 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-xl flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 text-white" />
-              </div>
-              <span>Portfolio Analytics</span>
-            </CardTitle>
-            <CardDescription className="text-gray-900">
-              Portfolio value and activity trends over time
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={portfolioData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="date" stroke="#666" fontSize={12} />
-                  <YAxis stroke="#666" fontSize={12} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "white",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: "16px",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                    formatter={(value, name) => [
-                      name === "value" ? `$${value.toLocaleString()}` : value,
-                      name === "value" ? "Portfolio Value" : "Token Count",
-                    ]}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#E9A344"
-                    fill="#E9A344"
-                    fillOpacity={0.3}
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Emergency Rollback Modal */}
+        <Dialog open={showEmergencyModal} onOpenChange={setShowEmergencyModal}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center text-red-600">
+                <AlertTriangle className="h-5 w-5 mr-2" />
+                Emergency Rollback Warning
+              </DialogTitle>
+              <DialogDescription className="text-gray-600">
+                This action will immediately transfer all monitored assets from
+                your current wallets to recovery wallets.
+              </DialogDescription>
+            </DialogHeader>
 
-        {/* Modals */}
-        <InfoModal
-          isOpen={isValueModalOpen}
-          onClose={() => setIsValueModalOpen(false)}
-          title="Portfolio Breakdown"
-          description="Detailed view of your token holdings and distribution"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-sm font-semibold mb-4">Token Distribution</h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={tokenDistribution}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      dataKey="value"
-                      label={({ name, percentage }) => `${name} ${percentage}%`}
-                    >
-                      {tokenDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value) => [
-                        `$${value.toLocaleString()}`,
-                        "Value",
-                      ]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+            <div className="py-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <h4 className="font-semibold text-red-800 mb-2">
+                  ⚠️ Critical Warning:
+                </h4>
+                <ul className="text-sm text-red-700 space-y-1">
+                  <li>• This action cannot be undone</li>
+                  <li>
+                    • All monitored tokens will be transferred immediately
+                  </li>
+                  <li>• The process may take several minutes to complete</li>
+                  <li>• Your wallets will be marked as compromised</li>
+                </ul>
               </div>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold mb-4">Token Details</h3>
-              <div className="space-y-3">
-                {mockTokens.map((token) => (
-                  <div
-                    key={token.symbol}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {token.symbol}
-                      </p>
-                      <p className="text-sm text-gray-600">{token.balance}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-gray-900">{token.value}</p>
-                      <p
-                        className={`text-sm ${
-                          token.change24h >= 0
-                            ? "text-blue-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {token.change24h >= 0 ? "+" : ""}
-                        {token.change24h}%
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </InfoModal>
 
-        <InfoModal
-          isOpen={isActivityModalOpen}
-          onClose={() => setIsActivityModalOpen(false)}
-          title="Complete Activity History"
-          description="All activities across your rollback wallets"
-        >
-          <div className="max-h-96 overflow-y-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockActivity.map((activity, index) => (
-                  <TableRow
-                    key={index}
-                    className="hover:bg-gray-50 transition-colors duration-200"
-                  >
-                    <TableCell className="text-sm">
-                      {new Date(activity.date).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-xs">
-                        {activity.type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {activity.details}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(activity.status)}>
-                        {activity.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </InfoModal>
-
-        <InfoModal
-          isOpen={isStatsModalOpen}
-          onClose={() => setIsStatsModalOpen(false)}
-          title="System Statistics"
-          description="Overview of your rollback wallet system performance"
-        >
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                <p className="text-sm text-gray-600">Total Wallets</p>
-                <p className="text-xl font-bold text-gray-900">
-                  {mockWallets.length}
-                </p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                <p className="text-sm text-gray-600">Total Value</p>
-                <p className="text-xl font-bold text-gray-900">
-                  $
-                  {mockWallets
-                    .reduce((sum, w) => sum + w.totalValueUSD, 0)
-                    .toLocaleString()}
-                </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-800 mb-2">
+                  What will happen:
+                </h4>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• Assets will be moved to your recovery wallets</li>
+                  <li>• Rollback protection will remain active</li>
+                  <li>
+                    • You'll receive notifications about the transfer progress
+                  </li>
+                  <li>
+                    • Transaction hashes will be provided for verification
+                  </li>
+                </ul>
               </div>
             </div>
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                <p className="text-sm text-gray-600">Active Wallets</p>
-                <p className="text-xl font-bold text-gray-900">
-                  {mockWallets.filter((w) => w.status === "active").length}
-                </p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                <p className="text-sm text-gray-600">Total Warnings</p>
-                <p className="text-xl font-bold text-gray-900">
-                  {mockWallets.reduce((sum, w) => sum + w.warningsSent, 0)}
-                </p>
-              </div>
-            </div>
-          </div>
-        </InfoModal>
 
-        <InfoModal
-          isOpen={isEmergencyModalOpen}
-          onClose={() => setIsEmergencyModalOpen(false)}
-          title="Emergency Rollback"
-          description="Immediate emergency recovery with 1.5 day timelock"
-        >
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              This action will trigger an immediate emergency recovery with a
-              1.5 day timelock.
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full border-red-500 text-red-600 hover:bg-red-500 hover:text-white transition-all duration-200 rounded-xl"
-              onClick={() => {
-                // Implement emergency recovery logic here
-              }}
-            >
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              Confirm Emergency Recovery
-            </Button>
-          </div>
-        </InfoModal>
+            <DialogFooter className="sm:justify-between">
+              <Button
+                variant="outline"
+                onClick={() => setShowEmergencyModal(false)}
+                disabled={isEmergencyRollback}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleEmergencyRollback}
+                disabled={isEmergencyRollback}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isEmergencyRollback ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Processing Rollback...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-4 w-4 mr-2" />
+                    Confirm Emergency Rollback
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

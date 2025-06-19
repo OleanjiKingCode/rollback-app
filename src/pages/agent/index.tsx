@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useWallet } from "@/contexts/WalletContext";
+import { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 import {
   Card,
   CardContent,
@@ -21,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/lib/api";
 import {
   User,
   Shield,
@@ -28,26 +30,11 @@ import {
   Plus,
   Settings,
   Copy,
-  Loader2,
-  WifiOff,
+  Ban,
   Wallet,
 } from "lucide-react";
 
-const mockWallets = [
-  {
-    id: "1",
-    address: "0x1234567890123456789012345678901234567890",
-    agentWallet: "0xabcd1234567890123456789012345678901234efgh",
-    status: "active",
-  },
-  {
-    id: "2",
-    address: "0x0987654321098765432109876543210987654321",
-    agentWallet: null,
-    status: "no-agent",
-  },
-];
-const mockAgentCapabilities = [
+const agentCapabilities = [
   "Automated activity monitoring",
   "Enhanced security validations",
   "Block hash randomization",
@@ -57,47 +44,29 @@ const mockAgentCapabilities = [
 ];
 
 // Wallet connection states
-const WalletConnectionState = ({ isConnected, isConnecting }: any) => {
-  const { connect } = useWallet();
-
-  if (isConnecting) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16 lg:pt-8 flex items-center justify-center">
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-center max-w-md bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-            <Loader2 className="h-14 w-14 animate-spin mx-auto mb-6 text-[#E9A344]" />
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">
-              Connecting Wallet
-            </h3>
-            <p className="text-gray-600 text-lg">
-              Please approve the connection in your wallet...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+const WalletConnectionState = ({ isConnected }: any) => {
+  const { openConnectModal } = useConnectModal();
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
           <div className="text-center max-w-lg bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-            <div className="w-20 h-20 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <WifiOff className="h-10 w-10 text-white" />
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Ban className="h-8 w-8 text-red-500" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">
+            <h3 className="text-lg font-bold text-gray-900 mb-3">
               Wallet Required
             </h3>
-            <p className="text-gray-600 mb-8 text-lg leading-relaxed">
+            <p className="text-gray-600 mb-8 text-xs leading-relaxed">
               Connect your wallet to manage and configure agents for your
               rollback protection system.
             </p>
             <Button
-              onClick={connect}
-              className="bg-gradient-to-r from-[#E9A344] to-[#D4941A] hover:from-[#D4941A] hover:to-[#E9A344] text-white px-8 py-3 text-lg rounded-2xl transition-all duration-300 transform hover:scale-105"
+              onClick={openConnectModal}
+              className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-6 py-2 text-sm rounded-xl"
             >
-              <Wallet className="h-5 w-5 mr-3" />
+              <Wallet className="h-4 w-4 mr-2" />
               Connect Wallet
             </Button>
           </div>
@@ -110,20 +79,47 @@ const WalletConnectionState = ({ isConnected, isConnecting }: any) => {
 };
 
 export default function AgentManagement() {
-  const { isConnected, isConnecting } = useWallet();
-  const [selectedWallet, setSelectedWallet] = useState(mockWallets[0]);
+  const { isConnected, address } = useAccount();
+  const { user, isLoading } = useUser(address);
+  const [selectedWallet, setSelectedWallet] = useState<any>(null);
   const [newAgentAddress, setNewAgentAddress] = useState("");
   const [isAssigning, setIsAssigning] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
+  // Set selected wallet from user data
+  useEffect(() => {
+    if (user) {
+      setSelectedWallet({
+        id: user.user.id,
+        address: user.user.address,
+        agentWallet: user.rollbackConfig?.agent_wallet || null,
+        status: user.rollbackConfig?.agent_wallet ? "active" : "no-agent",
+      });
+    }
+  }, [user]);
+
   // Show wallet connection state if not connected
-  if (!isConnected || isConnecting) {
+  if (!isConnected) {
+    return <WalletConnectionState isConnected={isConnected} />;
+  }
+
+  // Show loading state while user data is being fetched
+  if (isLoading || !selectedWallet) {
     return (
-      <WalletConnectionState
-        isConnected={isConnected}
-        isConnecting={isConnecting}
-      />
+      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+          <div className="text-center max-w-md">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rollback-primary mx-auto mb-4"></div>
+            <h3 className="text-lg font-semibold text-rollback-dark mb-3">
+              Loading Agent Management
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Fetching your rollback wallet information...
+            </p>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -199,14 +195,14 @@ export default function AgentManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16 lg:pt-0 pb-6">
+    <div className="min-h-screen bg-rollback-light pt-16 lg:pt-0 pb-6">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-xl font-bold text-gray-900 mb-2">
             Wallet Agent Management
           </h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-600 text-xs max-w-2xl mx-auto">
             Manage Agent Wallets for enhanced architecture security and
             automation
           </p>
@@ -226,40 +222,25 @@ export default function AgentManagement() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Select
-              value={selectedWallet.id}
-              onValueChange={(value) => {
-                const wallet = mockWallets.find((w) => w.id === value);
-                if (wallet) setSelectedWallet(wallet);
-              }}
-            >
-              <SelectTrigger className="w-full border-gray-300 focus:border-[#E9A344] rounded-xl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl border-gray-300">
-                {mockWallets.map((wallet) => (
-                  <SelectItem
-                    key={wallet.id}
-                    value={wallet.id}
-                    className="rounded-lg"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <span className="font-mono">
-                        {wallet.address.slice(0, 10)}...
-                        {wallet.address.slice(-8)}
-                      </span>
-                      <Badge
-                        className={`${getStatusColor(
-                          wallet.status
-                        )} rounded-full`}
-                      >
-                        {wallet.agentWallet ? "Agent Active" : "No Agent"}
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {selectedWallet ? (
+              <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-xl">
+                <span className="font-mono text-sm">
+                  {selectedWallet.address?.slice(0, 10)}...
+                  {selectedWallet.address?.slice(-8)}
+                </span>
+                <Badge
+                  className={`${getStatusColor(
+                    selectedWallet.status || "no-agent"
+                  )} rounded-full`}
+                >
+                  {selectedWallet.agentWallet ? "Agent Active" : "No Agent"}
+                </Badge>
+              </div>
+            ) : (
+              <div className="p-3 bg-gray-50 rounded-xl text-sm text-gray-500">
+                {isLoading ? "Loading wallet..." : "No wallet found"}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -278,7 +259,7 @@ export default function AgentManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {selectedWallet.agentWallet ? (
+              {selectedWallet?.agentWallet ? (
                 <div className="space-y-4">
                   <div className="p-4 bg-gradient-to-br from-[#E9A344]/10 to-[#D4941A]/10 border border-[#E9A344]/20 rounded-2xl">
                     <div className="flex items-center space-x-2 mb-2">
@@ -289,13 +270,13 @@ export default function AgentManagement() {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="font-mono text-sm text-gray-900">
-                        {selectedWallet.agentWallet}
+                        {selectedWallet?.agentWallet}
                       </span>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() =>
-                          handleCopyAddress(selectedWallet.agentWallet!)
+                          handleCopyAddress(selectedWallet?.agentWallet || "")
                         }
                         className="rounded-xl"
                       >
@@ -307,7 +288,7 @@ export default function AgentManagement() {
                   <div className="text-sm text-gray-600">
                     <p>Agent wallet is active and providing:</p>
                     <ul className="list-disc list-inside mt-2 space-y-1">
-                      {mockAgentCapabilities
+                      {agentCapabilities
                         .slice(0, 3)
                         .map((capability, index) => (
                           <li key={index}>{capability}</li>
@@ -333,7 +314,7 @@ export default function AgentManagement() {
                   <div className="text-sm text-gray-600">
                     <p>Benefits of assigning an agent wallet:</p>
                     <ul className="list-disc list-inside mt-2 space-y-1">
-                      {mockAgentCapabilities
+                      {agentCapabilities
                         .slice(0, 3)
                         .map((capability, index) => (
                           <li key={index}>{capability}</li>
@@ -353,12 +334,12 @@ export default function AgentManagement() {
                   <Settings className="h-4 w-4 text-white" />
                 </div>
                 <span>
-                  {selectedWallet.agentWallet ? "Update" : "Assign"} Agent
+                  {selectedWallet?.agentWallet ? "Update" : "Assign"} Agent
                   Wallet
                 </span>
               </CardTitle>
               <CardDescription className="text-gray-600">
-                {selectedWallet.agentWallet
+                {selectedWallet?.agentWallet
                   ? "Update the current agent wallet assignment"
                   : "Assign a new agent wallet for features"}
               </CardDescription>

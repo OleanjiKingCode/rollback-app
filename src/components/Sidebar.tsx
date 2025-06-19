@@ -5,7 +5,8 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
-import { useWallet } from "@/contexts/WalletContext";
+import { useAccount, useDisconnect } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -13,6 +14,7 @@ import {
   Vote,
   Bot,
   Mail,
+  Settings,
   Menu,
   ChevronLeft,
   ChevronRight,
@@ -28,13 +30,16 @@ const navigation = [
   { name: "Governance", href: "/governance", icon: Vote },
   { name: "Wallet Agent", href: "/agent", icon: Bot },
   { name: "Subscribe", href: "/subscribe", icon: Mail },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {
   const location = useLocation();
   const { isCollapsed, setIsCollapsed } = useSidebarContext();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { address, isConnected, connect, disconnect } = useWallet();
+  const { address, isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+  const { disconnect } = useDisconnect();
   const { toast } = useToast();
 
   const formatAddress = (addr: string) => {
@@ -179,7 +184,14 @@ export function Sidebar() {
               )}
 
               <Button
-                onClick={() => disconnect()}
+                onClick={() => {
+                  disconnect();
+                  toast({
+                    title: "Wallet Disconnected",
+                    description:
+                      "Your wallet has been disconnected successfully.",
+                  });
+                }}
                 variant="outline"
                 size="sm"
                 className={`${
@@ -201,7 +213,7 @@ export function Sidebar() {
           </div>
         ) : (
           <Button
-            onClick={() => connect()}
+            onClick={() => openConnectModal?.()}
             className={`w-full ${
               isCollapsed && !isMobile ? "h-10 w-10 p-0" : ""
             } bg-[#E9A344] hover:bg-[#D4941A] text-white transition-colors rounded-xl`}

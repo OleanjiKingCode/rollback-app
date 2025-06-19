@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useWallet } from "@/contexts/WalletContext";
+import { useAccount } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { CustomModal, InfoModal } from "@/components/CustomModal";
 import {
   Card,
@@ -31,8 +32,7 @@ import {
   X,
   Plus,
   User,
-  Loader2,
-  WifiOff,
+  Ban,
   Wallet,
 } from "lucide-react";
 
@@ -56,85 +56,34 @@ type Proposal = {
   parameters?: any;
 };
 
-const mockProposals: Proposal[] = [
-  {
-    id: "1",
-    type: "threshold",
-    title: "Update Inactivity Threshold",
-    description:
-      "Proposal to change inactivity threshold from 30 days to 60 days for enhanced security",
-    status: "active",
-    votes: { approve: 3, reject: 1, total: 4 },
-    timeRemaining: "5 days",
-    initiator: "0x1234...5678",
-    walletAddress: "0xabcd...efgh",
-    parameters: { newThreshold: 60, currentThreshold: 30 },
-  },
-  {
-    id: "2",
-    type: "agent",
-    title: "Agent Wallet Assignment",
-    description: "Proposal to assign new Agent Wallet for architecture support",
-    status: "active",
-    votes: { approve: 2, reject: 0, total: 2 },
-    timeRemaining: "3 days",
-    initiator: "0x5678...9012",
-    walletAddress: "0xabcd...efgh",
-    parameters: { newAgent: "0x9999...1111" },
-  },
-  {
-    id: "3",
-    type: "obsolete",
-    title: "Mark Wallet Obsolete",
-    description: "Proposal to mark wallet as obsolete due to security concerns",
-    status: "passed",
-    votes: { approve: 4, reject: 1, total: 5 },
-    timeRemaining: "Completed",
-    initiator: "0x9012...3456",
-    walletAddress: "0x1111...2222",
-  },
-];
+// Proposals will be fetched from backend in the future
+// For now, using empty array until governance endpoints are implemented
 
 // Wallet connection check component
 const WalletConnectionCheck = () => {
-  const { isConnected, isConnecting, connect } = useWallet();
-
-  if (isConnecting) {
-    return (
-      <div className="min-h-screen bg-gray-50 pt-16 lg:pt-8 flex items-center justify-center">
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-center max-w-md">
-            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-6 text-rollback-primary" />
-            <h3 className="text-xl font-semibold text-rollback-dark mb-3">
-              Connecting Wallet
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Please approve the connection in your wallet...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
           <div className="text-center max-w-lg">
-            <WifiOff className="h-16 w-16 mx-auto mb-6 text-gray-400" />
-            <h3 className="text-xl font-semibold text-rollback-dark mb-3">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Ban className="h-8 w-8 text-red-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-rollback-dark mb-3">
               Wallet Required
             </h3>
-            <p className="text-gray-600 mb-8 text-sm leading-relaxed">
+            <p className="text-gray-600 mb-8 text-xs leading-relaxed">
               Connect your wallet to participate in governance and manage your
               rollback wallet settings.
             </p>
             <Button
-              onClick={connect}
-              className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-8 py-3 text-lg"
+              onClick={openConnectModal}
+              className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-6 py-2 text-sm"
             >
-              <Wallet className="h-5 w-5 mr-3" />
+              <Wallet className="h-4 w-4 mr-2" />
               Connect Wallet
             </Button>
           </div>
@@ -147,7 +96,7 @@ const WalletConnectionCheck = () => {
 };
 
 export default function Governance() {
-  const { isConnected } = useWallet();
+  const { isConnected } = useAccount();
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(
     null
   );
@@ -159,13 +108,16 @@ export default function Governance() {
   });
   const { toast } = useToast();
 
+  // TODO: Replace with actual proposals from backend
+  const proposals: Proposal[] = [];
+
   // Show wallet connection check if not connected
   if (!isConnected) {
     return <WalletConnectionCheck />;
   }
 
-  const activeProposals = mockProposals.filter((p) => p.status === "active");
-  const completedProposals = mockProposals.filter((p) => p.status !== "active");
+  const activeProposals = proposals.filter((p) => p.status === "active");
+  const completedProposals = proposals.filter((p) => p.status !== "active");
 
   const handleVote = (proposalId: string, vote: "approve" | "reject") => {
     toast({
@@ -228,7 +180,7 @@ export default function Governance() {
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-2">
               {getTypeIcon(proposal.type)}
-              <CardTitle className="text-lg text-gray-900">
+              <CardTitle className="text-sm text-gray-900">
                 {proposal.title}
               </CardTitle>
             </div>
@@ -239,7 +191,7 @@ export default function Governance() {
               {proposal.status}
             </Badge>
           </div>
-          <CardDescription className="text-gray-600">
+          <CardDescription className="text-xs text-gray-600">
             {proposal.description}
           </CardDescription>
         </CardHeader>
@@ -296,15 +248,13 @@ export default function Governance() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16 lg:pt-8">
+    <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8">
       <div className="container mx-auto px-4 py-6 lg:py-8">
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Governance
-            </h1>
-            <p className="text-sm text-gray-600">
+            <h1 className="text-xl font-bold text-gray-900 mb-2">Governance</h1>
+            <p className="text-xs text-gray-600">
               Participate in wallet governance and voting
             </p>
           </div>

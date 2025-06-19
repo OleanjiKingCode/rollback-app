@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useWallet } from "@/contexts/WalletContext";
+import { useAccount } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 import {
   Card,
   CardContent,
@@ -12,16 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Check,
-  X,
-  Bell,
-  Shield,
-  Zap,
-  Loader2,
-  WifiOff,
-  Wallet,
-} from "lucide-react";
+import { Check, X, Bell, Shield, Zap, Ban, Wallet } from "lucide-react";
 
 type SubscriptionTier = {
   id: string;
@@ -101,45 +93,29 @@ const subscriptionTiers: SubscriptionTier[] = [
 ];
 
 // Wallet connection states
-const WalletConnectionState = ({ isConnected, isConnecting }: any) => {
-  const { connect } = useWallet();
-
-  if (isConnecting) {
-    return (
-      <div className="min-h-screen bg-gray-50 pt-16 lg:pt-8 flex items-center justify-center">
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-center max-w-md">
-            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-6 text-rollback-primary" />
-            <h3 className="text-xl font-semibold text-rollback-dark mb-3">
-              Connecting Wallet
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Please approve the connection in your wallet...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+const WalletConnectionState = ({ isConnected }: any) => {
+  const { openConnectModal } = useConnectModal();
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
           <div className="text-center max-w-lg">
-            <WifiOff className="h-16 w-16 mx-auto mb-6 text-gray-400" />
-            <h3 className="text-xl font-semibold text-rollback-dark mb-3">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Ban className="h-8 w-8 text-red-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-rollback-dark mb-3">
               Wallet Required
             </h3>
-            <p className="text-gray-600 mb-8 text-sm leading-relaxed">
+            <p className="text-gray-600 mb-8 text-xs leading-relaxed">
               Connect your wallet to view and manage your subscription plans for
               rollback protection services.
             </p>
             <Button
-              onClick={connect}
-              className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-8 py-3 text-lg"
+              onClick={openConnectModal}
+              className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-6 py-2 text-sm"
             >
-              <Wallet className="h-5 w-5 mr-3" />
+              <Wallet className="h-4 w-4 mr-2" />
               Connect Wallet
             </Button>
           </div>
@@ -154,22 +130,17 @@ const WalletConnectionState = ({ isConnected, isConnecting }: any) => {
 export default function Subscription() {
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const { toast } = useToast();
-  const { isConnected, isConnecting } = useWallet();
+  const { isConnected } = useAccount();
 
   // Show wallet connection state if not connected
-  if (!isConnected || isConnecting) {
-    return (
-      <WalletConnectionState
-        isConnected={isConnected}
-        isConnecting={isConnecting}
-      />
-    );
+  if (!isConnected) {
+    return <WalletConnectionState isConnected={isConnected} />;
   }
 
   const handleSelectPlan = (tierId: string) => {
     setSelectedTier(tierId);
 
-    // Mock subscription selection - backend integration needed
+    // Subscription selection - will integrate with payment processor
     toast({
       title: "Plan Selected",
       description: `${
@@ -186,10 +157,10 @@ export default function Subscription() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-2xl font-bold text-rollback-dark mb-4">
+          <h1 className="text-xl font-bold text-rollback-dark mb-4">
             Choose Your Plan
           </h1>
-          <p className="text-sm text-rollback-brown max-w-2xl mx-auto">
+          <p className="text-xs text-rollback-brown max-w-2xl mx-auto">
             Select the perfect subscription tier for your crypto recovery needs.
             All plans include our core rollback protection technology.
           </p>
