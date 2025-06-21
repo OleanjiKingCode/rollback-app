@@ -8,6 +8,7 @@ import {
   useCreateRollbackWallet,
   useTokenApprovals,
 } from "@/hooks/useRollback";
+import { useAppStore } from "@/stores/appStore";
 import {
   Card,
   CardContent,
@@ -53,6 +54,8 @@ import {
   EyeOff,
   Key,
   FileText,
+  Ban,
+  ExternalLink,
 } from "lucide-react";
 import type { CreateWalletFormData, AgentWallet } from "@/types/api";
 
@@ -95,6 +98,8 @@ export default function CreateWalletFlow() {
   const { openConnectModal } = useConnectModal();
   const { createWallet, isCreating } = useCreateRollbackWallet();
   const { approveTokens, isApproving } = useTokenApprovals();
+  const { user, hasRollbackWallet, isLoading } = useRollbackWallet();
+  const { setLoading } = useAppStore();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -157,6 +162,66 @@ export default function CreateWalletFlow() {
     );
   }
 
+  // Check if user already has a rollback wallet
+  if (hasRollbackWallet) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16 lg:pt-8 flex items-center justify-center">
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+          <div className="text-center max-w-lg bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+            <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <Ban className="h-10 w-10 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">
+              Rollback Wallet Already Exists
+            </h3>
+            <p className="text-gray-600 mb-8 text-sm leading-relaxed">
+              You already have an active rollback wallet protection system. Only
+              one rollback wallet per address is allowed.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                onClick={() => navigate("/dashboard")}
+                className="bg-gradient-to-r from-[#E9A344] to-[#D4941A] hover:from-[#D4941A] hover:to-[#E9A344] text-white px-6 py-3 rounded-2xl"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Go to Dashboard
+              </Button>
+              <Button
+                onClick={() => navigate("/settings")}
+                variant="outline"
+                className="border-gray-300 text-gray-700 px-6 py-3 rounded-2xl"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Manage Settings
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state while checking for existing wallet
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16 lg:pt-8 flex items-center justify-center">
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+          <div className="text-center max-w-lg bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+            <div className="w-20 h-20 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <Loader2 className="h-10 w-10 text-white animate-spin" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">
+              Checking Wallet Status
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Verifying if you already have a rollback wallet...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const handleAddWallet = () => {
     if (formData.wallets.length < 5) {
       setFormData((prev) => ({
@@ -209,16 +274,14 @@ export default function CreateWalletFlow() {
   };
 
   const generateAgentWallet = () => {
-    // Mock wallet generation - in real app this would be secure
-    const mockWallet: AgentWallet = {
-      address: `0x${Math.random().toString(16).substr(2, 40)}`,
-      privateKey: `0x${Math.random().toString(16).substr(2, 64)}`,
-    };
-    setGeneratedAgentWallet(mockWallet);
+    // TODO: Replace with secure wallet generation API
+    // const agentWallet = await generateSecureAgentWallet();
+    // setGeneratedAgentWallet(agentWallet);
+
     toast({
-      title: "✅ Agent Wallet Generated",
-      description:
-        "Secure your private key - you'll need it for rollback operations.",
+      title: "❌ Generation Not Available",
+      description: "Agent wallet generation not yet implemented.",
+      variant: "destructive",
     });
   };
 
@@ -243,6 +306,7 @@ export default function CreateWalletFlow() {
 
   const handleCreateWallet = async () => {
     try {
+      setLoading("walletCreationLoading", true);
       const result = await createWallet(formData);
       if (result) {
         toast({
@@ -257,6 +321,8 @@ export default function CreateWalletFlow() {
         description: "Failed to create rollback wallet. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setLoading("walletCreationLoading", false);
     }
   };
 

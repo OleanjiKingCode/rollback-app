@@ -76,7 +76,7 @@ const WalletConnectionCheck = () => {
               Wallet Required
             </h3>
             <p className="text-gray-600 mb-8 text-xs leading-relaxed">
-              Connect your wallet to participate in governance and manage your
+              Connect your wallet to participate in voting and manage your
               rollback wallet settings.
             </p>
             <Button
@@ -95,7 +95,7 @@ const WalletConnectionCheck = () => {
   return null;
 };
 
-export default function Governance() {
+export default function Voting() {
   const { isConnected } = useAccount();
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(
     null
@@ -130,7 +130,7 @@ export default function Governance() {
     setIsCreatingProposal(false);
     toast({
       title: "Proposal Created",
-      description: "Your governance proposal has been submitted successfully.",
+      description: "Your voting proposal has been submitted successfully.",
     });
 
     setNewProposal({
@@ -253,9 +253,9 @@ export default function Governance() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
           <div>
-            <h1 className="text-xl font-bold text-gray-900 mb-2">Governance</h1>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">Voting</h1>
             <p className="text-xs text-gray-600">
-              Participate in wallet governance and voting
+              Participate in wallet voting and governance
             </p>
           </div>
 
@@ -288,8 +288,8 @@ export default function Governance() {
                     No Active Proposals
                   </h3>
                   <p className="text-gray-600">
-                    There are currently no active governance proposals. Create
-                    one to get started.
+                    There are currently no active voting proposals. Create one
+                    to get started.
                   </p>
                 </CardContent>
               </Card>
@@ -316,7 +316,7 @@ export default function Governance() {
           isOpen={isCreatingProposal}
           onClose={() => setIsCreatingProposal(false)}
           title="Create New Proposal"
-          description="Submit a new governance proposal for voting"
+          description="Submit a new proposal for voting"
           size="md"
         >
           <div className="space-y-4">

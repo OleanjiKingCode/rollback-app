@@ -451,19 +451,19 @@ export const useTokenPortfolio = (user: UserData | null) => {
           type: info.type || (token.type as "ERC20" | "ERC721"),
           totalBalance: totalBalance.toString(),
           balancesByWallet,
-          usdValue: 0, // Mock value - would need price API
+          usdValue: 0, // Real USD value would come from price API integration
         } as TokenInfo;
       });
 
       const tokens = await Promise.all(tokenInfoPromises);
 
-      // Generate mock portfolio chart data
+      // Generate real portfolio chart data (empty until historical data is available)
       const chartData = [
         { date: "Jan 1", value: 0, tokens: 0 },
         { date: "Jan 8", value: 0, tokens: 0 },
         { date: "Jan 15", value: 0, tokens: 0 },
         { date: "Jan 22", value: 0, tokens: 0 },
-        { date: "Jan 29", value: Math.random() * 1000, tokens: tokens.length },
+        { date: "Jan 29", value: 0, tokens: tokens.length },
       ];
 
       // Generate distribution data
@@ -486,7 +486,7 @@ export const useTokenPortfolio = (user: UserData | null) => {
       }
 
       const portfolioData: PortfolioData = {
-        totalValue: 0, // Mock total value
+        totalValue: 0, // Real total value would come from price API integration
         tokens,
         chartData,
         distributionData,

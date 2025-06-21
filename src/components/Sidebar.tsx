@@ -27,9 +27,9 @@ import { useSidebarContext } from "@/App";
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Create Wallet", href: "/create", icon: PlusCircle },
-  { name: "Governance", href: "/governance", icon: Vote },
+  { name: "Voting", href: "/governance", icon: Vote },
   { name: "Wallet Agent", href: "/agent", icon: Bot },
-  { name: "Subscribe", href: "/subscribe", icon: Mail },
+  // { name: "Subscribe", href: "/subscribe", icon: Mail },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 

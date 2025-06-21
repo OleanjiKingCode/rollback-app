@@ -90,27 +90,9 @@ export function EnhancedCharts({
   const [timeRange, setTimeRange] = useState("7D");
   const [chartType, setChartType] = useState<"line" | "area">("area");
 
-  // Mock data if none provided
-  const defaultPortfolioData: ChartData[] = [
-    { date: "01/01", value: 2400, volume: 1200 },
-    { date: "01/02", value: 1398, volume: 980 },
-    { date: "01/03", value: 9800, volume: 2100 },
-    { date: "01/04", value: 3908, volume: 1850 },
-    { date: "01/05", value: 4800, volume: 2200 },
-    { date: "01/06", value: 3800, volume: 1900 },
-    { date: "01/07", value: 4300, volume: 2400 },
-  ];
-
-  const defaultTokenData: TokenData[] = [
-    { name: "USDC", value: 4000, percentage: 40, color: COLORS[0] },
-    { name: "ETH", value: 3000, percentage: 30, color: COLORS[1] },
-    { name: "WBTC", value: 2000, percentage: 20, color: COLORS[2] },
-    { name: "DAI", value: 1000, percentage: 10, color: COLORS[3] },
-  ];
-
-  const data = portfolioData.length > 0 ? portfolioData : defaultPortfolioData;
-  const tokenData =
-    tokenDistribution.length > 0 ? tokenDistribution : defaultTokenData;
+  // Use only real data - no fallback mock data
+  const data = portfolioData || [];
+  const tokenData = tokenDistribution || [];
 
   const currentValue = data[data.length - 1]?.value || 0;
   const previousValue = data[data.length - 2]?.value || 0;
@@ -195,64 +177,87 @@ export function EnhancedCharts({
 
         <CardContent className="pt-0">
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              {chartType === "area" ? (
-                <AreaChart data={data}>
-                  <defs>
-                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#E9A344" stopOpacity={0.3} />
-                      <stop
-                        offset="95%"
-                        stopColor="#E9A344"
-                        stopOpacity={0.05}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fill: "#6b7280", fontSize: 12 }}
-                    axisLine={{ stroke: "#e5e7eb" }}
-                  />
-                  <YAxis
-                    tick={{ fill: "#6b7280", fontSize: 12 }}
-                    axisLine={{ stroke: "#e5e7eb" }}
-                    tickFormatter={(value) => `${value.toLocaleString()}`}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#E9A344"
-                    strokeWidth={2}
-                    fill="url(#colorValue)"
-                  />
-                </AreaChart>
-              ) : (
-                <LineChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fill: "#6b7280", fontSize: 12 }}
-                    axisLine={{ stroke: "#e5e7eb" }}
-                  />
-                  <YAxis
-                    tick={{ fill: "#6b7280", fontSize: 12 }}
-                    axisLine={{ stroke: "#e5e7eb" }}
-                    tickFormatter={(value) => `${value.toLocaleString()}`}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#E9A344"
-                    strokeWidth={3}
-                    dot={{ fill: "#E9A344", strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, stroke: "#E9A344", strokeWidth: 2 }}
-                  />
-                </LineChart>
-              )}
-            </ResponsiveContainer>
+            {data.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                {chartType === "area" ? (
+                  <AreaChart data={data}>
+                    <defs>
+                      <linearGradient
+                        id="colorValue"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#E9A344"
+                          stopOpacity={0.3}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#E9A344"
+                          stopOpacity={0.05}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fill: "#6b7280", fontSize: 12 }}
+                      axisLine={{ stroke: "#e5e7eb" }}
+                    />
+                    <YAxis
+                      tick={{ fill: "#6b7280", fontSize: 12 }}
+                      axisLine={{ stroke: "#e5e7eb" }}
+                      tickFormatter={(value) => `${value.toLocaleString()}`}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#E9A344"
+                      strokeWidth={2}
+                      fill="url(#colorValue)"
+                    />
+                  </AreaChart>
+                ) : (
+                  <LineChart data={data}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fill: "#6b7280", fontSize: 12 }}
+                      axisLine={{ stroke: "#e5e7eb" }}
+                    />
+                    <YAxis
+                      tick={{ fill: "#6b7280", fontSize: 12 }}
+                      axisLine={{ stroke: "#e5e7eb" }}
+                      tickFormatter={(value) => `${value.toLocaleString()}`}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#E9A344"
+                      strokeWidth={3}
+                      dot={{ fill: "#E9A344", strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, stroke: "#E9A344", strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                )}
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg">
+                <div className="text-center">
+                  <p className="text-gray-500 text-sm">
+                    No portfolio data available
+                  </p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    Connect tokens to see charts
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -267,55 +272,66 @@ export function EnhancedCharts({
         </CardHeader>
 
         <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="h-[250px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={tokenData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {tokenData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<PieTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+          {tokenData.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={tokenData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {tokenData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<PieTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
 
-            <div className="space-y-3">
-              {tokenData.map((token, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: token.color }}
-                    />
-                    <span className="font-medium text-gray-900">
-                      {token.name}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-gray-900">
-                      {token.value.toLocaleString()} tokens
+              <div className="space-y-3">
+                {tokenData.map((token, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: token.color }}
+                      />
+                      <span className="font-medium text-gray-900">
+                        {token.name}
+                      </span>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {token.percentage}%
+                    <div className="text-right">
+                      <div className="font-semibold text-gray-900">
+                        {token.value.toLocaleString()} tokens
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {token.percentage}%
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center justify-center h-[250px] bg-gray-50 rounded-lg">
+              <div className="text-center">
+                <p className="text-gray-500 text-sm">No token data available</p>
+                <p className="text-gray-400 text-xs mt-1">
+                  Add tokens to see distribution
+                </p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

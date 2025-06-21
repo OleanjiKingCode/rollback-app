@@ -11,9 +11,9 @@ import { Sidebar } from "@/components/Sidebar";
 import { Footer } from "@/components/Footer";
 import Dashboard from "./pages/dashboard/index";
 import CreateWallet from "./pages/create/index";
-import Governance from "./pages/governance/index";
+import Voting from "./pages/governance/index";
 import Agent from "./pages/agent/index";
-import Subscribe from "./pages/subscribe/index";
+// import Subscribe from "./pages/subscribe/index";
 import Settings from "./pages/settings/index";
 import NotFound from "./pages/NotFound";
 import { useState, createContext, useContext } from "react";
@@ -63,9 +63,9 @@ const App = () => {
                         />
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/create" element={<CreateWallet />} />
-                        <Route path="/governance" element={<Governance />} />
+                        <Route path="/governance" element={<Voting />} />
                         <Route path="/agent" element={<Agent />} />
-                        <Route path="/subscribe" element={<Subscribe />} />
+                        {/* <Route path="/subscribe" element={<Subscribe />} /> */}
                         <Route path="/settings" element={<Settings />} />
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />

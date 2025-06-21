@@ -134,12 +134,13 @@ export default function AgentManagement() {
     }
     setIsAssigning(true);
     try {
-      // Mock agent assignment - replace with actual contract call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // TODO: Replace with actual contract call
+      // await assignAgentWallet(newAgentAddress);
+
       toast({
-        title: "Agent Assigned",
-        description:
-          "Agent wallet has been successfully assigned to your rollback wallet.",
+        title: "Assignment Not Available",
+        description: "Agent assignment not yet implemented.",
+        variant: "destructive",
       });
       setNewAgentAddress("");
     } catch (error) {
@@ -156,13 +157,14 @@ export default function AgentManagement() {
   const handleGenerateAgent = async () => {
     setIsGenerating(true);
     try {
-      // Mock agent generation - replace with actual contract call
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      const generatedAddress = "0x" + Math.random().toString(16).substr(2, 40);
-      setNewAgentAddress(generatedAddress);
+      // TODO: Replace with actual agent generation API
+      // const generatedAgent = await generateAgentWallet();
+      // setNewAgentAddress(generatedAgent.address);
+
       toast({
-        title: "Agent Generated",
-        description: "A new agent wallet has been generated and whitelisted.",
+        title: "Generation Not Available",
+        description: "Agent generation not yet implemented.",
+        variant: "destructive",
       });
     } catch (error) {
       toast({

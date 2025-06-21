@@ -16,15 +16,15 @@ export const checkRollbackWallet = async (
   };
 };
 
-// Mock functions for now - TODO: Implement with proper viem contract calls
+// Contract functions - TODO: Implement with proper viem contract calls
 export const proposeWalletCreation = async (
   walletClient: WalletClient,
   publicClient: PublicClient,
   params: CreateWalletParams
 ): Promise<number> => {
   console.log("📝 Proposing wallet creation:", params);
-  // Mock request ID
-  return Math.floor(Math.random() * 1000);
+  // TODO: Replace with actual contract call that returns real request ID
+  return 0; // Placeholder until contract integration is complete
 };
 
 export const signWalletCreation = async (
@@ -33,8 +33,10 @@ export const signWalletCreation = async (
   requestId: number
 ): Promise<void> => {
   console.log("✍️ Signing wallet creation:", requestId);
-  // Mock signing
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  // TODO: Replace with actual contract signing transaction
+  throw new Error(
+    "Wallet signing not yet implemented - requires contract integration"
+  );
 };
 
 export const finalizeWalletCreation = async (
@@ -44,8 +46,10 @@ export const finalizeWalletCreation = async (
   feeAmount: string
 ): Promise<void> => {
   console.log("🏁 Finalizing wallet creation:", requestId, feeAmount);
-  // Mock finalization
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  // TODO: Replace with actual contract finalization transaction
+  throw new Error(
+    "Wallet finalization not yet implemented - requires contract integration"
+  );
 };
 
 export const getInitializationFee = async (
@@ -62,8 +66,11 @@ export const approveERC20Token = async (
   spenderAddress: Address,
   amount?: string
 ): Promise<void> => {
-  console.log("✅ Mock ERC20 approval:", tokenAddress, spenderAddress, amount);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  console.log("✅ ERC20 token approval:", tokenAddress, spenderAddress, amount);
+  // TODO: Replace with actual ERC20 approval transaction
+  throw new Error(
+    "ERC20 approval not yet implemented - requires contract integration"
+  );
 };
 
 export const approveERC721Token = async (
@@ -74,31 +81,25 @@ export const approveERC721Token = async (
   approved: boolean = true
 ): Promise<void> => {
   console.log(
-    "✅ Mock ERC721 approval:",
+    "✅ ERC721 token approval:",
     tokenAddress,
     operatorAddress,
     approved
   );
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  // TODO: Replace with actual ERC721 approval transaction
+  throw new Error(
+    "ERC721 approval not yet implemented - requires contract integration"
+  );
 };
 
-// Helper function to generate a random wallet (for agent creation)
+// Helper function to generate agent wallet (placeholder for real implementation)
 export const generateRandomWallet = () => {
-  console.log("🤖 Generating random wallet for agent");
+  console.log("🤖 Agent wallet generation requested");
 
-  return {
-    address:
-      "0x" +
-      Array.from({ length: 40 }, () =>
-        Math.floor(Math.random() * 16).toString(16)
-      ).join(""),
-    privateKey:
-      "0x" +
-      Array.from({ length: 64 }, () =>
-        Math.floor(Math.random() * 16).toString(16)
-      ).join(""),
-    created: true,
-  };
+  // TODO: Replace with secure key generation and proper backend integration
+  throw new Error(
+    "Agent wallet generation not yet implemented - requires secure backend integration"
+  );
 };
 
 // Export types for other files

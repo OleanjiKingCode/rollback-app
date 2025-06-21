@@ -252,8 +252,8 @@ export default function Settings() {
       // Update database settings (non-contract settings)
       // await updateRollbackConfig(user.user.id, settings);
 
-      // Mock save delay for database
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // TODO: Replace with actual API call to save settings
+      // await saveUserSettings(settings);
 
       if (hasContractChanges) {
         toast({

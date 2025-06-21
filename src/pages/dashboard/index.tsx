@@ -17,6 +17,8 @@ import {
   TransactionProgressModal,
   ConfirmationModal,
 } from "@/components/dashboard/EnhancedModals";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
+import { useAppStore } from "@/stores/appStore";
 import {
   Card,
   CardContent,
@@ -131,8 +133,7 @@ const calculatePortfolioValue = (portfolio: any) => {
   return portfolio.tokens.reduce((total: number, token: any) => {
     const balance =
       parseFloat(token.totalBalance) / Math.pow(10, token.decimals);
-    // For demonstration, we'll use the token balance as value
-    // In a real app, you'd multiply by token price from an API
+    // Using actual token balance - multiply by token price when API is available
     return total + balance;
   }, 0);
 };
@@ -141,26 +142,20 @@ const calculatePortfolioValue = (portfolio: any) => {
 const formatPortfolioData = (portfolio: any) => {
   if (!portfolio?.tokens?.length) return [];
 
-  // Generate time series data based on actual token balances
+  // Use only current token balance data - no historical simulation
   const currentValue = calculatePortfolioValue(portfolio);
-  const mockData = [];
-  const days = 7;
 
-  for (let i = 0; i < days; i++) {
-    // Simulate historical data with some variance around current value
-    const variance = (Math.random() - 0.5) * (currentValue * 0.1); // 10% variance
-    const value = Math.max(currentValue + variance, currentValue * 0.8);
-
-    mockData.push({
-      date: new Date(
-        Date.now() - (days - i) * 24 * 60 * 60 * 1000
-      ).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      value: Math.round(value * 100) / 100,
-      volume: Math.random() * (currentValue * 0.3) + currentValue * 0.1,
-    });
-  }
-
-  return mockData;
+  // Return single data point with current value only
+  return [
+    {
+      date: new Date().toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+      value: Math.round(currentValue * 100) / 100,
+      volume: 0, // No volume data available
+    },
+  ];
 };
 
 const formatTokenDistribution = (portfolio: any) => {
@@ -192,6 +187,18 @@ export default function Dashboard() {
   const { isConnected, address } = useAccount();
   const { openConnectModal } = useConnectModal();
 
+  // Zustand store
+  const {
+    loadingStates,
+    setLoading,
+    currentUser,
+    setCurrentUser,
+    hasInitiallyLoaded,
+    setHasInitiallyLoaded,
+    lastRefreshTime,
+    setLastRefreshTime,
+  } = useAppStore();
+
   const {
     user,
     hasRollbackWallet,
@@ -209,26 +216,35 @@ export default function Dashboard() {
     fetchPortfolioData,
   } = useTokenPortfolio(user);
 
-  const [lastRefresh, setLastRefresh] = useState(new Date());
   const [isEmergencyRollback, setIsEmergencyRollback] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
-  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   // Check for rollback wallet on mount and when address changes
   useEffect(() => {
     if (isConnected && address) {
-      checkRollbackWallet();
+      setLoading("userLoading", true);
+      checkRollbackWallet().finally(() => {
+        setLoading("userLoading", false);
+      });
     }
-  }, [isConnected, address, checkRollbackWallet]);
+  }, [isConnected, address, checkRollbackWallet, setLoading]);
 
   // Fetch portfolio data when user is available
   useEffect(() => {
     if (user && user.rollbackConfig) {
-      fetchPortfolioData();
+      setLoading("portfolioLoading", true);
+      fetchPortfolioData().finally(() => {
+        setLoading("portfolioLoading", false);
+      });
     }
-  }, [user, fetchPortfolioData]);
+  }, [user, fetchPortfolioData, setLoading]);
+
+  // Update current user in store
+  useEffect(() => {
+    setCurrentUser(user);
+  }, [user, setCurrentUser]);
 
   // Track when we've initially loaded to avoid showing loading on subsequent fetches
   useEffect(() => {
@@ -237,11 +253,26 @@ export default function Dashboard() {
       (user !== undefined || isError || hasRollbackWallet !== undefined)
     ) {
       setHasInitiallyLoaded(true);
+      setLoading("dashboardLoading", false);
     }
-  }, [isLoading, user, isError, hasRollbackWallet]);
+  }, [
+    isLoading,
+    user,
+    isError,
+    hasRollbackWallet,
+    setHasInitiallyLoaded,
+    setLoading,
+  ]);
+
+  // Set dashboard loading on initial load
+  useEffect(() => {
+    if (!hasInitiallyLoaded && isConnected) {
+      setLoading("dashboardLoading", true);
+    }
+  }, [isConnected, hasInitiallyLoaded, setLoading]);
 
   const handleRefreshData = async () => {
-    setLastRefresh(new Date());
+    setLastRefreshTime(new Date());
     await checkRollbackWallet();
     await refetch();
     await fetchPortfolioData();
@@ -264,12 +295,8 @@ export default function Dashboard() {
     setShowEmergencyModal(false);
 
     try {
-      // Here you would call your emergency rollback API
+      // TODO: Call actual emergency rollback API
       // await triggerEmergencyRollback(user.user.id);
-
-      // Mock emergency rollback process
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
       toast({
         title: "🚨 Emergency Rollback Initiated",
         description:
@@ -312,9 +339,13 @@ export default function Dashboard() {
     return <NoRollbackWalletState onCreateWallet={() => navigate("/create")} />;
   }
 
-  // Show loading state only on initial load, not on subsequent refetches
-  if (isLoading && !hasInitiallyLoaded) {
-    return <CenteredLoadingState />;
+  // Show skeleton loading state during initial load or when dashboard is loading
+  if (
+    loadingStates.dashboardLoading ||
+    (isLoading && !hasInitiallyLoaded) ||
+    (!user && !hasInitiallyLoaded)
+  ) {
+    return <DashboardSkeleton />;
   }
 
   // Enhanced debugging
@@ -327,12 +358,8 @@ export default function Dashboard() {
     isConnected,
     address,
     hasInitiallyLoaded,
+    loadingStates,
   });
-
-  // Show loading if no wallet data yet and we haven't initially loaded
-  if (!user && !hasInitiallyLoaded) {
-    return <CenteredLoadingState />;
-  }
 
   // Main dashboard for users with rollback wallet
   return (
@@ -361,7 +388,7 @@ export default function Dashboard() {
                     {user?.rollbackConfig?.is_active
                       ? "Protection Active"
                       : "Protection Inactive"}{" "}
-                    • Updated {lastRefresh.toLocaleTimeString()}
+                    • Updated {lastRefreshTime.toLocaleTimeString()}
                   </span>
                 </div>
               </div>
@@ -410,9 +437,10 @@ export default function Dashboard() {
             status={user?.rollbackConfig?.is_active ? "active" : "inactive"}
             portfolio={{
               totalValue: calculatePortfolioValue(portfolio),
-              change24h: 2.4, // You can calculate this from historical data
-              isPositive: true,
+              change24h: 0, // TODO: Calculate from real historical data when available
+              isPositive: false,
             }}
+            isLoading={loadingStates.portfolioLoading || portfolioLoading}
           />
         </div>
 
