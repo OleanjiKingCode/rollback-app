@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { useUser, createUser, createAgentWallet, addWallet } from "@/lib/api";
 import { TOKEN_TYPE, ERC20_ABI, ERC721_ABI } from "@/config/contracts";
@@ -11,12 +11,7 @@ import {
   approveERC20Token,
   approveERC721Token,
 } from "@/lib/contracts";
-import type {
-  CreateWalletFormData,
-  AgentWallet,
-  CreateWalletParams,
-  UserData,
-} from "@/types/api";
+import type { CreateWalletFormData, AgentWallet, UserData } from "@/types/api";
 
 // Token balance and metadata types
 export interface TokenInfo {
@@ -55,11 +50,20 @@ export const useRollbackWallet = () => {
     string | null
   >(null);
   const [isChecking, setIsChecking] = useState(false);
+  const [hasInitiallyChecked, setHasInitiallyChecked] = useState(false);
 
   // Determine if user has rollback wallet based on API data (not mocked contract)
   const hasRollbackWallet = user && user.rollbackConfig ? true : false;
 
-  // Debug logging
+  // Improve loading state logic to prevent flickering
+  const shouldShowLoading = isConnected && !hasInitiallyChecked && isLoading;
+
+  // Mark as initially checked once we get any response (success or error)
+  useEffect(() => {
+    if (!isLoading && (user !== undefined || isError)) {
+      setHasInitiallyChecked(true);
+    }
+  }, [isLoading, user, isError]);
 
   const checkWallet = useCallback(async () => {
     if (user && user.rollbackConfig) {
@@ -74,7 +78,7 @@ export const useRollbackWallet = () => {
     user,
     hasRollbackWallet,
     rollbackWalletAddress,
-    isLoading: isLoading || isChecking,
+    isLoading: shouldShowLoading || isChecking,
     isError: isError && user !== null, // Don't treat "user not found" as error
     checkRollbackWallet: checkWallet,
     refetch: mutate,
@@ -91,48 +95,48 @@ export const useCreateRollbackWallet = () => {
   const [agentWallet, setAgentWallet] = useState<AgentWallet | null>(null);
 
   const createWallet = useCallback(
-    async (formData: CreateWalletFormData) => {
+    async (
+      formData: CreateWalletFormData,
+      existingAgentWallet?: AgentWallet
+    ) => {
       if (!publicClient || !walletClient || !address || !isConnected) {
         throw new Error(
           "Wallet not connected or contract service not available"
         );
       }
 
+      if (!existingAgentWallet && !formData.agentWallet) {
+        throw new Error(
+          "Agent wallet is required for rollback wallet creation"
+        );
+      }
+
       setIsCreating(true);
       try {
-        // Step 1: Create agent wallet
-        setCreationStep("Creating agent wallet...");
-        const agent = await createAgentWallet();
+        // Use existing agent wallet or the one in formData
+        const agent = existingAgentWallet || {
+          address: formData.agentWallet,
+          privateKey: "",
+        };
         setAgentWallet(agent);
 
-        // Step 2: Prepare contract parameters
+        // Step 1: Prepare contract parameters
         setCreationStep("Preparing wallet parameters...");
         const tokenAddresses = formData.tokensToMonitor.map((t) => t.address);
         const tokenTypes = formData.tokensToMonitor.map((t) =>
           t.type === "ERC20" ? TOKEN_TYPE.ERC20 : TOKEN_TYPE.ERC721
         );
 
-        const params: CreateWalletParams = {
-          user: address,
-          wallets: formData.wallets,
-          threshold: formData.threshold,
-          tokensToMonitor: tokenAddresses,
-          tokenTypes,
-          isRandomized: formData.isRandomized,
-          fallbackWallet: formData.fallbackWallet,
-          agentWallet: agent.address,
-        };
-
-        // Step 3: Propose wallet creation
+        // Step 2: Propose wallet creation directly with formData
         setCreationStep("Proposing wallet creation...");
         const proposalRequestId = await proposeWalletCreation(
           walletClient,
           publicClient,
-          params
+          formData
         );
         setRequestId(proposalRequestId);
 
-        // Step 4: Create user in database
+        // Step 3: Create user in database
         setCreationStep("Storing user information...");
         await createUser({
           walletAddress: address,
@@ -145,7 +149,7 @@ export const useCreateRollbackWallet = () => {
           },
         });
 
-        // Step 5: Add wallets to database
+        // Step 4: Add wallets to database
         setCreationStep("Adding wallets to monitoring...");
         for (const walletAddr of formData.wallets) {
           if (walletAddr !== address) {
@@ -232,12 +236,7 @@ export const useFinalizeWalletCreation = () => {
         const fee = await getInitializationFee(publicClient);
 
         // Finalize with payment
-        await finalizeWalletCreation(
-          walletClient,
-          publicClient,
-          requestId,
-          fee
-        );
+        await finalizeWalletCreation(walletClient, publicClient, requestId);
       } catch (error) {
         console.error("Error finalizing wallet creation:", error);
         throw error;

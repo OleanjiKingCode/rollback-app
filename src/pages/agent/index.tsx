@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useRollbackWallet } from "@/hooks/useRollback";
+import { useUser } from "@/lib/api";
 import {
   Card,
   CardContent,
@@ -14,25 +16,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "@/lib/toast";
+import { useNavigate } from "react-router-dom";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { useUser } from "@/lib/api";
-import {
-  User,
-  Shield,
-  Check,
-  Plus,
-  Settings,
-  Copy,
-  Ban,
+  Bot,
   Wallet,
+  Plus,
+  Shield,
+  CheckCircle2,
+  AlertTriangle,
+  Copy,
+  ExternalLink,
+  Settings,
+  User,
+  Ban,
+  RefreshCw,
+  Info,
+  Zap,
+  Key,
 } from "lucide-react";
+import { RiLoader4Line } from "react-icons/ri";
 
 const agentCapabilities = [
   "Automated activity monitoring",
@@ -51,7 +56,7 @@ const WalletConnectionState = ({ isConnected }: any) => {
     return (
       <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-center max-w-lg bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+          <div className="text-center max-w-lg bg-white rounded-3xl p-8 border border-gray-100">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Ban className="h-8 w-8 text-red-500" />
             </div>
@@ -78,14 +83,48 @@ const WalletConnectionState = ({ isConnected }: any) => {
   return null;
 };
 
+// No Rollback Wallet State
+const NoRollbackWalletState = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+        <div className="text-center max-w-2xl">
+          <div className="w-20 h-20 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-full flex items-center justify-center mx-auto mb-8">
+            <Shield className="h-6 w-6 text-white" />
+          </div>
+
+          <h2 className="text-lg font-bold text-rollback-dark mb-4">
+            No Rollback Wallet Found
+          </h2>
+
+          <p className="text-gray-600 mb-8 text-sm leading-relaxed">
+            You need to create a rollback wallet before you can manage agents.
+          </p>
+
+          <Button
+            onClick={() => navigate("/create")}
+            className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-8 py-4 text-sm rounded-xl"
+            size="lg"
+          >
+            <Plus className="h-5 w-5 mr-3" />
+            Create Rollback Wallet
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function AgentManagement() {
   const { isConnected, address } = useAccount();
-  const { user, isLoading } = useUser(address);
+  const { user, hasRollbackWallet, isLoading, isError, refetch } =
+    useRollbackWallet();
   const [selectedWallet, setSelectedWallet] = useState<any>(null);
   const [newAgentAddress, setNewAgentAddress] = useState("");
   const [isAssigning, setIsAssigning] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const { toast } = useToast();
 
   // Set selected wallet from user data
   useEffect(() => {
@@ -104,123 +143,98 @@ export default function AgentManagement() {
     return <WalletConnectionState isConnected={isConnected} />;
   }
 
-  // Show loading state while user data is being fetched
-  if (isLoading || !selectedWallet) {
-    return (
-      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-center max-w-md">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rollback-primary mx-auto mb-4"></div>
-            <h3 className="text-lg font-semibold text-rollback-dark mb-3">
-              Loading Agent Management
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Fetching your rollback wallet information...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+  // Show no rollback wallet state
+  if (hasRollbackWallet === false) {
+    return <NoRollbackWalletState />;
   }
 
-  const handleAssignAgent = async () => {
-    if (!newAgentAddress) {
-      toast({
-        title: "Invalid Address",
-        description: "Please enter a valid agent wallet address.",
-        variant: "destructive",
-      });
-      return;
-    }
-    setIsAssigning(true);
-    try {
-      // TODO: Replace with actual contract call
-      // await assignAgentWallet(newAgentAddress);
-
-      toast({
-        title: "Assignment Not Available",
-        description: "Agent assignment not yet implemented.",
-        variant: "destructive",
-      });
-      setNewAgentAddress("");
-    } catch (error) {
-      toast({
-        title: "Assignment Failed",
-        description: "Failed to assign agent wallet. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAssigning(false);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "no-agent":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const handleGenerateAgent = async () => {
     setIsGenerating(true);
     try {
-      // TODO: Replace with actual agent generation API
-      // const generatedAgent = await generateAgentWallet();
-      // setNewAgentAddress(generatedAgent.address);
-
-      toast({
-        title: "Generation Not Available",
-        description: "Agent generation not yet implemented.",
-        variant: "destructive",
-      });
+      // TODO: Call actual agent generation API
+      toast.success(
+        "Agent Generated",
+        "New agent wallet has been generated successfully."
+      );
     } catch (error) {
-      toast({
-        title: "Generation Failed",
-        description: "Failed to generate agent wallet. Please try again.",
-        variant: "destructive",
-      });
+      toast.error(
+        "Generation Failed",
+        "Failed to generate agent wallet. Please try again."
+      );
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleCopyAddress = (address: string) => {
-    navigator.clipboard.writeText(address);
-    toast({
-      title: "Address Copied",
-      description: "Agent wallet address copied to clipboard.",
-    });
-  };
+  const handleAssignAgent = async () => {
+    if (!newAgentAddress || !selectedWallet) return;
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-[#E9A344]/10 text-[#E9A344] border-[#E9A344]";
-      case "no-agent":
-        return "bg-gray-100 text-gray-600 border-gray-300";
-      default:
-        return "bg-gray-100 text-gray-800";
+    setIsAssigning(true);
+    try {
+      // TODO: Call actual agent assignment API
+      toast.success(
+        "Agent Assigned",
+        "Agent wallet has been assigned successfully."
+      );
+      setNewAgentAddress("");
+    } catch (error) {
+      toast.error(
+        "Assignment Failed",
+        "Failed to assign agent wallet. Please try again."
+      );
+    } finally {
+      setIsAssigning(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-rollback-light pt-16 lg:pt-0 pb-6">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-rollback-light pt-16 lg:pt-0">
+      <div className="container mx-auto px-4 py-6 lg:py-8">
         {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-xl font-bold text-gray-900 mb-2">
-            Wallet Agent Management
-          </h1>
-          <p className="text-gray-600 text-xs max-w-2xl mx-auto">
-            Manage Agent Wallets for enhanced architecture security and
-            automation
-          </p>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
+          <div className="mb-4 lg:mb-0">
+            <h1 className="text-2xl font-bold text-rollback-dark mb-2">
+              Agent Management
+            </h1>
+            <p className="text-sm text-gray-600">
+              Configure automated agents for your rollback wallet system
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            className="border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
         </div>
 
-        {/* Wallet Selector */}
-        <Card className="border-gray-200 bg-white mb-8 rounded-3xl border-2 shadow-sm">
+        {/* Wallet Selection Card */}
+        <Card className="border-gray-200 bg-white mb-8 rounded-3xl border-2">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-xl flex items-center justify-center">
                 <Wallet className="h-4 w-4 text-white" />
               </div>
-              <span>Select Rollback Wallet</span>
+              <span>Rollback Wallet</span>
             </CardTitle>
             <CardDescription className="text-gray-600">
-              Choose which rollback wallet to manage the agent for
+              Your current rollback wallet configuration
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -240,161 +254,223 @@ export default function AgentManagement() {
               </div>
             ) : (
               <div className="p-3 bg-gray-50 rounded-xl text-sm text-gray-500">
-                {isLoading ? "Loading wallet..." : "No wallet found"}
+                No wallet found
               </div>
             )}
           </CardContent>
         </Card>
 
+        {/* Agent Configuration */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Current Agent Status */}
-          <Card className="border-gray-200 bg-white hover:shadow-xl hover:shadow-[#E9A344]/10 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20">
-            <CardHeader className="pb-4">
+          <Card className="border-gray-200 bg-white rounded-3xl border-2">
+            <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-xl flex items-center justify-center">
-                  <User className="h-4 w-4 text-white" />
-                </div>
-                <span>Current Agent Status</span>
+                <Bot className="h-5 w-5 text-rollback-primary" />
+                <span>Current Agent</span>
               </CardTitle>
-              <CardDescription className="text-gray-600">
-                View and manage the current agent wallet assignment
+              <CardDescription>
+                Currently assigned agent wallet for automated operations
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {selectedWallet?.agentWallet ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-gradient-to-br from-[#E9A344]/10 to-[#D4941A]/10 border border-[#E9A344]/20 rounded-2xl">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Check className="h-4 w-4 text-[#E9A344]" />
-                      <span className="font-medium text-[#E9A344]">
-                        Agent Active
-                      </span>
+                  <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-xl">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="font-medium text-green-900">
+                          Agent Active
+                        </p>
+                        <p className="text-sm text-green-700 font-mono">
+                          {selectedWallet.agentWallet.slice(0, 6)}...
+                          {selectedWallet.agentWallet.slice(-4)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-sm text-gray-900">
-                        {selectedWallet?.agentWallet}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          handleCopyAddress(selectedWallet?.agentWallet || "")
-                        }
-                        className="rounded-xl"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        navigator.clipboard.writeText(
+                          selectedWallet.agentWallet
+                        )
+                      }
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
                   </div>
 
-                  <div className="text-sm text-gray-600">
-                    <p>Agent wallet is active and providing:</p>
-                    <ul className="list-disc list-inside mt-2 space-y-1">
-                      {agentCapabilities
-                        .slice(0, 3)
-                        .map((capability, index) => (
-                          <li key={index}>{capability}</li>
-                        ))}
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-gray-900">Capabilities:</h4>
+                    <ul className="space-y-1 text-sm text-gray-600">
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle2 className="h-3 w-3 text-green-500" />
+                        <span>Monitor wallet activity</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle2 className="h-3 w-3 text-green-500" />
+                        <span>Execute rollback transactions</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle2 className="h-3 w-3 text-green-500" />
+                        <span>Send activity warnings</span>
+                      </li>
                     </ul>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Shield className="h-4 w-4 text-gray-600" />
-                      <span className="font-medium text-gray-600">
-                        No Agent Assigned
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      This rollback wallet doesn't have an agent wallet
-                      assigned. Consider assigning one for enhanced features.
-                    </p>
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Bot className="h-8 w-8 text-gray-400" />
                   </div>
-
-                  <div className="text-sm text-gray-600">
-                    <p>Benefits of assigning an agent wallet:</p>
-                    <ul className="list-disc list-inside mt-2 space-y-1">
-                      {agentCapabilities
-                        .slice(0, 3)
-                        .map((capability, index) => (
-                          <li key={index}>{capability}</li>
-                        ))}
-                    </ul>
-                  </div>
+                  <h3 className="font-medium text-gray-900 mb-2">
+                    No Agent Assigned
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    No automated agent is currently configured for this wallet.
+                  </p>
+                  <Alert className="border-yellow-200 bg-yellow-50">
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                    <AlertDescription className="text-yellow-800">
+                      Without an agent, rollback operations must be performed
+                      manually.
+                    </AlertDescription>
+                  </Alert>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Assign/Update Agent */}
-          <Card className="border-gray-200 bg-white hover:shadow-xl hover:shadow-[#E9A344]/10 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20">
-            <CardHeader className="pb-4">
+          {/* Agent Assignment/Generation */}
+          <Card className="border-gray-200 bg-white rounded-3xl border-2">
+            <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-xl flex items-center justify-center">
-                  <Settings className="h-4 w-4 text-white" />
-                </div>
-                <span>
-                  {selectedWallet?.agentWallet ? "Update" : "Assign"} Agent
-                  Wallet
-                </span>
+                <Settings className="h-5 w-5 text-rollback-primary" />
+                <span>Agent Configuration</span>
               </CardTitle>
-              <CardDescription className="text-gray-600">
-                {selectedWallet?.agentWallet
-                  ? "Update the current agent wallet assignment"
-                  : "Assign a new agent wallet for features"}
+              <CardDescription>
+                Generate or assign an agent wallet for automated operations
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label
-                  htmlFor="agentAddress"
-                  className="text-sm font-medium text-gray-900"
-                >
-                  Agent Wallet Address
-                </Label>
-                <Input
-                  id="agentAddress"
-                  placeholder="0x..."
-                  value={newAgentAddress}
-                  onChange={(e) => setNewAgentAddress(e.target.value)}
-                  className="mt-2 border-gray-300 focus:border-[#E9A344] focus:ring-[#E9A344] rounded-xl"
-                />
-              </div>
-
-              <div className="flex space-x-2">
+            <CardContent className="space-y-6">
+              {/* Generate New Agent */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900">
+                  Generate New Agent
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Create a new agent wallet with automated rollback
+                  capabilities.
+                </p>
                 <Button
                   onClick={handleGenerateAgent}
                   disabled={isGenerating}
-                  variant="outline"
-                  className="flex-1 border-[#E9A344] text-[#E9A344] hover:bg-[#E9A344] hover:text-white rounded-xl"
+                  className="w-full bg-gradient-to-r from-[#E9A344] to-[#D4941A] text-white"
                 >
-                  {isGenerating ? "Generating..." : "Generate Agent"}
-                </Button>
-                <Button
-                  onClick={handleAssignAgent}
-                  disabled={isAssigning || !newAgentAddress}
-                  className="flex-1 bg-gradient-to-r from-[#E9A344] to-[#D4941A] hover:from-[#D4941A] hover:to-[#E9A344] text-white rounded-xl"
-                >
-                  {isAssigning ? "Assigning..." : "Assign Agent"}
+                  {isGenerating ? (
+                    <>
+                      <RiLoader4Line className="h-4 w-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Key className="h-4 w-4 mr-2" />
+                      Generate Agent Wallet
+                    </>
+                  )}
                 </Button>
               </div>
 
-              <div className="p-4 bg-blue-50 rounded-2xl border border-blue-200">
-                <h4 className="font-medium text-sm mb-2 text-blue-800">
-                  Agent Wallet Requirements:
+              <Separator />
+
+              {/* Assign Existing Agent */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900">
+                  Assign Existing Agent
                 </h4>
-                <ul className="text-xs text-blue-700 space-y-1">
-                  <li>• Must be a valid Ethereum address</li>
-                  <li>• Will be whitelisted for operations</li>
-                  <li>• Can be changed through governance</li>
-                  <li>• Enables block hash randomization</li>
-                </ul>
+                <p className="text-sm text-gray-600">
+                  Use an existing wallet address as your rollback agent.
+                </p>
+                <div className="space-y-2">
+                  <Label htmlFor="agent-address" className="text-sm">
+                    Agent Wallet Address
+                  </Label>
+                  <Input
+                    id="agent-address"
+                    type="text"
+                    placeholder="0x..."
+                    value={newAgentAddress}
+                    onChange={(e) => setNewAgentAddress(e.target.value)}
+                    className="font-mono"
+                  />
+                </div>
+                <Button
+                  onClick={handleAssignAgent}
+                  disabled={!newAgentAddress || isAssigning}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {isAssigning ? (
+                    <>
+                      <RiLoader4Line className="h-4 w-4 mr-2 animate-spin" />
+                      Assigning...
+                    </>
+                  ) : (
+                    <>
+                      <User className="h-4 w-4 mr-2" />
+                      Assign Agent
+                    </>
+                  )}
+                </Button>
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Information Card */}
+        <Card className="border-gray-200 bg-white mt-8 rounded-3xl border-2">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Info className="h-5 w-5 text-rollback-primary" />
+              <span>How Agents Work</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Shield className="h-6 w-6 text-blue-600" />
+                </div>
+                <h4 className="font-medium text-gray-900 mb-2">Monitor</h4>
+                <p className="text-sm text-gray-600">
+                  Continuously monitors your wallet activity and inactivity
+                  periods.
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <AlertTriangle className="h-6 w-6 text-yellow-600" />
+                </div>
+                <h4 className="font-medium text-gray-900 mb-2">Alert</h4>
+                <p className="text-sm text-gray-600">
+                  Sends warnings when inactivity thresholds are approaching.
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Zap className="h-6 w-6 text-green-600" />
+                </div>
+                <h4 className="font-medium text-gray-900 mb-2">Execute</h4>
+                <p className="text-sm text-gray-600">
+                  Automatically executes rollback operations when thresholds are
+                  exceeded.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

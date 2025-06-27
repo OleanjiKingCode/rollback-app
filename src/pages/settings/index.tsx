@@ -27,7 +27,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/lib/toast";
 import { useNavigate } from "react-router-dom";
 import {
   Settings as SettingsIcon,
@@ -38,7 +38,6 @@ import {
   Timer,
   RefreshCw,
   Info,
-  Loader2,
   WifiOff,
   Plus,
   Trash2,
@@ -49,6 +48,7 @@ import {
   Clock,
   Vote,
 } from "lucide-react";
+import { RiLoader4Line } from "react-icons/ri";
 
 // Wallet connection state
 const WalletConnectionState = ({ isConnected, address }: any) => {
@@ -81,23 +81,6 @@ const WalletConnectionState = ({ isConnected, address }: any) => {
 
   return null;
 };
-
-// Loading State
-const LoadingState = () => (
-  <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
-    <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-      <div className="text-center max-w-md">
-        <Loader2 className="h-6 w-6 animate-spin mx-auto mb-6 text-rollback-primary" />
-        <h3 className="text-lg font-semibold text-rollback-dark mb-3">
-          Loading Settings
-        </h3>
-        <p className="text-gray-600 text-sm">
-          Fetching your rollback wallet configuration...
-        </p>
-      </div>
-    </div>
-  </div>
-);
 
 // No Rollback Wallet State
 const NoRollbackWalletState = () => {
@@ -164,7 +147,6 @@ export default function Settings() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [newToken, setNewToken] = useState({ address: "", type: "ERC20" });
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   // Load settings from user data
@@ -243,10 +225,10 @@ export default function Settings() {
       if (votes.length > 0) {
         await Promise.all(votes);
 
-        toast({
-          title: "📊 Voting Initiated",
-          description: `${votes.length} vote(s) have been initiated for contract changes. These require approval from wallet owners.`,
-        });
+        toast.info(
+          "Voting Initiated",
+          `${votes.length} vote(s) have been initiated for contract changes. These require approval from wallet owners.`
+        );
       }
 
       // Update database settings (non-contract settings)
@@ -256,28 +238,22 @@ export default function Settings() {
       // await saveUserSettings(settings);
 
       if (hasContractChanges) {
-        toast({
-          title: "⏳ Settings Update Pending",
-          description:
-            "Some settings require voting approval. Database settings have been saved.",
-        });
+        toast.warning(
+          "Settings Update Pending",
+          "Some settings require voting approval. Database settings have been saved."
+        );
       } else {
-        toast({
-          title: "✅ Settings Saved",
-          description:
-            "Your rollback wallet settings have been updated successfully.",
-        });
+        toast.success(
+          "Settings Saved",
+          "Your rollback wallet settings have been updated successfully."
+        );
       }
 
       // Refresh user data
       await refetch();
     } catch (error) {
       console.error("Settings save error:", error);
-      toast({
-        title: "❌ Save Failed",
-        description: "Failed to save settings. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Save Failed", "Failed to save settings. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -307,10 +283,7 @@ export default function Settings() {
 
   const handleCopyAddress = (address: string) => {
     navigator.clipboard.writeText(address);
-    toast({
-      title: "📋 Address Copied",
-      description: "Address copied to clipboard.",
-    });
+    toast.plain("Address copied to clipboard");
   };
 
   // Show wallet connection state if not connected
@@ -320,45 +293,9 @@ export default function Settings() {
     );
   }
 
-  // Show loading state
-  if (isLoading) {
-    return <LoadingState />;
-  }
-
-  // Show error state
-  if (isError) {
-    return (
-      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-center max-w-lg">
-            <AlertTriangle className="h-6 w-6 mx-auto mb-6 text-red-500" />
-            <h3 className="text-lg font-semibold text-rollback-dark mb-3">
-              Error Loading Settings
-            </h3>
-            <p className="text-gray-600 mb-8 text-sm leading-relaxed">
-              There was an error loading your settings. Please try refreshing.
-            </p>
-            <Button
-              onClick={() => window.location.reload()}
-              className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-8 py-3 text-sm"
-            >
-              <RefreshCw className="h-5 w-5 mr-3" />
-              Refresh Page
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Show no rollback wallet state
   if (hasRollbackWallet === false) {
     return <NoRollbackWalletState />;
-  }
-
-  // Show loading if no wallet data yet
-  if (!user) {
-    return <LoadingState />;
   }
 
   return (
@@ -391,7 +328,7 @@ export default function Settings() {
               className="bg-rollback-primary hover:bg-rollback-primary/90 text-white"
             >
               {isSaving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <RiLoader4Line className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}

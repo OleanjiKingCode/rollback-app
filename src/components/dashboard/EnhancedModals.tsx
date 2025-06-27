@@ -14,7 +14,6 @@ import { Progress } from "@/components/ui/progress";
 import {
   AlertTriangle,
   Zap,
-  Loader2,
   CheckCircle2,
   XCircle,
   Shield,
@@ -23,6 +22,7 @@ import {
   ArrowRightLeft,
   Info,
 } from "lucide-react";
+import { RiLoader4Line } from "react-icons/ri";
 
 interface EmergencyRollbackModalProps {
   isOpen: boolean;
@@ -210,7 +210,7 @@ export function EmergencyRollbackModal({
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <RiLoader4Line className="h-4 w-4 mr-2 animate-spin" />
                 Initiating...
               </>
             ) : (
@@ -241,7 +241,7 @@ export function TransactionProgressModal({
       <DialogContent className="sm:max-w-lg bg-white rounded-3xl border-0 shadow-2xl">
         <DialogHeader className="text-center pb-6">
           <div className="w-16 h-16 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-3xl flex items-center justify-center mx-auto mb-6">
-            <Loader2 className="h-8 w-8 text-white animate-spin" />
+            <RiLoader4Line className="h-8 w-8 text-white animate-spin" />
           </div>
           <DialogTitle className="text-xl font-bold text-gray-900">
             Processing Transaction
@@ -264,7 +264,7 @@ export function TransactionProgressModal({
           {/* Current Action */}
           <div className="bg-gray-50 rounded-2xl p-4">
             <div className="flex items-center space-x-3">
-              <Loader2 className="h-5 w-5 text-rollback-primary animate-spin" />
+              <RiLoader4Line className="h-5 w-5 text-rollback-primary animate-spin" />
               <span className="font-medium text-gray-900">{currentAction}</span>
             </div>
           </div>
@@ -281,7 +281,7 @@ export function TransactionProgressModal({
                   >
                     <div className="flex items-center space-x-3">
                       {tx.status === "pending" && (
-                        <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                        <RiLoader4Line className="h-4 w-4 animate-spin text-blue-500" />
                       )}
                       {tx.status === "confirmed" && (
                         <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -396,7 +396,7 @@ export function ConfirmationModal({
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <RiLoader4Line className="h-4 w-4 mr-2 animate-spin" />
                 Processing...
               </>
             ) : (

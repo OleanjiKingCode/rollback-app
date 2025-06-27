@@ -37,7 +37,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/lib/toast";
 import { useNavigate } from "react-router-dom";
 import {
   Wallet,
@@ -59,12 +59,12 @@ import {
   Info,
   DollarSign,
   BarChart3,
-  Loader2,
   WifiOff,
   Plus,
   Zap,
   ArrowRightLeft,
 } from "lucide-react";
+import { RiLoader4Line } from "react-icons/ri";
 
 // Helper function to format token balance
 const formatBalance = (balance: string, decimals: number, symbol: string) => {
@@ -218,7 +218,7 @@ export default function Dashboard() {
 
   const [isEmergencyRollback, setIsEmergencyRollback] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
-  const { toast } = useToast();
+
   const navigate = useNavigate();
 
   // Check for rollback wallet on mount and when address changes
@@ -276,18 +276,15 @@ export default function Dashboard() {
     await checkRollbackWallet();
     await refetch();
     await fetchPortfolioData();
-    toast({
-      title: "🔄 Data Refreshed",
-      description: "Wallet data has been updated with the latest information.",
-    });
+    toast.success(
+      "Data Refreshed",
+      "Wallet data has been updated with the latest information."
+    );
   };
 
   const handleCopyAddress = (address: string) => {
     navigator.clipboard.writeText(address);
-    toast({
-      title: "📋 Address Copied",
-      description: "Wallet address copied to clipboard.",
-    });
+    toast.plain("Address copied to clipboard");
   };
 
   const handleEmergencyRollback = async () => {
@@ -297,22 +294,18 @@ export default function Dashboard() {
     try {
       // TODO: Call actual emergency rollback API
       // await triggerEmergencyRollback(user.user.id);
-      toast({
-        title: "🚨 Emergency Rollback Initiated",
-        description:
-          "Your assets are being transferred to recovery wallets. This may take several minutes.",
-        variant: "destructive",
-      });
+      toast.warning(
+        "Emergency Rollback Initiated",
+        "Your assets are being transferred to recovery wallets. This may take several minutes."
+      );
 
       // Refresh data after rollback
       await handleRefreshData();
     } catch (error) {
-      toast({
-        title: "❌ Emergency Rollback Failed",
-        description:
-          "Failed to initiate emergency rollback. Please contact support immediately.",
-        variant: "destructive",
-      });
+      toast.error(
+        "Emergency Rollback Failed",
+        "Failed to initiate emergency rollback. Please contact support immediately."
+      );
     } finally {
       setIsEmergencyRollback(false);
     }
@@ -594,7 +587,7 @@ export default function Dashboard() {
                 <div className="mt-2 space-y-2 max-h-32 overflow-y-auto">
                   {portfolioLoading ? (
                     <div className="flex items-center justify-center p-3">
-                      <Loader2 className="h-4 w-4 animate-spin text-rollback-primary" />
+                      <RiLoader4Line className="h-4 w-4 animate-spin text-rollback-primary" />
                       <span className="ml-2 text-sm text-gray-600">
                         Loading tokens...
                       </span>

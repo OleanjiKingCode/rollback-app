@@ -30,9 +30,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
+
+import { toast } from "@/lib/toast";
 import { useNavigate } from "react-router-dom";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { createAgentWallet } from "@/lib/api";
 import {
   Wallet,
   Plus,
@@ -47,7 +49,6 @@ import {
   Bell,
   Coins,
   HelpCircle,
-  Loader2,
   WifiOff,
   Copy,
   Eye,
@@ -56,8 +57,121 @@ import {
   FileText,
   Ban,
   ExternalLink,
+  ChevronRight,
+  Check,
 } from "lucide-react";
+import { RiLoader4Line } from "react-icons/ri";
 import type { CreateWalletFormData, AgentWallet } from "@/types/api";
+
+// Local interface for generated agent wallet with private key
+interface GeneratedAgentWallet {
+  address: string;
+  privateKey: string;
+}
+
+// Step Configuration
+const STEPS = [
+  { id: 1, title: "Recovery Wallets", icon: User },
+  { id: 2, title: "Rollback Method", icon: Settings },
+  { id: 3, title: "Inactivity Timer", icon: Clock },
+  { id: 4, title: "Token Selection", icon: Coins },
+  { id: 5, title: "Agent Setup", icon: Key },
+  { id: 6, title: "Token Approvals", icon: CheckCircle2 },
+  { id: 7, title: "Final Review", icon: FileText },
+];
+
+// Step Progress Component
+const StepProgress = ({
+  currentStep,
+  isStepValid,
+}: {
+  currentStep: number;
+  isStepValid: (step: number) => boolean;
+}) => {
+  const getStepStatus = (stepId: number) => {
+    if (stepId < currentStep) return "completed";
+    if (stepId === currentStep) return "current";
+    return "pending";
+  };
+
+  return (
+    <div className="w-full mb-8">
+      <div className="flex items-center justify-between">
+        {STEPS.map((step, index) => {
+          const status = getStepStatus(step.id);
+          const isLast = index === STEPS.length - 1;
+
+          return (
+            <div key={step.id} className="flex items-center flex-1">
+              {/* Step Circle and Content */}
+              <div className="flex flex-col items-center">
+                {/* Step Circle */}
+                <div
+                  className={`
+                    w-10 h-10 rounded-full flex items-center justify-center relative z-10 
+                    ${
+                      status === "completed"
+                        ? "bg-green-500 text-white"
+                        : status === "current"
+                        ? "bg-[#E9A344] text-white"
+                        : "bg-gray-300 text-gray-600"
+                    }
+                  `}
+                >
+                  {status === "completed" ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <span className="text-sm font-semibold">{step.id}</span>
+                  )}
+                </div>
+
+                {/* Step Title */}
+                <div className="mt-2 text-center">
+                  <p
+                    className={`text-xs font-medium ${
+                      status === "current"
+                        ? "text-[#E9A344]"
+                        : status === "completed"
+                        ? "text-green-600"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {step.title}
+                  </p>
+                </div>
+              </div>
+
+              {/* Connection Line */}
+              {!isLast && (
+                <div className="flex-1 mx-2 relative" style={{ top: "-12px" }}>
+                  <div
+                    className={`h-0.5 w-full ${
+                      step.id < currentStep ? "bg-green-500" : "bg-gray-300"
+                    }`}
+                  />
+                  {/* Progress dot */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        step.id < currentStep ? "bg-green-500" : "bg-gray-400"
+                      }`}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// Simple encryption function (in production, use proper encryption)
+const encryptPrivateKey = (privateKey: string): string => {
+  // Simple base64 encoding for demo - use proper encryption in production
+  return btoa(privateKey);
+};
 
 // Popular tokens configuration
 const POPULAR_TOKENS = [
@@ -99,11 +213,10 @@ export default function CreateWalletFlow() {
   const { createWallet, isCreating } = useCreateRollbackWallet();
   const { approveTokens, isApproving } = useTokenApprovals();
   const { user, hasRollbackWallet, isLoading } = useRollbackWallet();
-  const { setLoading } = useAppStore();
-  const { toast } = useToast();
+  const { setLoading, loadingStates } = useAppStore();
   const navigate = useNavigate();
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0); // Start with intro screen
   const [formData, setFormData] = useState<CreateWalletFormData>({
     wallets: [address || ""],
     threshold: 2592000, // 30 days
@@ -117,7 +230,7 @@ export default function CreateWalletFlow() {
     "ERC20"
   );
   const [generatedAgentWallet, setGeneratedAgentWallet] =
-    useState<AgentWallet | null>(null);
+    useState<GeneratedAgentWallet | null>(null);
   const [showPrivateKey, setShowPrivateKey] = useState(false);
   const [approvalStatus, setApprovalStatus] = useState<Record<string, boolean>>(
     {}
@@ -208,7 +321,7 @@ export default function CreateWalletFlow() {
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
           <div className="text-center max-w-lg bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
             <div className="w-20 h-20 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <Loader2 className="h-10 w-10 text-white animate-spin" />
+              <RiLoader4Line className="h-10 w-10 text-white animate-spin" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">
               Checking Wallet Status
@@ -273,16 +386,37 @@ export default function CreateWalletFlow() {
     }));
   };
 
-  const generateAgentWallet = () => {
-    // TODO: Replace with secure wallet generation API
-    // const agentWallet = await generateSecureAgentWallet();
-    // setGeneratedAgentWallet(agentWallet);
+  const generateAgentWallet = async () => {
+    try {
+      setLoading("walletCreationLoading", true);
 
-    toast({
-      title: "❌ Generation Not Available",
-      description: "Agent wallet generation not yet implemented.",
-      variant: "destructive",
-    });
+      // Generate a new wallet locally using viem
+      const privateKey = generatePrivateKey();
+      const account = privateKeyToAccount(privateKey);
+
+      const agentWallet = {
+        address: account.address,
+        privateKey: privateKey,
+      };
+
+      setGeneratedAgentWallet(agentWallet);
+
+      // Note: Agent wallet is generated locally for security
+      // The private key stays client-side, only the address will be used in contract creation
+
+      toast.success(
+        "Agent Wallet Generated",
+        "Agent wallet created and securely stored. Keep your private key safe!"
+      );
+    } catch (error) {
+      console.error("Agent wallet generation failed:", error);
+      toast.error(
+        "Generation Failed",
+        "Failed to generate agent wallet. Please try again."
+      );
+    } finally {
+      setLoading("walletCreationLoading", false);
+    }
   };
 
   const handleApproveToken = async (tokenAddress: string) => {
@@ -290,44 +424,72 @@ export default function CreateWalletFlow() {
 
     try {
       setApprovalStatus((prev) => ({ ...prev, [tokenAddress]: true }));
-      toast({
-        title: "✅ Token Approved",
-        description: "Token has been approved for monitoring.",
-      });
+      toast.success(
+        "Token Approved",
+        "Token has been approved for monitoring."
+      );
     } catch (error) {
       setApprovalStatus((prev) => ({ ...prev, [tokenAddress]: false }));
-      toast({
-        title: "❌ Approval Failed",
-        description: "Failed to approve token. Please try again.",
-        variant: "destructive",
-      });
+      toast.error(
+        "Approval Failed",
+        "Failed to approve token. Please try again."
+      );
     }
   };
 
   const handleCreateWallet = async () => {
+    if (!generatedAgentWallet) {
+      toast.error(
+        "Agent Wallet Required",
+        "Please generate an agent wallet first."
+      );
+      return;
+    }
+
     try {
       setLoading("walletCreationLoading", true);
-      const result = await createWallet(formData);
+
+      // Update formData with the generated agent wallet
+      const updatedFormData = {
+        ...formData,
+        agentWallet: generatedAgentWallet.address,
+      };
+
+      // Convert GeneratedAgentWallet to AgentWallet format
+      const agentWalletForContract: AgentWallet = {
+        id: "temp-id",
+        userId: "temp-user-id",
+        address: generatedAgentWallet.address,
+        createdAt: new Date().toISOString(),
+      };
+
+      const result = await createWallet(
+        updatedFormData,
+        agentWalletForContract
+      );
       if (result) {
-        toast({
-          title: "🎉 Rollback Wallet Created!",
-          description: "Your rollback protection is now active.",
-        });
+        toast.success(
+          "Rollback Wallet Created!",
+          "Your rollback protection is now active."
+        );
         navigate("/dashboard");
       }
-    } catch (error) {
-      toast({
-        title: "❌ Creation Failed",
-        description: "Failed to create rollback wallet. Please try again.",
-        variant: "destructive",
-      });
+    } catch (error: any) {
+      console.error("Wallet creation error:", error);
+      toast.error(
+        "Creation Failed",
+        error?.message || "Failed to create rollback wallet. Please try again."
+      );
     } finally {
       setLoading("walletCreationLoading", false);
     }
   };
 
-  const isStepValid = () => {
-    switch (step) {
+  const isStepValid = (stepNumber?: number) => {
+    const currentStep = stepNumber || step;
+    switch (currentStep) {
+      case 0:
+        return true; // Intro screen
       case 1:
         return (
           formData.wallets.length > 0 &&
@@ -354,28 +516,136 @@ export default function CreateWalletFlow() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast({ title: "📋 Copied to clipboard" });
+    toast.plain("Copied to clipboard");
   };
 
-  const getStepProgress = () => (step / 7) * 100;
+  // Step 0: Introduction
+  const renderIntro = () => (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-8 h-8 bg-[#E9A344] rounded-3xl flex items-center justify-center ">
+              <Shield className="h-4 w-4 text-white" />
+            </div>
+            <h1 className="text-xl font-bold text-gray-900">
+              Create Rollback Wallet
+            </h1>
+          </div>
+          <p className="text-sm text-gray-600 max-w-2xl mx-auto">
+            Secure your crypto assets with automated rollback protection. Never
+            lose access to your funds due to wallet inactivity.
+          </p>
+        </div>
+
+        <Card className="bg-white border-2 border-gray-200 rounded-3xl shadow-xl max-w-3xl mx-auto">
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="text-lg font-bold text-gray-900">
+              What You'll Set Up
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              The rollback wallet creation process involves several important
+              steps
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                {
+                  icon: User,
+                  title: "Recovery Wallets",
+                  description:
+                    "Add trusted wallet addresses that will receive your assets during rollback",
+                  color: "bg-blue-100 text-blue-600",
+                },
+                {
+                  icon: Settings,
+                  title: "Rollback Method",
+                  description:
+                    "Choose how assets will be distributed (priority order or randomized)",
+                  color: "bg-purple-100 text-purple-600",
+                },
+                {
+                  icon: Clock,
+                  title: "Inactivity Threshold",
+                  description:
+                    "Set the time period before rollback is triggered (7-90 days)",
+                  color: "bg-orange-100 text-orange-600",
+                },
+                {
+                  icon: Coins,
+                  title: "Token Monitoring",
+                  description:
+                    "Select which tokens to protect with rollback (ERC20/ERC721)",
+                  color: "bg-green-100 text-green-600",
+                },
+                {
+                  icon: Key,
+                  title: "Agent Wallet",
+                  description:
+                    "Generate a secure wallet for automated rollback operations",
+                  color: "bg-indigo-100 text-indigo-600",
+                },
+                {
+                  icon: CheckCircle2,
+                  title: "Multi-Signature",
+                  description:
+                    "Complete the setup with signatures from all recovery wallets",
+                  color: "bg-emerald-100 text-emerald-600",
+                },
+              ].map((feature, index) => (
+                <div
+                  key={index}
+                  className="flex items-start space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  <div
+                    className={`w-12 h-12 ${feature.color} rounded-2xl flex items-center justify-center flex-shrink-0`}
+                  >
+                    <feature.icon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center pt-4">
+              <Button
+                onClick={() => setStep(1)}
+                size="lg"
+                className="bg-gradient-to-r from-[#E9A344] to-[#D4941A] hover:from-[#D4941A] hover:to-[#E9A344] text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                Get Started
+                <ChevronRight className="h-5 w-5 ml-2" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 
   // Step 1: Recovery Wallets
   const renderStep1 = () => (
     <div className="space-y-8">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-3xl flex items-center justify-center mx-auto mb-4">
-          <User className="h-8 w-8 text-white" />
-        </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
+        <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center justify-center">
+          <User className="h-5 w-5 mr-2 text-[#E9A344]" />
           Add Recovery Wallets
         </h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-xs text-gray-600">
           Add wallet addresses that will receive your assets during rollback (up
           to 5 wallets)
         </p>
       </div>
 
-      <Card className="border-2 border-gray-200 hover:border-[#E9A344]/20 rounded-3xl">
+      <Card className="border-2 border-gray-200 hover:border-[#E9A344]/20 rounded-3xl max-w-[600px]  mx-auto">
         <CardHeader>
           <CardTitle>Recovery Wallets</CardTitle>
           <CardDescription>
@@ -432,10 +702,8 @@ export default function CreateWalletFlow() {
   const renderStep2 = () => (
     <div className="space-y-8">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-3xl flex items-center justify-center mx-auto mb-4">
-          <Settings className="h-8 w-8 text-white" />
-        </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
+        <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center justify-center">
+          <Settings className="h-5 w-5 mr-2 text-[#E9A344]" />
           Rollback Method
         </h2>
         <p className="text-sm text-gray-600">
@@ -466,7 +734,7 @@ export default function CreateWalletFlow() {
                 }`}
               />
             </div>
-            <h3 className="text-lg font-bold">Priority Order</h3>
+            <h3 className="text-sm font-bold">Priority Order</h3>
             <p className="text-sm text-gray-600">
               Assets transferred to wallets in priority order. First wallet gets
               assets, then second if first is inactive.
@@ -497,7 +765,7 @@ export default function CreateWalletFlow() {
                 }`}
               />
             </div>
-            <h3 className="text-lg font-bold">Randomized</h3>
+            <h3 className="text-sm font-bold">Randomized</h3>
             <p className="text-sm text-gray-600">
               Assets randomly distributed among active recovery wallets. Better
               privacy but less predictable.
@@ -512,13 +780,11 @@ export default function CreateWalletFlow() {
   const renderStep3 = () => (
     <div className="space-y-8">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-3xl flex items-center justify-center mx-auto mb-4">
-          <Clock className="h-8 w-8 text-white" />
-        </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
+        <h2 className="text-sm font-bold text-gray-900 mb-2 flex items-center justify-center">
+          <Clock className="h-5 w-5 mr-2 text-[#E9A344]" />
           Inactivity Threshold
         </h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-xs text-gray-600">
           Set how long your wallet can be inactive before rollback is triggered
         </p>
       </div>
@@ -573,13 +839,11 @@ export default function CreateWalletFlow() {
   const renderStep4 = () => (
     <div className="space-y-8">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-3xl flex items-center justify-center mx-auto mb-4">
-          <Coins className="h-8 w-8 text-white" />
-        </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
+        <h2 className="text-sm font-bold text-gray-900 mb-2 flex items-center justify-center">
+          <Coins className="h-5 w-5 mr-2 text-[#E9A344]" />
           Token Monitoring
         </h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-xs text-gray-600">
           Select tokens to monitor for rollback protection (up to 3 tokens)
         </p>
       </div>
@@ -598,7 +862,9 @@ export default function CreateWalletFlow() {
               >
                 <div className="flex items-center space-x-3">
                   <div>
-                    <p className="font-medium text-gray-900">{token.symbol}</p>
+                    <p className="font-medium text-gray-900">
+                      {(token as any).symbol}
+                    </p>
                     <p className="text-sm text-gray-600">{token.name}</p>
                   </div>
                   <Badge variant="outline" className="text-xs">
@@ -648,7 +914,9 @@ export default function CreateWalletFlow() {
               <Label>Token Type</Label>
               <Select
                 value={customTokenType}
-                onValueChange={setCustomTokenType}
+                onValueChange={(value: "ERC20" | "ERC721") =>
+                  setCustomTokenType(value)
+                }
               >
                 <SelectTrigger className="mt-2 rounded-xl">
                   <SelectValue />
@@ -693,7 +961,7 @@ export default function CreateWalletFlow() {
                   >
                     <div>
                       <p className="text-sm font-mono text-gray-900">
-                        {token.symbol ||
+                        {(token as any).symbol ||
                           `${token.address.slice(0, 6)}...${token.address.slice(
                             -4
                           )}`}
@@ -729,11 +997,11 @@ export default function CreateWalletFlow() {
   const renderStep5 = () => (
     <div className="space-y-8">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-3xl flex items-center justify-center mx-auto mb-4">
-          <Key className="h-8 w-8 text-white" />
-        </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Agent Wallet</h2>
-        <p className="text-sm text-gray-600">
+        <h2 className="text-sm font-bold text-gray-900 mb-2 flex items-center justify-center">
+          <Key className="h-5 w-5 mr-2 text-[#E9A344]" />
+          Agent Wallet
+        </h2>
+        <p className="text-xs text-gray-600">
           Create an agent wallet that will execute rollback operations on your
           behalf
         </p>
@@ -756,10 +1024,20 @@ export default function CreateWalletFlow() {
               </p>
               <Button
                 onClick={generateAgentWallet}
-                className="bg-gradient-to-r from-[#E9A344] to-[#D4941A] text-white px-8 py-3 rounded-xl"
+                disabled={loadingStates.walletCreationLoading}
+                className="bg-gradient-to-r from-[#E9A344] to-[#D4941A] text-white px-8 py-3 rounded-xl disabled:opacity-50"
               >
-                <Key className="h-5 w-5 mr-2" />
-                Generate Agent Wallet
+                {loadingStates.walletCreationLoading ? (
+                  <>
+                    <RiLoader4Line className="h-5 w-5 animate-spin mr-2" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Key className="h-5 w-5 mr-2" />
+                    Generate Agent Wallet
+                  </>
+                )}
               </Button>
             </div>
           ) : (
@@ -792,7 +1070,7 @@ export default function CreateWalletFlow() {
                     value={
                       showPrivateKey
                         ? generatedAgentWallet.privateKey
-                        : "••••••••••••••••••••••••••••••••"
+                        : "*".repeat(64) // 64 asterisks for private key
                     }
                     readOnly
                     type={showPrivateKey ? "text" : "password"}
@@ -842,13 +1120,11 @@ export default function CreateWalletFlow() {
   const renderStep6 = () => (
     <div className="space-y-8">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-3xl flex items-center justify-center mx-auto mb-4">
-          <CheckCircle2 className="h-8 w-8 text-white" />
-        </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
+        <h2 className="text-sm font-bold text-gray-900 mb-2 flex items-center justify-center">
+          <CheckCircle2 className="h-5 w-5 mr-2 text-[#E9A344]" />
           Token Approvals
         </h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-xs text-gray-600">
           Approve the agent wallet to spend your tokens for rollback operations
         </p>
       </div>
@@ -869,7 +1145,7 @@ export default function CreateWalletFlow() {
             >
               <div>
                 <p className="font-medium">
-                  {token.symbol ||
+                  {(token as any).symbol ||
                     `${token.address.slice(0, 10)}...${token.address.slice(
                       -8
                     )}`}
@@ -915,13 +1191,11 @@ export default function CreateWalletFlow() {
   const renderStep7 = () => (
     <div className="space-y-8">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-3xl flex items-center justify-center mx-auto mb-4">
-          <FileText className="h-8 w-8 text-white" />
-        </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
+        <h2 className="text-sm font-bold text-gray-900 mb-2 flex items-center justify-center">
+          <FileText className="h-5 w-5 mr-2 text-[#E9A344]" />
           Review & Finalize
         </h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-xs text-gray-600">
           Review your configuration and complete the multi-signature process
         </p>
       </div>
@@ -971,7 +1245,7 @@ export default function CreateWalletFlow() {
                     className="flex items-center justify-between"
                   >
                     <p className="text-sm text-gray-600">
-                      {token.symbol ||
+                      {(token as any).symbol ||
                         `${token.address.slice(0, 6)}...${token.address.slice(
                           -4
                         )}`}
@@ -1029,7 +1303,7 @@ export default function CreateWalletFlow() {
             >
               {isCreating ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <RiLoader4Line className="h-4 w-4 mr-2 animate-spin" />
                   Creating Rollback Wallet...
                 </>
               ) : (
@@ -1045,42 +1319,33 @@ export default function CreateWalletFlow() {
     </div>
   );
 
+  // Handle intro step separately
+  if (step === 0) {
+    return renderIntro();
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16 lg:pt-8">
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Create Rollback Wallet
-            </h1>
-            <p className="text-gray-600">
-              Set up automated asset protection for your crypto wallet
-            </p>
-          </div>
-
+        <div className="max-w-4xl mx-auto">
           {/* Progress */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <Badge variant="outline" className="px-3 py-1">
-                Step {step} of 7
-              </Badge>
-              <span className="text-sm text-gray-600">
-                {Math.round(getStepProgress())}% Complete
-              </span>
-            </div>
-            <Progress value={getStepProgress()} className="h-2" />
+            <StepProgress currentStep={step} isStepValid={isStepValid} />
           </div>
 
+          {/* Header */}
+
           {/* Step Content */}
-          <div className="min-h-[600px] mb-8">
-            {step === 1 && renderStep1()}
-            {step === 2 && renderStep2()}
-            {step === 3 && renderStep3()}
-            {step === 4 && renderStep4()}
-            {step === 5 && renderStep5()}
-            {step === 6 && renderStep6()}
-            {step === 7 && renderStep7()}
+          <div className="min-h-[600px] mb-8 flex items-center justify-center">
+            <div className="w-full">
+              {step === 1 && renderStep1()}
+              {step === 2 && renderStep2()}
+              {step === 3 && renderStep3()}
+              {step === 4 && renderStep4()}
+              {step === 5 && renderStep5()}
+              {step === 6 && renderStep6()}
+              {step === 7 && renderStep7()}
+            </div>
           </div>
 
           {/* Navigation */}
@@ -1110,7 +1375,7 @@ export default function CreateWalletFlow() {
                 >
                   {isCreating ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <RiLoader4Line className="h-4 w-4 mr-2 animate-spin" />
                       Creating...
                     </>
                   ) : (

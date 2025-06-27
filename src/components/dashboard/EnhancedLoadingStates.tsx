@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Loader2, Shield, Wallet, WifiOff } from "lucide-react";
+import { Shield, Wallet, WifiOff } from "lucide-react";
+import { RiLoader4Line } from "react-icons/ri";
 
 interface SkeletonProps {
   className?: string;
@@ -86,7 +87,7 @@ export function DashboardLoadingSkeleton() {
 export function CenteredLoadingState({
   title = "Loading Dashboard",
   description = "Fetching your rollback wallet information...",
-  icon = Loader2,
+  icon = RiLoader4Line,
 }: {
   title?: string;
   description?: string;
@@ -101,7 +102,7 @@ export function CenteredLoadingState({
           <div className="w-16 h-16 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-3xl flex items-center justify-center mx-auto mb-6">
             <Icon
               className={`h-8 w-8 text-white ${
-                icon === Loader2 ? "animate-spin" : ""
+                icon === RiLoader4Line ? "animate-spin" : ""
               }`}
             />
           </div>
@@ -181,13 +182,9 @@ export function NoRollbackWalletState({
   onCreateWallet?: () => void;
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rollback-light to-white pt-16 lg:pt-8 flex items-center justify-center">
+    <div className="min-h-[96vh] bg-gradient-to-br from-rollback-light to-white pt-16 lg:pt-8 flex items-center justify-center">
       <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-        <div className="text-center max-w-2xl bg-white rounded-3xl p-8 shadow-2xl border border-gray-100 relative overflow-hidden">
-          {/* Decorative elements */}
-          <div className="absolute top-0 left-0 w-40 h-40 bg-gradient-to-br from-rollback-cream/30 to-rollback-secondary/20 rounded-full -ml-20 -mt-20" />
-          <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tr from-rollback-primary/10 to-rollback-brown/10 rounded-full -mr-16 -mb-16" />
-
+        <div className="text-center max-w-2xl rounded-3xl p-8 border border-gray-100 relative overflow-hidden">
           <div className="relative z-10">
             <div className="w-20 h-20 bg-gradient-to-br from-rollback-primary to-rollback-brown rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl">
               <Shield className="h-10 w-10 text-white" />
@@ -245,10 +242,9 @@ export function NoRollbackWalletState({
 
             <button
               onClick={onCreateWallet}
-              className="bg-gradient-to-r from-rollback-primary to-rollback-brown hover:from-rollback-brown hover:to-rollback-primary text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center mx-auto space-x-3"
+              className=" bg-rollback-primary hover:bg-rollback-brown  text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center mx-auto space-x-3"
             >
-              <Shield className="h-5 w-5" />
-              <span>Create Rollback Protection</span>
+              <span>Create Rollback Wallet</span>
             </button>
 
             <p className="text-sm text-gray-500 mt-6">

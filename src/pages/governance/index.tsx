@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useRollbackWallet } from "@/hooks/useRollback";
+import { useNavigate } from "react-router-dom";
 import { CustomModal, InfoModal } from "@/components/CustomModal";
 import {
   Card,
@@ -95,8 +97,40 @@ const WalletConnectionCheck = () => {
   return null;
 };
 
+// No Rollback Wallet state component
+const NoRollbackWalletState = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+        <div className="text-center max-w-lg">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Settings className="h-8 w-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-rollback-dark mb-3">
+            No Rollback Wallet Found
+          </h3>
+          <p className="text-gray-600 mb-8 text-xs leading-relaxed">
+            You need to create a rollback wallet before you can participate in
+            voting and governance.
+          </p>
+          <Button
+            onClick={() => navigate("/create")}
+            className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-6 py-2 text-sm"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create Rollback Wallet
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function Voting() {
   const { isConnected } = useAccount();
+  const { hasRollbackWallet } = useRollbackWallet();
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(
     null
   );
@@ -114,6 +148,11 @@ export default function Voting() {
   // Show wallet connection check if not connected
   if (!isConnected) {
     return <WalletConnectionCheck />;
+  }
+
+  // Show no rollback wallet state if user doesn't have one
+  if (hasRollbackWallet === false) {
+    return <NoRollbackWalletState />;
   }
 
   const activeProposals = proposals.filter((p) => p.status === "active");
@@ -175,7 +214,7 @@ export default function Voting() {
         : 0;
 
     return (
-      <Card className="border-gray-200 bg-white hover:shadow-xl hover:shadow-[#E9A344]/10 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20">
+      <Card className="border-gray-200 bg-white hover:bg-gray-50 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20">
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-2">
