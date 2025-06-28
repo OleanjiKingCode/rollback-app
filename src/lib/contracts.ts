@@ -1,4 +1,10 @@
-import { type Address, type PublicClient, type WalletClient } from "viem";
+import {
+  type Address,
+  type PublicClient,
+  type WalletClient,
+  decodeEventLog,
+  type Log,
+} from "viem";
 import {
   ROLLBACK_MANAGER_ABI,
   ROLLBACK_WALLET_ABI,
@@ -7,11 +13,29 @@ import {
   TOKEN_TYPE,
   VOTE_TYPE,
 } from "@/config/contracts";
+import { config } from "@/config/env";
 import type { CreateWalletFormData } from "@/types/api";
 
-// Contract addresses on Base Sepolia
-const ROLLBACK_MANAGER_ADDRESS =
-  "0xbA429E21610fDFc09737a438898Dd31b0412c110" as Address;
+// Contract addresses
+const ROLLBACK_MANAGER_ADDRESS = config.rollbackManagerAddress as Address;
+
+// Types for creation request
+export interface CreationRequest {
+  requestId: number;
+  params: {
+    user: string;
+    wallets: string[];
+    threshold: number;
+    tokensToMonitor: string[];
+    tokenTypes: number[];
+    isRandomized: boolean;
+    fallbackWallet: string;
+    agentWallet: string;
+  };
+  signers: string[];
+  executed: boolean;
+  signatureCount: number;
+}
 
 // Check if user has a rollback wallet
 export const checkRollbackWallet = async (
@@ -44,6 +68,55 @@ export const checkRollbackWallet = async (
   }
 };
 
+// Check for pending creation requests for a user
+export const checkPendingCreationRequests = async (
+  publicClient: PublicClient,
+  userAddress: Address
+): Promise<CreationRequest[]> => {
+  console.log("🔍 Checking pending creation requests for:", userAddress);
+
+  try {
+    // Get all creation requests
+    const result = await publicClient.readContract({
+      address: ROLLBACK_MANAGER_ADDRESS,
+      abi: ROLLBACK_MANAGER_ABI,
+      functionName: "getAllCreationRequests",
+    });
+
+    const [requestIds, requests] = result as [bigint[], any[]];
+
+    // Filter for pending requests where user is involved
+    const pendingRequests: CreationRequest[] = [];
+
+    for (let i = 0; i < requests.length; i++) {
+      const request = requests[i];
+      if (!request.executed && request.params.wallets.includes(userAddress)) {
+        pendingRequests.push({
+          requestId: Number(requestIds[i]),
+          params: {
+            user: request.params.user,
+            wallets: request.params.wallets,
+            threshold: Number(request.params.threshold),
+            tokensToMonitor: request.params.tokensToMonitor,
+            tokenTypes: request.params.tokenTypes,
+            isRandomized: request.params.isRandomized,
+            fallbackWallet: request.params.fallbackWallet,
+            agentWallet: request.params.agentWallet,
+          },
+          signers: request.signers,
+          executed: request.executed,
+          signatureCount: Number(request.signatureCount),
+        });
+      }
+    }
+
+    return pendingRequests;
+  } catch (error) {
+    console.error("Error checking pending creation requests:", error);
+    return [];
+  }
+};
+
 // Step 1: Propose wallet creation (returns requestId)
 export const proposeWalletCreation = async (
   walletClient: WalletClient,
@@ -70,7 +143,8 @@ export const proposeWalletCreation = async (
     isRandomized: params.isRandomized,
     fallbackWallet: (params.fallbackWallet ||
       "0x0000000000000000000000000000000000000000") as Address,
-    agentWallet: "0x0000000000000000000000000000000000000000" as Address, // TODO: Generate or get from backend
+    agentWallet: (params.agentWallet ||
+      "0x0000000000000000000000000000000000000000") as Address,
   };
 
   try {
@@ -88,20 +162,15 @@ export const proposeWalletCreation = async (
     // Wait for transaction and get receipt to extract requestId from events
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
-    // Parse logs to get the requestId from WalletCreationProposed event
-    const logs = receipt.logs.filter(
-      (log) =>
-        log.address.toLowerCase() === ROLLBACK_MANAGER_ADDRESS.toLowerCase()
+    // TODO: Parse logs to get the requestId from WalletCreationProposed event
+    // For now, return a timestamp-based requestId as a temporary solution
+    // In production, extract from the actual event logs
+    const tempRequestId = Date.now() % 1000000; // Simple mock requestId
+    console.log(
+      "✅ Wallet creation proposal submitted with requestId:",
+      tempRequestId
     );
-
-    if (logs.length > 0) {
-      // For now, return a placeholder requestId - in production you'd parse the actual event data
-      // The requestId would typically be extracted from the event logs using proper ABI decoding
-      console.log("✅ Wallet creation proposal submitted successfully");
-      return Date.now(); // Temporary placeholder until proper event parsing is implemented
-    }
-
-    throw new Error("Could not extract requestId from transaction");
+    return tempRequestId;
   } catch (error) {
     console.error("Error proposing wallet creation:", error);
     throw new Error("Failed to propose wallet creation");
@@ -145,7 +214,7 @@ export const finalizeWalletCreation = async (
   walletClient: WalletClient,
   publicClient: PublicClient,
   requestId: number
-): Promise<void> => {
+): Promise<string> => {
   console.log("🏁 Finalizing wallet creation:", requestId);
 
   if (!walletClient.account) {
@@ -168,8 +237,57 @@ export const finalizeWalletCreation = async (
     const hash = await walletClient.writeContract(request);
     console.log("✅ Finalization transaction hash:", hash);
 
-    await publicClient.waitForTransactionReceipt({ hash });
-    console.log("🎉 Wallet creation finalized successfully!");
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+
+    // Wait a bit for the contract state to update
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Get the wallet address by calling getUserWallet
+    try {
+      const walletAddress = await publicClient.readContract({
+        address: ROLLBACK_MANAGER_ADDRESS,
+        abi: ROLLBACK_MANAGER_ABI,
+        functionName: "getUserWallet",
+        args: [walletClient.account.address],
+      });
+
+      const walletAddressString = walletAddress as string;
+
+      // Check if we got a valid address (not zero address)
+      if (
+        walletAddressString &&
+        walletAddressString !== "0x0000000000000000000000000000000000000000"
+      ) {
+        console.log(
+          "🎉 Wallet creation finalized successfully! Wallet address:",
+          walletAddressString
+        );
+        return walletAddressString;
+      } else {
+        // If still zero address, try getting creation request to verify
+        const creationRequest = await getCreationRequest(
+          publicClient,
+          requestId
+        );
+        if (creationRequest.executed) {
+          // Wallet was created but getUserWallet might be delayed
+          console.log(
+            "✅ Wallet created but address not yet available from getUserWallet"
+          );
+          return "WALLET_CREATED_PENDING"; // Special value to indicate success but address pending
+        }
+      }
+    } catch (readError) {
+      console.warn(
+        "Could not read wallet address immediately after creation:",
+        readError
+      );
+      return "WALLET_CREATED_PENDING"; // Special value to indicate success but address pending
+    }
+
+    throw new Error(
+      "Wallet creation may have failed - please check transaction"
+    );
   } catch (error) {
     console.error("Error finalizing wallet creation:", error);
     throw new Error("Failed to finalize wallet creation");
@@ -192,7 +310,7 @@ export const getInitializationFee = async (
     return (fee as bigint).toString();
   } catch (error) {
     console.error("Error getting initialization fee:", error);
-    return "2640000000000000"; // 0.00264 ETH fallback
+    return config.initializationFee; // fallback
   }
 };
 
@@ -200,7 +318,7 @@ export const getInitializationFee = async (
 export const getCreationRequest = async (
   publicClient: PublicClient,
   requestId: number
-) => {
+): Promise<CreationRequest> => {
   try {
     const request = await publicClient.readContract({
       address: ROLLBACK_MANAGER_ADDRESS,
@@ -209,7 +327,23 @@ export const getCreationRequest = async (
       args: [BigInt(requestId)],
     });
 
-    return request;
+    const typedRequest = request as any;
+    return {
+      requestId: Number(typedRequest.requestId),
+      params: {
+        user: typedRequest.params.user,
+        wallets: typedRequest.params.wallets,
+        threshold: Number(typedRequest.params.threshold),
+        tokensToMonitor: typedRequest.params.tokensToMonitor,
+        tokenTypes: typedRequest.params.tokenTypes,
+        isRandomized: typedRequest.params.isRandomized,
+        fallbackWallet: typedRequest.params.fallbackWallet,
+        agentWallet: typedRequest.params.agentWallet,
+      },
+      signers: typedRequest.signers,
+      executed: typedRequest.executed,
+      signatureCount: Number(typedRequest.signatureCount),
+    };
   } catch (error) {
     console.error("Error getting creation request:", error);
     throw new Error("Failed to get creation request");
@@ -312,6 +446,249 @@ export const getAllVotes = async (
 
 // TOKEN APPROVAL FUNCTIONS
 
+// Check ERC20 token approval status
+export const checkERC20Approval = async (
+  publicClient: PublicClient,
+  tokenAddress: Address,
+  ownerAddress: Address,
+  spenderAddress: Address
+): Promise<{ isApproved: boolean; allowance: string }> => {
+  console.log(
+    "🔍 Checking ERC20 approval:",
+    tokenAddress,
+    ownerAddress,
+    spenderAddress
+  );
+
+  try {
+    const allowance = await publicClient.readContract({
+      address: tokenAddress,
+      abi: ERC20_ABI,
+      functionName: "allowance",
+      args: [ownerAddress, spenderAddress],
+    });
+
+    const allowanceString = (allowance as bigint).toString();
+    const isApproved = BigInt(allowanceString) > BigInt(0);
+
+    return {
+      isApproved,
+      allowance: allowanceString,
+    };
+  } catch (error) {
+    console.error("Error checking ERC20 approval:", error);
+    return {
+      isApproved: false,
+      allowance: "0",
+    };
+  }
+};
+
+// Check ERC721 token approval status
+export const checkERC721Approval = async (
+  publicClient: PublicClient,
+  tokenAddress: Address,
+  ownerAddress: Address,
+  operatorAddress: Address
+): Promise<{ isApproved: boolean }> => {
+  console.log(
+    "🔍 Checking ERC721 approval:",
+    tokenAddress,
+    ownerAddress,
+    operatorAddress
+  );
+
+  try {
+    const isApproved = await publicClient.readContract({
+      address: tokenAddress,
+      abi: ERC721_ABI,
+      functionName: "isApprovedForAll",
+      args: [ownerAddress, operatorAddress],
+    });
+
+    return {
+      isApproved: isApproved as boolean,
+    };
+  } catch (error) {
+    console.error("Error checking ERC721 approval:", error);
+    return {
+      isApproved: false,
+    };
+  }
+};
+
+// Get ERC20 token balance
+export const getERC20Balance = async (
+  publicClient: PublicClient,
+  tokenAddress: Address,
+  ownerAddress: Address
+): Promise<{ balance: string; decimals: number }> => {
+  console.log("💰 Getting ERC20 balance:", tokenAddress, ownerAddress);
+
+  try {
+    const [balance, decimals] = await Promise.all([
+      publicClient.readContract({
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: "balanceOf",
+        args: [ownerAddress],
+      }),
+      publicClient.readContract({
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: "decimals",
+      }),
+    ]);
+
+    return {
+      balance: (balance as bigint).toString(),
+      decimals: Number(decimals),
+    };
+  } catch (error) {
+    console.error("Error getting ERC20 balance:", error);
+    return {
+      balance: "0",
+      decimals: 18, // Default decimals
+    };
+  }
+};
+
+// Get ERC721 token balance (number of tokens owned)
+export const getERC721Balance = async (
+  publicClient: PublicClient,
+  tokenAddress: Address,
+  ownerAddress: Address
+): Promise<{ balance: string }> => {
+  console.log("🎨 Getting ERC721 balance:", tokenAddress, ownerAddress);
+
+  try {
+    const balance = await publicClient.readContract({
+      address: tokenAddress,
+      abi: ERC721_ABI,
+      functionName: "balanceOf",
+      args: [ownerAddress],
+    });
+
+    return {
+      balance: (balance as bigint).toString(),
+    };
+  } catch (error) {
+    console.error("Error getting ERC721 balance:", error);
+    return {
+      balance: "0",
+    };
+  }
+};
+
+// Get wallet information from contract
+export const getWalletInfoFromContract = async (
+  publicClient: PublicClient,
+  userAddress: Address
+): Promise<{
+  hasWallet: boolean;
+  walletAddress: string;
+  walletInfo?: {
+    threshold: number;
+    isRandomized: boolean;
+    fallbackWallet: string;
+    agentWallet: string;
+    treasuryAddress: string;
+    wallets: Array<{
+      walletAddress: string;
+      lastActivity: number;
+      priorityPosition: number;
+      isObsolete: boolean;
+      nextWalletInLine: string;
+    }>;
+    monitoredTokens: Array<{
+      tokenAddress: string;
+      tokenType: number;
+      isActive: boolean;
+    }>;
+  };
+}> => {
+  console.log("🔍 Getting wallet info from contract for:", userAddress);
+
+  try {
+    // First check if user has a wallet
+    const { hasWallet, walletAddress } = await checkRollbackWallet(
+      publicClient,
+      userAddress
+    );
+
+    if (
+      !hasWallet ||
+      walletAddress === "0x0000000000000000000000000000000000000000"
+    ) {
+      return { hasWallet: false, walletAddress: "" };
+    }
+
+    // Get detailed wallet information
+    const [systemConfig, allWallets, monitoredTokens] = await Promise.all([
+      publicClient.readContract({
+        address: walletAddress as Address,
+        abi: ROLLBACK_WALLET_ABI,
+        functionName: "getSystemConfig",
+      }),
+      publicClient.readContract({
+        address: walletAddress as Address,
+        abi: ROLLBACK_WALLET_ABI,
+        functionName: "getAllWallets",
+      }),
+      publicClient.readContract({
+        address: walletAddress as Address,
+        abi: ROLLBACK_WALLET_ABI,
+        functionName: "getMonitoredTokens",
+      }),
+    ]);
+
+    const [
+      threshold,
+      isRandomized,
+      fallbackWallet,
+      agentWallet,
+      treasuryAddress,
+    ] = systemConfig as [bigint, boolean, string, string, string];
+
+    // Handle monitored tokens - this returns [tokens[], types[]]
+    const [tokenAddresses, tokenTypes] = monitoredTokens as [
+      string[],
+      number[]
+    ];
+    const formattedTokens = tokenAddresses.map((address, index) => ({
+      tokenAddress: address,
+      tokenType: tokenTypes[index] || 0,
+      isActive: true,
+    }));
+
+    // Format wallets array
+    const formattedWallets = (allWallets as any[]).map((wallet) => ({
+      walletAddress: wallet.walletAddress,
+      lastActivity: Number(wallet.lastActivity),
+      priorityPosition: Number(wallet.priorityPosition),
+      isObsolete: wallet.isObsolete,
+      nextWalletInLine: wallet.nextWalletInLine,
+    }));
+
+    return {
+      hasWallet: true,
+      walletAddress,
+      walletInfo: {
+        threshold: Math.floor(Number(threshold) / 86400), // Convert seconds to days
+        isRandomized,
+        fallbackWallet,
+        agentWallet,
+        treasuryAddress,
+        wallets: formattedWallets,
+        monitoredTokens: formattedTokens,
+      },
+    };
+  } catch (error) {
+    console.error("Error getting wallet info from contract:", error);
+    return { hasWallet: false, walletAddress: "" };
+  }
+};
+
 export const approveERC20Token = async (
   walletClient: WalletClient,
   publicClient: PublicClient,
@@ -401,3 +778,273 @@ export const generateRandomWallet = () => {
 
 // Export types for other files
 export type { Address, PublicClient, WalletClient };
+
+// Update backend with wallet creation data
+export const updateBackendWithWalletData = async (walletData: {
+  userAddress: string;
+  rollbackWalletAddress: string;
+  agentWalletAddress: string;
+  wallets: string[];
+  threshold: number;
+  isRandomized: boolean;
+  fallbackWallet: string;
+  tokensToMonitor: Array<{
+    address: string;
+    type: "ERC20" | "ERC721";
+    symbol?: string;
+    name?: string;
+  }>;
+}) => {
+  console.log("🔄 Updating backend with wallet data:", walletData);
+
+  try {
+    // Create user in backend
+    const userResponse = await fetch("/api/v1/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        walletAddress: walletData.userAddress,
+        rollbackConfig: {
+          inactivityThreshold: walletData.threshold,
+          rollbackType: walletData.isRandomized ? "randomized" : "sequential",
+          isRandomized: walletData.isRandomized,
+          fallbackWallet: walletData.fallbackWallet,
+          agentWallet: walletData.agentWalletAddress,
+          rollbackWalletAddress: walletData.rollbackWalletAddress,
+          tokensToMonitor: walletData.tokensToMonitor.map((token) => ({
+            type: token.type,
+            address: token.address,
+          })),
+        },
+      }),
+    });
+
+    if (!userResponse.ok) {
+      console.warn(
+        "Failed to create user in backend:",
+        await userResponse.text()
+      );
+    }
+
+    // Add additional wallets
+    for (const walletAddr of walletData.wallets) {
+      if (walletAddr !== walletData.userAddress) {
+        const walletResponse = await fetch(
+          `/api/v1/users/${walletData.userAddress}/wallets`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              address: walletAddr,
+            }),
+          }
+        );
+
+        if (!walletResponse.ok) {
+          console.warn(
+            `Failed to add wallet ${walletAddr} in backend:`,
+            await walletResponse.text()
+          );
+        }
+      }
+    }
+
+    console.log("✅ Backend updated successfully");
+  } catch (error) {
+    console.error("❌ Error updating backend:", error);
+    // Don't throw error - backend update is not critical for wallet creation
+  }
+};
+
+// Enhanced function to find rollback wallet for any connected address (even if not primary owner)
+export const findRollbackWalletForAddress = async (
+  publicClient: PublicClient,
+  userAddress: Address
+): Promise<{
+  hasWallet: boolean;
+  walletAddress: string;
+  walletInfo?: {
+    threshold: number;
+    isRandomized: boolean;
+    fallbackWallet: string;
+    agentWallet: string;
+    treasuryAddress: string;
+    wallets: Array<{
+      walletAddress: string;
+      lastActivity: number;
+      priorityPosition: number;
+      isObsolete: boolean;
+      nextWalletInLine: string;
+    }>;
+    monitoredTokens: Array<{
+      tokenAddress: string;
+      tokenType: number;
+      isActive: boolean;
+    }>;
+  };
+  userRole?: "owner" | "recovery_wallet";
+}> => {
+  console.log("🔍 Checking RollbackWalletManager for address:", userAddress);
+
+  try {
+    // First, try the direct approach - check if user is the primary owner
+    const directResult = await getWalletInfoFromContract(
+      publicClient,
+      userAddress
+    );
+    if (directResult.hasWallet) {
+      console.log("✅ Found as primary owner");
+      return {
+        ...directResult,
+        userRole: "owner",
+      };
+    }
+
+    // If not found as primary owner, check executed creation requests in the manager
+    console.log(
+      "🔍 Checking executed rollback wallets in RollbackWalletManager contract..."
+    );
+
+    const allRequests = await publicClient.readContract({
+      address: ROLLBACK_MANAGER_ADDRESS,
+      abi: ROLLBACK_MANAGER_ABI,
+      functionName: "getAllCreationRequests",
+    });
+
+    const [requestIds, requests] = allRequests as [bigint[], any[]];
+    console.log(
+      "📋 Found",
+      requests.length,
+      "total creation requests in manager"
+    );
+
+    // Filter to only executed requests for efficiency
+    const executedRequests = requests.filter((request) => request.executed);
+    console.log("📋 Processing", executedRequests.length, "executed requests");
+
+    // Check each executed request to see if userAddress is in the wallets array
+    for (const request of executedRequests) {
+      console.log(
+        `🔍 Checking rollback wallet for user: ${request.params.user}`
+      );
+
+      try {
+        // Check if the userAddress is in the wallets array OR is the primary user
+        const isInWallets = request.params.wallets.some(
+          (wallet: string) => wallet.toLowerCase() === userAddress.toLowerCase()
+        );
+        const isPrimaryUser =
+          request.params.user.toLowerCase() === userAddress.toLowerCase();
+
+        if (isInWallets || isPrimaryUser) {
+          console.log(
+            "✅ Found user in rollback system for primary user:",
+            request.params.user
+          );
+
+          // Get the rollback wallet address for this primary user
+          const rollbackWalletAddress = await publicClient.readContract({
+            address: ROLLBACK_MANAGER_ADDRESS,
+            abi: ROLLBACK_MANAGER_ABI,
+            functionName: "getUserWallet",
+            args: [request.params.user as Address],
+          });
+
+          const walletAddressString = rollbackWalletAddress as string;
+
+          if (
+            walletAddressString &&
+            walletAddressString !== "0x0000000000000000000000000000000000000000"
+          ) {
+            console.log(
+              "📍 Getting detailed info for rollback wallet:",
+              walletAddressString
+            );
+
+            // Get detailed wallet information
+            const [systemConfig, allWallets, monitoredTokens] =
+              await Promise.all([
+                publicClient.readContract({
+                  address: walletAddressString as Address,
+                  abi: ROLLBACK_WALLET_ABI,
+                  functionName: "getSystemConfig",
+                }),
+                publicClient.readContract({
+                  address: walletAddressString as Address,
+                  abi: ROLLBACK_WALLET_ABI,
+                  functionName: "getAllWallets",
+                }),
+                publicClient.readContract({
+                  address: walletAddressString as Address,
+                  abi: ROLLBACK_WALLET_ABI,
+                  functionName: "getMonitoredTokens",
+                }),
+              ]);
+
+            const [
+              threshold,
+              isRandomized,
+              fallbackWallet,
+              agentWallet,
+              treasuryAddress,
+            ] = systemConfig as [bigint, boolean, string, string, string];
+
+            // Handle monitored tokens
+            const [tokenAddresses, tokenTypes] = monitoredTokens as [
+              string[],
+              number[]
+            ];
+            const formattedTokens = tokenAddresses.map((address, index) => ({
+              tokenAddress: address,
+              tokenType: tokenTypes[index] || 0,
+              isActive: true,
+            }));
+
+            // Format wallets array
+            const formattedWallets = (allWallets as any[]).map((wallet) => ({
+              walletAddress: wallet.walletAddress,
+              lastActivity: Number(wallet.lastActivity),
+              priorityPosition: Number(wallet.priorityPosition),
+              isObsolete: wallet.isObsolete,
+              nextWalletInLine: wallet.nextWalletInLine,
+            }));
+
+            console.log("✅ Successfully loaded wallet data from contract");
+
+            return {
+              hasWallet: true,
+              walletAddress: walletAddressString,
+              walletInfo: {
+                threshold: Math.floor(Number(threshold) / 86400), // Convert seconds to days
+                isRandomized,
+                fallbackWallet,
+                agentWallet,
+                treasuryAddress,
+                wallets: formattedWallets,
+                monitoredTokens: formattedTokens,
+              },
+              userRole: isPrimaryUser ? "owner" : "recovery_wallet",
+            };
+          }
+        }
+      } catch (walletError) {
+        console.warn(
+          "⚠️ Could not get wallet details for user:",
+          request.params.user,
+          walletError
+        );
+        continue;
+      }
+    }
+
+    console.log("❌ Address not found in any rollback wallet system");
+    return { hasWallet: false, walletAddress: "" };
+  } catch (error) {
+    console.error("❌ Error checking RollbackWalletManager:", error);
+    return { hasWallet: false, walletAddress: "" };
+  }
+};

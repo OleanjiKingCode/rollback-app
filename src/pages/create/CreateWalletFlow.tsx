@@ -5,8 +5,9 @@ import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import {
   useRollbackWallet,
-  useCreateRollbackWallet,
+  useWalletCreationFlow,
   useTokenApprovals,
+  type WalletCreationStep,
 } from "@/hooks/useRollback";
 import { useAppStore } from "@/stores/appStore";
 import {
@@ -34,7 +35,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/lib/toast";
 import { useNavigate } from "react-router-dom";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { createAgentWallet } from "@/lib/api";
 import {
   Wallet,
   Plus,
@@ -59,9 +59,12 @@ import {
   ExternalLink,
   ChevronRight,
   Check,
+  Loader2,
+  RefreshCw,
+  Users,
 } from "lucide-react";
 import { RiLoader4Line } from "react-icons/ri";
-import type { CreateWalletFormData, AgentWallet } from "@/types/api";
+import type { CreateWalletFormData } from "@/types/api";
 
 // Local interface for generated agent wallet with private key
 interface GeneratedAgentWallet {
@@ -71,7 +74,7 @@ interface GeneratedAgentWallet {
 
 // Step Configuration
 const STEPS = [
-  { id: 1, title: "Recovery Wallets", icon: User },
+  { id: 1, title: "Recovery & Fallback", icon: User },
   { id: 2, title: "Rollback Method", icon: Settings },
   { id: 3, title: "Inactivity Timer", icon: Clock },
   { id: 4, title: "Token Selection", icon: Coins },
@@ -167,10 +170,173 @@ const StepProgress = ({
   );
 };
 
-// Simple encryption function (in production, use proper encryption)
-const encryptPrivateKey = (privateKey: string): string => {
-  // Simple base64 encoding for demo - use proper encryption in production
-  return btoa(privateKey);
+// Contract Status Component
+const ContractStatusCard = ({
+  creationState,
+  onSignCreation,
+  onFinalizeCreation,
+  onRefreshStatus,
+}: {
+  creationState: any;
+  onSignCreation: (requestId: number) => void;
+  onFinalizeCreation: (requestId: number) => void;
+  onRefreshStatus: () => void;
+}) => {
+  const getStatusInfo = (step: WalletCreationStep) => {
+    switch (step) {
+      case "proposing":
+        return {
+          title: "Proposing Wallet Creation",
+          description:
+            "Submitting wallet creation proposal to the blockchain...",
+          color: "blue",
+          icon: <Loader2 className="h-4 w-4 animate-spin" />,
+        };
+      case "pending_signatures":
+        return {
+          title: "Waiting for Signatures",
+          description: `${creationState.signatureCount}/${creationState.totalSignersNeeded} wallet owners have signed`,
+          color: "yellow",
+          icon: <Users className="h-4 w-4" />,
+        };
+      case "ready_to_finalize":
+        return {
+          title: "Ready to Finalize",
+          description:
+            "All signatures collected. Ready to finalize with payment.",
+          color: "green",
+          icon: <CheckCircle2 className="h-4 w-4" />,
+        };
+      case "finalizing":
+        return {
+          title: "Finalizing Creation",
+          description: "Processing payment and creating wallet...",
+          color: "blue",
+          icon: <Loader2 className="h-4 w-4 animate-spin" />,
+        };
+      case "approving_tokens":
+        return {
+          title: "Wallet Created Successfully",
+          description: `Wallet Address: ${creationState.walletAddress}`,
+          color: "green",
+          icon: <CheckCircle2 className="h-4 w-4" />,
+        };
+      case "completed":
+        return {
+          title: "Creation Complete",
+          description:
+            "Your rollback wallet is now active and monitoring your assets.",
+          color: "green",
+          icon: <Shield className="h-4 w-4" />,
+        };
+      case "error":
+        return {
+          title: "Creation Error",
+          description:
+            creationState.error || "An error occurred during creation",
+          color: "red",
+          icon: <AlertTriangle className="h-4 w-4" />,
+        };
+      default:
+        return {
+          title: "Idle",
+          description: "No active wallet creation process",
+          color: "gray",
+          icon: <Clock className="h-4 w-4" />,
+        };
+    }
+  };
+
+  const statusInfo = getStatusInfo(creationState.step);
+
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className={`text-${statusInfo.color}-500`}>
+              {statusInfo.icon}
+            </div>
+            <CardTitle className="text-lg">{statusInfo.title}</CardTitle>
+          </div>
+          <Button
+            onClick={onRefreshStatus}
+            variant="outline"
+            size="sm"
+            disabled={creationState.isCreating}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-gray-600 mb-4">{statusInfo.description}</p>
+
+        {creationState.requestId && (
+          <div className="mb-4">
+            <Label className="text-sm font-medium">Request ID</Label>
+            <div className="flex items-center space-x-2">
+              <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                {creationState.requestId}
+              </code>
+              <Button
+                onClick={() =>
+                  navigator.clipboard.writeText(
+                    creationState.requestId.toString()
+                  )
+                }
+                variant="outline"
+                size="sm"
+              >
+                <Copy className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {creationState.step === "pending_signatures" &&
+          creationState.needsSignature && (
+            <Button
+              onClick={() => onSignCreation(creationState.requestId)}
+              disabled={creationState.isCreating}
+              className="w-full"
+            >
+              {creationState.isCreating ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Check className="h-4 w-4 mr-2" />
+              )}
+              Sign Creation Request
+            </Button>
+          )}
+
+        {creationState.step === "ready_to_finalize" && (
+          <Button
+            onClick={() => onFinalizeCreation(creationState.requestId)}
+            disabled={creationState.isCreating}
+            className="w-full"
+          >
+            {creationState.isCreating ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Shield className="h-4 w-4 mr-2" />
+            )}
+            Finalize Creation (Pay Fee)
+          </Button>
+        )}
+
+        {creationState.step === "approving_tokens" && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Wallet created successfully! Now approve tokens for monitoring.
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
+    </Card>
+  );
 };
 
 // Popular tokens configuration
@@ -199,21 +365,22 @@ const POPULAR_TOKENS = [
     address: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
     type: "ERC20" as const,
   },
-  {
-    symbol: "BAYC",
-    name: "Bored Ape Yacht Club",
-    address: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
-    type: "ERC721" as const,
-  },
 ];
 
 export default function CreateWalletFlow() {
   const { isConnected, address } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { createWallet, isCreating } = useCreateRollbackWallet();
+  const {
+    state: creationState,
+    checkPendingRequests,
+    proposeCreation,
+    signCreation,
+    finalizeCreation,
+    completeCreation,
+    resetState,
+  } = useWalletCreationFlow();
   const { approveTokens, isApproving } = useTokenApprovals();
-  const { user, hasRollbackWallet, isLoading } = useRollbackWallet();
-  const { setLoading, loadingStates } = useAppStore();
+  const { hasRollbackWallet, isLoading } = useRollbackWallet();
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0); // Start with intro screen
@@ -235,6 +402,13 @@ export default function CreateWalletFlow() {
   const [approvalStatus, setApprovalStatus] = useState<Record<string, boolean>>(
     {}
   );
+
+  // Check for pending requests on mount and address change
+  useEffect(() => {
+    if (isConnected && address) {
+      checkPendingRequests();
+    }
+  }, [isConnected, address, checkPendingRequests]);
 
   // Update form data when address changes
   useEffect(() => {
@@ -278,9 +452,9 @@ export default function CreateWalletFlow() {
   // Check if user already has a rollback wallet
   if (hasRollbackWallet) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="min-h-[90vh] bg-gradient-to-br from-gray-50 to-gray-100 pt-16 lg:pt-8 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-center max-w-lg bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+          <div className="text-center max-w-lg rounded-3xl p-8">
             <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
               <Ban className="h-10 w-10 text-white" />
             </div>
@@ -330,6 +504,168 @@ export default function CreateWalletFlow() {
               Verifying if you already have a rollback wallet...
             </p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show contract status if there's an active creation process
+  if (creationState.step !== "idle") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16 lg:pt-8">
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Rollback Wallet Creation
+            </h1>
+            <p className="text-gray-600">
+              Creating your multi-signature rollback protection system
+            </p>
+          </div>
+
+          <ContractStatusCard
+            creationState={creationState}
+            onSignCreation={signCreation}
+            onFinalizeCreation={finalizeCreation}
+            onRefreshStatus={checkPendingRequests}
+          />
+
+          {creationState.step === "approving_tokens" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Token Approvals</CardTitle>
+                <CardDescription>
+                  Approve tokens for the rollback wallet to monitor
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {formData.tokensToMonitor.map((token) => (
+                  <div
+                    key={token.address}
+                    className="flex items-center justify-between py-3 border-b last:border-b-0"
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {token.symbol || "Custom Token"}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {token.type} • {token.address.slice(0, 6)}...
+                        {token.address.slice(-4)}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={async () => {
+                        try {
+                          setApprovalStatus((prev) => ({
+                            ...prev,
+                            [token.address]: true,
+                          }));
+                          await approveTokens(
+                            [token],
+                            creationState.walletAddress!
+                          );
+                          toast.success(
+                            "Token Approved",
+                            `${token.symbol || "Token"} approved successfully`
+                          );
+                        } catch (error) {
+                          setApprovalStatus((prev) => ({
+                            ...prev,
+                            [token.address]: false,
+                          }));
+                          toast.error(
+                            "Approval Failed",
+                            "Failed to approve token"
+                          );
+                        }
+                      }}
+                      disabled={isApproving || approvalStatus[token.address]}
+                      size="sm"
+                      className={
+                        approvalStatus[token.address] ? "bg-green-600" : ""
+                      }
+                    >
+                      {approvalStatus[token.address] ? (
+                        <Check className="h-4 w-4" />
+                      ) : isApproving ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Approve"
+                      )}
+                    </Button>
+                  </div>
+                ))}
+
+                <div className="mt-6 space-y-4">
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                      You can manage token approvals later in the Settings page
+                      if needed.
+                    </AlertDescription>
+                  </Alert>
+
+                  <Button
+                    onClick={async () => {
+                      try {
+                        // Update backend with wallet data
+                        if (
+                          generatedAgentWallet &&
+                          creationState.walletAddress
+                        ) {
+                          await completeCreation(
+                            formData,
+                            generatedAgentWallet.address
+                          );
+                        } else {
+                          completeCreation();
+                        }
+
+                        toast.success(
+                          "Setup Complete",
+                          "Your rollback wallet is now active!"
+                        );
+                        navigate("/dashboard");
+                      } catch (error) {
+                        console.error("Error completing setup:", error);
+                        navigate("/dashboard"); // Navigate anyway since wallet was created
+                      }
+                    }}
+                    className="w-full"
+                  >
+                    Complete Setup
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {creationState.step === "completed" && (
+            <div className="text-center">
+              <Button
+                onClick={() => navigate("/dashboard")}
+                size="lg"
+                className="bg-gradient-to-r from-[#E9A344] to-[#D4941A] hover:from-[#D4941A] hover:to-[#E9A344] text-white px-8 py-3 rounded-2xl"
+              >
+                <Shield className="h-5 w-5 mr-2" />
+                Go to Dashboard
+              </Button>
+            </div>
+          )}
+
+          {creationState.step === "error" && (
+            <div className="text-center">
+              <Button onClick={resetState} variant="outline" className="mr-4">
+                Reset Process
+              </Button>
+              <Button
+                onClick={() => navigate("/")}
+                className="bg-gradient-to-r from-[#E9A344] to-[#D4941A] hover:from-[#D4941A] hover:to-[#E9A344] text-white"
+              >
+                Go Home
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -388,8 +724,6 @@ export default function CreateWalletFlow() {
 
   const generateAgentWallet = async () => {
     try {
-      setLoading("walletCreationLoading", true);
-
       // Generate a new wallet locally using viem
       const privateKey = generatePrivateKey();
       const account = privateKeyToAccount(privateKey);
@@ -401,9 +735,6 @@ export default function CreateWalletFlow() {
 
       setGeneratedAgentWallet(agentWallet);
 
-      // Note: Agent wallet is generated locally for security
-      // The private key stays client-side, only the address will be used in contract creation
-
       toast.success(
         "Agent Wallet Generated",
         "Agent wallet created and securely stored. Keep your private key safe!"
@@ -414,8 +745,6 @@ export default function CreateWalletFlow() {
         "Generation Failed",
         "Failed to generate agent wallet. Please try again."
       );
-    } finally {
-      setLoading("walletCreationLoading", false);
     }
   };
 
@@ -447,41 +776,24 @@ export default function CreateWalletFlow() {
     }
 
     try {
-      setLoading("walletCreationLoading", true);
-
       // Update formData with the generated agent wallet
       const updatedFormData = {
         ...formData,
         agentWallet: generatedAgentWallet.address,
       };
 
-      // Convert GeneratedAgentWallet to AgentWallet format
-      const agentWalletForContract: AgentWallet = {
-        id: "temp-id",
-        userId: "temp-user-id",
-        address: generatedAgentWallet.address,
-        createdAt: new Date().toISOString(),
-      };
+      await proposeCreation(updatedFormData);
 
-      const result = await createWallet(
-        updatedFormData,
-        agentWalletForContract
+      toast.success(
+        "Wallet Creation Proposed!",
+        "Check the contract status section above for next steps."
       );
-      if (result) {
-        toast.success(
-          "Rollback Wallet Created!",
-          "Your rollback protection is now active."
-        );
-        navigate("/dashboard");
-      }
     } catch (error: any) {
       console.error("Wallet creation error:", error);
       toast.error(
         "Creation Failed",
         error?.message || "Failed to create rollback wallet. Please try again."
       );
-    } finally {
-      setLoading("walletCreationLoading", false);
     }
   };
 
@@ -493,12 +805,15 @@ export default function CreateWalletFlow() {
       case 1:
         return (
           formData.wallets.length > 0 &&
-          formData.wallets.every((w) => w.trim() !== "")
+          formData.wallets.every((w) => w.trim() !== "") &&
+          formData.fallbackWallet.trim() !== "" &&
+          formData.fallbackWallet.startsWith("0x") &&
+          formData.fallbackWallet.length === 42
         );
       case 2:
         return true;
       case 3:
-        return formData.threshold > 0;
+        return formData.threshold >= 259200; // Minimum 3 days in seconds
       case 4:
         return formData.tokensToMonitor.length > 0;
       case 5:
@@ -553,9 +868,9 @@ export default function CreateWalletFlow() {
               {[
                 {
                   icon: User,
-                  title: "Recovery Wallets",
+                  title: "Recovery & Fallback Wallets",
                   description:
-                    "Add trusted wallet addresses that will receive your assets during rollback",
+                    "Add trusted wallet addresses for rollback and an emergency fallback wallet",
                   color: "bg-blue-100 text-blue-600",
                 },
                 {
@@ -637,64 +952,109 @@ export default function CreateWalletFlow() {
       <div className="text-center mb-8">
         <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center justify-center">
           <User className="h-5 w-5 mr-2 text-[#E9A344]" />
-          Add Recovery Wallets
+          Recovery & Fallback Wallets
         </h2>
         <p className="text-xs text-gray-600">
-          Add wallet addresses that will receive your assets during rollback (up
-          to 5 wallets)
+          Configure wallet addresses for asset recovery and emergency fallback
         </p>
       </div>
 
-      <Card className="border-2 border-gray-200 hover:border-[#E9A344]/20 rounded-3xl max-w-[600px]  mx-auto">
-        <CardHeader>
-          <CardTitle>Recovery Wallets</CardTitle>
-          <CardDescription>
-            Your connected wallet is automatically added as the first recovery
-            wallet
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {formData.wallets.map((wallet, index) => (
-            <div key={index} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">
-                  {index === 0
-                    ? "Owner Wallet (Connected)"
-                    : `Recovery Wallet ${index}`}
-                </Label>
-                {index > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleRemoveWallet(index)}
-                    className="text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
+      <div className="space-y-6">
+        <Card className="border-2 border-gray-200 hover:border-[#E9A344]/20 rounded-3xl max-w-[600px] mx-auto">
+          <CardHeader>
+            <CardTitle>Recovery Wallets</CardTitle>
+            <CardDescription>
+              Your connected wallet is automatically added as the first recovery
+              wallet (up to 5 wallets total)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {formData.wallets.map((wallet, index) => (
+              <div key={index} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">
+                    {index === 0
+                      ? "Owner Wallet (Connected)"
+                      : `Recovery Wallet ${index}`}
+                  </Label>
+                  {index > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRemoveWallet(index)}
+                      className="text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <Input
+                  value={wallet}
+                  onChange={(e) => handleWalletChange(index, e.target.value)}
+                  placeholder="0x..."
+                  disabled={index === 0}
+                  className="rounded-xl"
+                />
               </div>
+            ))}
+
+            {formData.wallets.length < 5 && (
+              <Button
+                onClick={handleAddWallet}
+                variant="outline"
+                className="w-full border-dashed border-2 border-[#E9A344] text-[#E9A344] hover:bg-[#E9A344]/5 rounded-xl py-6"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Add Recovery Wallet ({formData.wallets.length}/5)
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-blue-200 hover:border-blue-300 rounded-3xl max-w-[600px] mx-auto">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Shield className="h-5 w-5 text-blue-600" />
+              <span>Fallback Wallet</span>
+            </CardTitle>
+            <CardDescription>
+              Emergency wallet that receives assets if all recovery wallets fail
+              or are inactive
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Fallback Wallet Address
+              </Label>
               <Input
-                value={wallet}
-                onChange={(e) => handleWalletChange(index, e.target.value)}
-                placeholder="0x..."
-                disabled={index === 0}
+                value={formData.fallbackWallet}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    fallbackWallet: e.target.value,
+                  }))
+                }
+                placeholder="0x... (Emergency fallback address)"
                 className="rounded-xl"
               />
+              <p className="text-xs text-gray-500">
+                This wallet acts as the final safety net if recovery wallets are
+                unavailable
+              </p>
             </div>
-          ))}
 
-          {formData.wallets.length < 5 && (
-            <Button
-              onClick={handleAddWallet}
-              variant="outline"
-              className="w-full border-dashed border-2 border-[#E9A344] text-[#E9A344] hover:bg-[#E9A344]/5 rounded-xl py-6"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              Add Recovery Wallet ({formData.wallets.length}/5)
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+            <Alert className="border-blue-200 bg-blue-50 rounded-2xl">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                <strong>Important:</strong> Choose a secure, accessible wallet
+                that you control. This should be different from your recovery
+                wallets for maximum security.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 
@@ -777,63 +1137,141 @@ export default function CreateWalletFlow() {
   );
 
   // Step 3: Inactivity Threshold
-  const renderStep3 = () => (
-    <div className="space-y-8">
-      <div className="text-center mb-8">
-        <h2 className="text-sm font-bold text-gray-900 mb-2 flex items-center justify-center">
-          <Clock className="h-5 w-5 mr-2 text-[#E9A344]" />
-          Inactivity Threshold
-        </h2>
-        <p className="text-xs text-gray-600">
-          Set how long your wallet can be inactive before rollback is triggered
-        </p>
+  const renderStep3 = () => {
+    const [useCustomThreshold, setUseCustomThreshold] = useState(false);
+    const [customDays, setCustomDays] = useState(30);
+
+    const handleCustomDaysChange = (days: number) => {
+      if (days >= 3) {
+        setCustomDays(days);
+        setFormData((prev) => ({ ...prev, threshold: days * 86400 })); // Convert days to seconds
+      }
+    };
+
+    return (
+      <div className="space-y-8">
+        <div className="text-center mb-8">
+          <h2 className="text-sm font-bold text-gray-900 mb-2 flex items-center justify-center">
+            <Clock className="h-5 w-5 mr-2 text-[#E9A344]" />
+            Inactivity Threshold
+          </h2>
+          <p className="text-xs text-gray-600">
+            Set how long your wallet can be inactive before rollback is
+            triggered (minimum 3 days)
+          </p>
+        </div>
+
+        <Card className="border-2 border-gray-200 hover:border-[#E9A344]/20 rounded-3xl">
+          <CardHeader>
+            <CardTitle>Inactivity Timer</CardTitle>
+            <CardDescription>
+              Choose the time period after which rollback will be triggered if
+              no activity is detected
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="use-preset"
+                  checked={!useCustomThreshold}
+                  onCheckedChange={(checked) => setUseCustomThreshold(!checked)}
+                />
+                <Label htmlFor="use-preset" className="text-sm font-medium">
+                  Use preset values
+                </Label>
+              </div>
+
+              {!useCustomThreshold ? (
+                <div>
+                  <Label className="text-sm font-medium">
+                    Threshold Period
+                  </Label>
+                  <Select
+                    value={formData.threshold.toString()}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        threshold: parseInt(value),
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="mt-2 rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl">
+                      <SelectItem value="259200">3 days (Minimum)</SelectItem>
+                      <SelectItem value="604800">7 days</SelectItem>
+                      <SelectItem value="1209600">14 days</SelectItem>
+                      <SelectItem value="2592000">
+                        30 days (Recommended)
+                      </SelectItem>
+                      <SelectItem value="5184000">60 days</SelectItem>
+                      <SelectItem value="7776000">90 days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Selected: {Math.floor(formData.threshold / 86400)} days
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <Label className="text-sm font-medium">
+                    Custom Threshold (days)
+                  </Label>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <Input
+                      type="number"
+                      min="3"
+                      value={customDays}
+                      onChange={(e) => {
+                        const days = parseInt(e.target.value) || 3;
+                        handleCustomDaysChange(days);
+                      }}
+                      className="rounded-xl"
+                      placeholder="Enter days (minimum 3)"
+                    />
+                    <span className="text-sm text-gray-500">days</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Minimum: 3 days • Selected:{" "}
+                    {Math.floor(formData.threshold / 86400)} days
+                  </p>
+                  {Math.floor(formData.threshold / 86400) < 3 && (
+                    <p className="text-xs text-red-500 mt-1">
+                      Threshold must be at least 3 days for security
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="use-custom"
+                  checked={useCustomThreshold}
+                  onCheckedChange={(checked) =>
+                    setUseCustomThreshold(!!checked)
+                  }
+                />
+                <Label htmlFor="use-custom" className="text-sm font-medium">
+                  Set custom threshold
+                </Label>
+              </div>
+            </div>
+
+            <Alert className="border-blue-200 bg-blue-50 rounded-2xl">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                We monitor your wallet for transactions. If no activity is
+                detected within this period, rollback will be automatically
+                triggered to protect your assets.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
       </div>
-
-      <Card className="border-2 border-gray-200 hover:border-[#E9A344]/20 rounded-3xl">
-        <CardHeader>
-          <CardTitle>Inactivity Timer</CardTitle>
-          <CardDescription>
-            Choose the time period after which rollback will be triggered if no
-            activity is detected
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <Label className="text-sm font-medium">Threshold Period</Label>
-            <Select
-              value={formData.threshold.toString()}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, threshold: parseInt(value) }))
-              }
-            >
-              <SelectTrigger className="mt-2 rounded-xl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl">
-                <SelectItem value="604800">7 days</SelectItem>
-                <SelectItem value="1209600">14 days</SelectItem>
-                <SelectItem value="2592000">30 days (Recommended)</SelectItem>
-                <SelectItem value="5184000">60 days</SelectItem>
-                <SelectItem value="7776000">90 days</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-gray-500 mt-2">
-              Selected: {Math.floor(formData.threshold / 86400)} days
-            </p>
-          </div>
-
-          <Alert className="border-blue-200 bg-blue-50 rounded-2xl">
-            <Info className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800">
-              We monitor your wallet for transactions. If no activity is
-              detected within this period, rollback will be automatically
-              triggered to protect your assets.
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-    </div>
-  );
+    );
+  };
 
   // Step 4: Token Monitoring
   const renderStep4 = () => (
@@ -848,48 +1286,32 @@ export default function CreateWalletFlow() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="space-y-6">
         <Card className="border-2 border-gray-200 hover:border-[#E9A344]/20 rounded-3xl">
           <CardHeader>
             <CardTitle>Popular Tokens</CardTitle>
-            <CardDescription>Select from commonly used tokens</CardDescription>
+            <CardDescription>
+              Common tokens you might want to monitor
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {POPULAR_TOKENS.map((token) => (
-              <div
-                key={token.address}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
-              >
-                <div className="flex items-center space-x-3">
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {(token as any).symbol}
-                    </p>
-                    <p className="text-sm text-gray-600">{token.name}</p>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    {token.type}
-                  </Badge>
-                </div>
-                <Button
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {POPULAR_TOKENS.map((token) => (
+                <div
+                  key={token.address}
+                  className="flex items-center justify-between p-3 border rounded-xl hover:bg-gray-50 cursor-pointer"
                   onClick={() => handleAddToken(token)}
-                  size="sm"
-                  variant="outline"
-                  disabled={
-                    formData.tokensToMonitor.some(
-                      (t) => t.address === token.address
-                    ) || formData.tokensToMonitor.length >= 3
-                  }
-                  className="border-[#E9A344] text-[#E9A344] hover:bg-[#E9A344] hover:text-white rounded-xl"
                 >
-                  {formData.tokensToMonitor.some(
-                    (t) => t.address === token.address
-                  )
-                    ? "Added"
-                    : "Add"}
-                </Button>
-              </div>
-            ))}
+                  <div>
+                    <p className="font-medium text-sm">{token.symbol}</p>
+                    <p className="text-xs text-gray-500">{token.name}</p>
+                  </div>
+                  <Button size="sm" variant="outline">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
@@ -897,17 +1319,17 @@ export default function CreateWalletFlow() {
           <CardHeader>
             <CardTitle>Custom Token</CardTitle>
             <CardDescription>
-              Add any ERC20 or ERC721 token by address
+              Add a custom token by contract address
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label>Token Address</Label>
+              <Label>Token Contract Address</Label>
               <Input
                 value={customTokenAddress}
                 onChange={(e) => setCustomTokenAddress(e.target.value)}
                 placeholder="0x..."
-                className="mt-2 rounded-xl"
+                className="rounded-xl"
               />
             </div>
             <div>
@@ -918,145 +1340,135 @@ export default function CreateWalletFlow() {
                   setCustomTokenType(value)
                 }
               >
-                <SelectTrigger className="mt-2 rounded-xl">
+                <SelectTrigger className="rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl">
-                  <SelectItem value="ERC20">ERC20 (Fungible Token)</SelectItem>
-                  <SelectItem value="ERC721">ERC721 (NFT)</SelectItem>
+                <SelectContent>
+                  <SelectItem value="ERC20">ERC20 Token</SelectItem>
+                  <SelectItem value="ERC721">ERC721 NFT</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <Button
               onClick={() => {
-                if (customTokenAddress.trim()) {
+                if (customTokenAddress) {
                   handleAddToken({
-                    address: customTokenAddress.trim(),
+                    address: customTokenAddress,
                     type: customTokenType,
                   });
                   setCustomTokenAddress("");
                 }
               }}
-              className="w-full bg-[#E9A344] hover:bg-[#D4941A] text-white rounded-xl"
-              disabled={
-                !customTokenAddress.trim() ||
-                formData.tokensToMonitor.length >= 3
-              }
+              className="w-full"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Custom Token
+              Add Token
             </Button>
+          </CardContent>
+        </Card>
 
-            <Separator />
-
-            <div>
-              <h4 className="font-medium mb-3">
+        {formData.tokensToMonitor.length > 0 && (
+          <Card className="border-2 border-green-200 bg-green-50 rounded-3xl">
+            <CardHeader>
+              <CardTitle>
                 Selected Tokens ({formData.tokensToMonitor.length}/3)
-              </h4>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-2">
                 {formData.tokensToMonitor.map((token) => (
                   <div
                     key={token.address}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
+                    className="flex items-center justify-between p-3 bg-white rounded-xl"
                   >
                     <div>
-                      <p className="text-sm font-mono text-gray-900">
-                        {(token as any).symbol ||
-                          `${token.address.slice(0, 6)}...${token.address.slice(
-                            -4
-                          )}`}
+                      <p className="font-medium text-sm">
+                        {token.symbol || "Custom Token"}
                       </p>
-                      <Badge variant="outline" className="text-xs mt-1">
-                        {token.type}
-                      </Badge>
+                      <p className="text-xs text-gray-500">{token.type}</p>
                     </div>
                     <Button
                       onClick={() => handleRemoveToken(token.address)}
-                      size="sm"
                       variant="outline"
+                      size="sm"
                       className="text-red-600 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 ))}
-                {formData.tokensToMonitor.length === 0 && (
-                  <p className="text-sm text-gray-500 text-center py-4">
-                    No tokens selected
-                  </p>
-                )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
 
-  // Step 5: Agent Wallet Creation
+  // Step 5: Agent Setup
   const renderStep5 = () => (
     <div className="space-y-8">
       <div className="text-center mb-8">
-        <h2 className="text-sm font-bold text-gray-900 mb-2 flex items-center justify-center">
+        <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center justify-center">
           <Key className="h-5 w-5 mr-2 text-[#E9A344]" />
-          Agent Wallet
+          Agent Wallet Setup
         </h2>
-        <p className="text-xs text-gray-600">
-          Create an agent wallet that will execute rollback operations on your
-          behalf
+        <p className="text-sm text-gray-600">
+          Generate a secure wallet that will execute rollback operations
         </p>
       </div>
 
       <Card className="border-2 border-gray-200 hover:border-[#E9A344]/20 rounded-3xl">
         <CardHeader>
-          <CardTitle>Agent Wallet Generation</CardTitle>
+          <CardTitle>Agent Wallet</CardTitle>
           <CardDescription>
-            This wallet will be used by our backend to trigger rollback
-            functions
+            This wallet will automatically execute rollbacks when conditions are
+            met
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {!generatedAgentWallet ? (
             <div className="text-center py-8">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Key className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">
+                Generate Agent Wallet
+              </h3>
               <p className="text-gray-600 mb-6">
-                Click the button below to generate a secure agent wallet for
-                rollback operations.
+                Create a secure wallet for automated rollback operations
               </p>
               <Button
                 onClick={generateAgentWallet}
-                disabled={loadingStates.walletCreationLoading}
-                className="bg-gradient-to-r from-[#E9A344] to-[#D4941A] text-white px-8 py-3 rounded-xl disabled:opacity-50"
+                className="bg-gradient-to-r from-[#E9A344] to-[#D4941A] hover:from-[#D4941A] hover:to-[#E9A344] text-white"
               >
-                {loadingStates.walletCreationLoading ? (
-                  <>
-                    <RiLoader4Line className="h-5 w-5 animate-spin mr-2" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Key className="h-5 w-5 mr-2" />
-                    Generate Agent Wallet
-                  </>
-                )}
+                <Key className="h-4 w-4 mr-2" />
+                Generate Agent Wallet
               </Button>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4">
+              <Alert className="border-green-200 bg-green-50 rounded-2xl">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800">
+                  Agent wallet generated successfully! Keep your private key
+                  secure.
+                </AlertDescription>
+              </Alert>
+
               <div>
-                <Label>Agent Wallet Address</Label>
-                <div className="flex items-center space-x-2 mt-2">
+                <Label className="text-sm font-medium">Agent Address</Label>
+                <div className="flex items-center space-x-2 mt-1">
                   <Input
                     value={generatedAgentWallet.address}
                     readOnly
-                    className="font-mono bg-gray-50 rounded-xl"
+                    className="rounded-xl bg-gray-50"
                   />
                   <Button
                     onClick={() =>
                       copyToClipboard(generatedAgentWallet.address)
                     }
-                    size="sm"
                     variant="outline"
-                    className="rounded-xl"
+                    size="sm"
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -1064,23 +1476,12 @@ export default function CreateWalletFlow() {
               </div>
 
               <div>
-                <Label>Private Key</Label>
-                <div className="flex items-center space-x-2 mt-2">
-                  <Input
-                    value={
-                      showPrivateKey
-                        ? generatedAgentWallet.privateKey
-                        : "*".repeat(64) // 64 asterisks for private key
-                    }
-                    readOnly
-                    type={showPrivateKey ? "text" : "password"}
-                    className="font-mono bg-gray-50 rounded-xl"
-                  />
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">Private Key</Label>
                   <Button
                     onClick={() => setShowPrivateKey(!showPrivateKey)}
-                    size="sm"
                     variant="outline"
-                    className="rounded-xl"
+                    size="sm"
                   >
                     {showPrivateKey ? (
                       <EyeOff className="h-4 w-4" />
@@ -1088,25 +1489,34 @@ export default function CreateWalletFlow() {
                       <Eye className="h-4 w-4" />
                     )}
                   </Button>
+                </div>
+                <div className="flex items-center space-x-2 mt-1">
+                  <Input
+                    value={
+                      showPrivateKey
+                        ? generatedAgentWallet.privateKey
+                        : "••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••"
+                    }
+                    readOnly
+                    className="rounded-xl bg-gray-50 font-mono text-xs"
+                  />
                   <Button
                     onClick={() =>
                       copyToClipboard(generatedAgentWallet.privateKey)
                     }
-                    size="sm"
                     variant="outline"
-                    className="rounded-xl"
+                    size="sm"
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
 
-              <Alert className="border-red-200 bg-red-50 rounded-2xl">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-800">
-                  <strong>Important:</strong> Store this private key securely.
-                  It's required for automated rollback operations. Never share
-                  it with anyone else.
+              <Alert className="border-orange-200 bg-orange-50 rounded-2xl">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-800">
+                  <strong>Important:</strong> Save your private key securely.
+                  This wallet will be used to execute rollbacks automatically.
                 </AlertDescription>
               </Alert>
             </div>
@@ -1116,283 +1526,156 @@ export default function CreateWalletFlow() {
     </div>
   );
 
-  // Step 6: Token Approvals
+  // Step 6: Create wallet and get signatures
   const renderStep6 = () => (
     <div className="space-y-8">
       <div className="text-center mb-8">
-        <h2 className="text-sm font-bold text-gray-900 mb-2 flex items-center justify-center">
-          <CheckCircle2 className="h-5 w-5 mr-2 text-[#E9A344]" />
-          Token Approvals
+        <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center justify-center">
+          <FileText className="h-5 w-5 mr-2 text-[#E9A344]" />
+          Create Rollback Wallet
         </h2>
-        <p className="text-xs text-gray-600">
-          Approve the agent wallet to spend your tokens for rollback operations
+        <p className="text-sm text-gray-600">
+          Submit the creation request to the blockchain
         </p>
       </div>
 
       <Card className="border-2 border-gray-200 hover:border-[#E9A344]/20 rounded-3xl">
         <CardHeader>
-          <CardTitle>Approve Tokens</CardTitle>
+          <CardTitle>Ready to Create</CardTitle>
           <CardDescription>
-            Each token requires approval for the agent wallet to manage during
-            rollback
+            Review your settings and create the rollback wallet
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {formData.tokensToMonitor.map((token) => (
-            <div
-              key={token.address}
-              className="flex items-center justify-between p-4 border rounded-xl"
-            >
-              <div>
-                <p className="font-medium">
-                  {(token as any).symbol ||
-                    `${token.address.slice(0, 10)}...${token.address.slice(
-                      -8
-                    )}`}
-                </p>
-                <p className="text-sm text-gray-600">{token.type}</p>
-              </div>
-              <div className="flex items-center space-x-3">
-                {approvalStatus[token.address] ? (
-                  <Badge className="bg-green-100 text-green-800">
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Approved
-                  </Badge>
-                ) : (
-                  <Button
-                    onClick={() => handleApproveToken(token.address)}
-                    size="sm"
-                    className="bg-[#E9A344] hover:bg-[#D4941A] text-white rounded-xl"
-                  >
-                    Approve
-                  </Button>
-                )}
-              </div>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <Label className="font-medium">Recovery Wallets</Label>
+              <p className="text-gray-600">{formData.wallets.length} wallets</p>
             </div>
-          ))}
+            <div>
+              <Label className="font-medium">Fallback Wallet</Label>
+              <p className="text-gray-600 font-mono text-xs">
+                {formData.fallbackWallet.slice(0, 6)}...
+                {formData.fallbackWallet.slice(-4)}
+              </p>
+            </div>
+            <div>
+              <Label className="font-medium">Rollback Method</Label>
+              <p className="text-gray-600">
+                {formData.isRandomized ? "Randomized" : "Priority Order"}
+              </p>
+            </div>
+            <div>
+              <Label className="font-medium">Inactivity Threshold</Label>
+              <p className="text-gray-600">
+                {Math.floor(formData.threshold / 86400)} days
+              </p>
+            </div>
+            <div>
+              <Label className="font-medium">Monitored Tokens</Label>
+              <p className="text-gray-600">
+                {formData.tokensToMonitor.length} tokens
+              </p>
+            </div>
+            <div>
+              <Label className="font-medium">Agent Wallet</Label>
+              <p className="text-gray-600 font-mono text-xs">
+                {generatedAgentWallet?.address.slice(0, 6)}...
+                {generatedAgentWallet?.address.slice(-4)}
+              </p>
+            </div>
+          </div>
 
-          {formData.tokensToMonitor.every(
-            (token) => approvalStatus[token.address]
-          ) && (
-            <Alert className="border-green-200 bg-green-50 rounded-2xl">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
-                All tokens have been approved! You can proceed to the final
-                step.
-              </AlertDescription>
-            </Alert>
-          )}
+          <Button
+            onClick={handleCreateWallet}
+            disabled={creationState.isCreating}
+            className="w-full bg-gradient-to-r from-[#E9A344] to-[#D4941A] hover:from-[#D4941A] hover:to-[#E9A344] text-white"
+          >
+            {creationState.isCreating ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Creating Wallet...
+              </>
+            ) : (
+              <>
+                <Shield className="h-4 w-4 mr-2" />
+                Create Rollback Wallet
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
     </div>
   );
 
-  // Step 7: Preview and Finalization
-  const renderStep7 = () => (
-    <div className="space-y-8">
-      <div className="text-center mb-8">
-        <h2 className="text-sm font-bold text-gray-900 mb-2 flex items-center justify-center">
-          <FileText className="h-5 w-5 mr-2 text-[#E9A344]" />
-          Review & Finalize
-        </h2>
-        <p className="text-xs text-gray-600">
-          Review your configuration and complete the multi-signature process
-        </p>
-      </div>
+  // Navigation
+  const canGoNext = isStepValid(step);
+  const canGoPrev = step > 0;
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="border-2 border-gray-200 rounded-3xl">
-          <CardHeader>
-            <CardTitle>Configuration Summary</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label className="text-sm font-medium">Recovery Wallets</Label>
-              <div className="mt-2 space-y-1">
-                {formData.wallets.map((wallet, index) => (
-                  <p key={index} className="text-sm font-mono text-gray-600">
-                    {index === 0 ? "Owner: " : `Recovery ${index}: `}
-                    {wallet.slice(0, 10)}...{wallet.slice(-8)}
-                  </p>
-                ))}
-              </div>
-            </div>
+  const handleNext = () => {
+    if (canGoNext && step < 6) {
+      setStep(step + 1);
+    }
+  };
 
-            <div>
-              <Label className="text-sm font-medium">Rollback Method</Label>
-              <p className="text-sm text-gray-600 mt-1">
-                {formData.isRandomized
-                  ? "Randomized Distribution"
-                  : "Priority Order"}
-              </p>
-            </div>
+  const handlePrev = () => {
+    if (canGoPrev) {
+      setStep(step - 1);
+    }
+  };
 
-            <div>
-              <Label className="text-sm font-medium">
-                Inactivity Threshold
-              </Label>
-              <p className="text-sm text-gray-600 mt-1">
-                {Math.floor(formData.threshold / 86400)} days
-              </p>
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium">Monitored Tokens</Label>
-              <div className="mt-2 space-y-1">
-                {formData.tokensToMonitor.map((token) => (
-                  <div
-                    key={token.address}
-                    className="flex items-center justify-between"
-                  >
-                    <p className="text-sm text-gray-600">
-                      {(token as any).symbol ||
-                        `${token.address.slice(0, 6)}...${token.address.slice(
-                          -4
-                        )}`}
-                    </p>
-                    <Badge variant="outline" className="text-xs">
-                      {token.type}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 border-gray-200 rounded-3xl">
-          <CardHeader>
-            <CardTitle>Multi-Signature Process</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Alert className="border-blue-200 bg-blue-50 rounded-2xl">
-              <Info className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-blue-800">
-                <strong>Signing Required:</strong> With{" "}
-                {formData.wallets.length} wallets configured, you'll need
-                signatures from all wallet owners.
-              </AlertDescription>
-            </Alert>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                <span className="text-sm">1. Propose Rollback Creation</span>
-                <Badge variant="outline">Owner Wallet</Badge>
-              </div>
-              {formData.wallets.slice(1).map((_, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
-                >
-                  <span className="text-sm">{index + 2}. Approve Creation</span>
-                  <Badge variant="outline">Recovery Wallet {index + 1}</Badge>
-                </div>
-              ))}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                <span className="text-sm">
-                  {formData.wallets.length + 1}. Finalize Creation
-                </span>
-                <Badge variant="outline">Any Wallet</Badge>
-              </div>
-            </div>
-
-            <Button
-              onClick={handleCreateWallet}
-              disabled={isCreating}
-              className="w-full bg-gradient-to-r from-[#E9A344] to-[#D4941A] hover:from-[#D4941A] hover:to-[#E9A344] text-white py-3 rounded-xl"
-            >
-              {isCreating ? (
-                <>
-                  <RiLoader4Line className="h-4 w-4 mr-2 animate-spin" />
-                  Creating Rollback Wallet...
-                </>
-              ) : (
-                <>
-                  <Shield className="h-4 w-4 mr-2" />
-                  Start Multi-Signature Process
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
-  // Handle intro step separately
-  if (step === 0) {
-    return renderIntro();
-  }
+  // Main render logic for step flow
+  if (step === 0) return renderIntro();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16 lg:pt-8">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Create Rollback Wallet
+          </h1>
+          <p className="text-gray-600">
+            Set up automated rollback protection for your crypto assets
+          </p>
+        </div>
+
+        <StepProgress currentStep={step} isStepValid={isStepValid} />
+
         <div className="max-w-4xl mx-auto">
-          {/* Progress */}
-          <div className="mb-8">
-            <StepProgress currentStep={step} isStepValid={isStepValid} />
+          {step === 1 && renderStep1()}
+          {step === 2 && renderStep2()}
+          {step === 3 && renderStep3()}
+          {step === 4 && renderStep4()}
+          {step === 5 && renderStep5()}
+          {step === 6 && renderStep6()}
+        </div>
+
+        {/* Navigation */}
+        <div className="flex justify-between items-center mt-12 max-w-4xl mx-auto">
+          <Button
+            onClick={handlePrev}
+            disabled={!canGoPrev}
+            variant="outline"
+            className="px-6"
+          >
+            <ChevronRight className="h-4 w-4 mr-2 rotate-180" />
+            Previous
+          </Button>
+
+          <div className="text-center">
+            <p className="text-sm text-gray-500">
+              Step {step} of {STEPS.length}
+            </p>
           </div>
 
-          {/* Header */}
-
-          {/* Step Content */}
-          <div className="min-h-[600px] mb-8 flex items-center justify-center">
-            <div className="w-full">
-              {step === 1 && renderStep1()}
-              {step === 2 && renderStep2()}
-              {step === 3 && renderStep3()}
-              {step === 4 && renderStep4()}
-              {step === 5 && renderStep5()}
-              {step === 6 && renderStep6()}
-              {step === 7 && renderStep7()}
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <div className="flex justify-between items-center">
-            <Button
-              onClick={() => setStep(Math.max(1, step - 1))}
-              variant="outline"
-              disabled={step === 1}
-              className="px-8 rounded-xl"
-            >
-              Previous
-            </Button>
-
-            <div className="flex space-x-4">
-              {step === 5 && !generatedAgentWallet ? (
-                <Button
-                  onClick={generateAgentWallet}
-                  className="bg-gradient-to-r from-[#E9A344] to-[#D4941A] text-white px-8 rounded-xl"
-                >
-                  Generate Agent Wallet
-                </Button>
-              ) : step === 7 ? (
-                <Button
-                  onClick={handleCreateWallet}
-                  disabled={!isStepValid() || isCreating}
-                  className="bg-gradient-to-r from-[#E9A344] to-[#D4941A] text-white px-8 rounded-xl"
-                >
-                  {isCreating ? (
-                    <>
-                      <RiLoader4Line className="h-4 w-4 mr-2 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    "Create Rollback Wallet"
-                  )}
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => setStep(Math.min(7, step + 1))}
-                  disabled={!isStepValid()}
-                  className="bg-gradient-to-r from-[#E9A344] to-[#D4941A] text-white px-8 rounded-xl"
-                >
-                  Next Step
-                </Button>
-              )}
-            </div>
-          </div>
+          <Button
+            onClick={handleNext}
+            disabled={!canGoNext || step >= 6}
+            className="px-6 bg-gradient-to-r from-[#E9A344] to-[#D4941A] hover:from-[#D4941A] hover:to-[#E9A344] text-white"
+          >
+            Next
+            <ChevronRight className="h-4 w-4 ml-2" />
+          </Button>
         </div>
       </div>
     </div>

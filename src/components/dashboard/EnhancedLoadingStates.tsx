@@ -98,7 +98,7 @@ export function CenteredLoadingState({
   return (
     <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
       <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-        <div className="text-center max-w-md bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+        <div className="text-center max-w-md rounded-3xl p-8">
           <div className="w-16 h-16 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-3xl flex items-center justify-center mx-auto mb-6">
             <Icon
               className={`h-8 w-8 text-white ${
@@ -139,7 +139,7 @@ export function WalletConnectionState({
   return (
     <div className="min-h-screen bg-gradient-to-br from-rollback-light to-white pt-16 lg:pt-8 flex items-center justify-center">
       <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-        <div className="text-center max-w-lg bg-white rounded-3xl p-8 shadow-2xl border border-gray-100 relative overflow-hidden">
+        <div className="text-center max-w-lg rounded-3xl p-8 border border-gray-100 relative overflow-hidden">
           {/* Decorative background */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-rollback-primary/10 to-rollback-secondary/10 rounded-full -mr-16 -mt-16" />
           <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-rollback-cream to-rollback-secondary/20 rounded-full -ml-10 -mb-10" />

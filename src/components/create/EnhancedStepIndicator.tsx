@@ -52,9 +52,9 @@ export function EnhancedStepIndicator({
                   transition-all duration-300 transform hover:scale-105 relative z-10
                   ${
                     step.isCompleted
-                      ? "bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg"
+                      ? "bg-gradient-to-br from-green-500 to-green-600 text-white"
                       : step.isActive
-                      ? "bg-gradient-to-br from-rollback-primary to-rollback-secondary text-white shadow-lg ring-4 ring-rollback-primary/30 animate-pulse"
+                      ? "bg-gradient-to-br from-rollback-primary to-rollback-secondary text-white ring-4 ring-rollback-primary/30 animate-pulse"
                       : "bg-white border-2 border-gray-300 text-gray-400"
                   }
                 `}

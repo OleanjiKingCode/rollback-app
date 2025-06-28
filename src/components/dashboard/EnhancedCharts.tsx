@@ -40,6 +40,23 @@ interface TokenData {
   color: string;
 }
 
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    name: string;
+    value: number | string;
+    color: string;
+  }>;
+  label?: string;
+}
+
+interface PieTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    payload: TokenData;
+  }>;
+}
+
 interface EnhancedChartsProps {
   portfolioData?: ChartData[];
   tokenDistribution?: TokenData[];
@@ -48,12 +65,12 @@ interface EnhancedChartsProps {
 
 const COLORS = ["#E9A344", "#F5C678", "#8B5E3C", "#FAEBD1", "#3C2415"];
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-200 backdrop-blur-sm">
         <p className="font-semibold text-gray-900">{label}</p>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry, index: number) => (
           <p key={index} className="text-sm" style={{ color: entry.color }}>
             {entry.name}:{" "}
             {typeof entry.value === "number"
@@ -67,7 +84,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-const PieTooltip = ({ active, payload }: any) => {
+const PieTooltip = ({ active, payload }: PieTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (

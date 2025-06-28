@@ -108,7 +108,11 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-4 space-y-2">
         {navigation.map((item) => {
-          const isActive = location.pathname === item.href;
+          // Check for exact match or if current path starts with the item href (for sub-routes)
+          const isActive =
+            location.pathname === item.href ||
+            (item.href !== "/" &&
+              location.pathname.startsWith(item.href + "/"));
           const Icon = item.icon;
 
           return (

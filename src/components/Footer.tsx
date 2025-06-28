@@ -72,10 +72,6 @@ export function Footer() {
               ></div>
               <span className={getStatusColor()}>{getStatusText()}</span>
             </div>
-            <div className="text-gray-400">•</div>
-            <span>Uptime {uptime}</span>
-            <div className="text-gray-400">•</div>
-            <span>v1.0.0</span>
           </div>
           <div className="flex items-center space-x-4">
             <span>© {new Date().getFullYear()} Rollback Labs</span>

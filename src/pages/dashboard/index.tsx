@@ -7,16 +7,10 @@ import { useRollbackWallet, useTokenPortfolio } from "@/hooks/useRollback";
 import { EnhancedCharts } from "@/components/dashboard/EnhancedCharts";
 import { EnhancedStatusCards } from "@/components/dashboard/EnhancedStatusCards";
 import {
-  DashboardLoadingSkeleton,
-  CenteredLoadingState,
   WalletConnectionState,
   NoRollbackWalletState,
 } from "@/components/dashboard/EnhancedLoadingStates";
-import {
-  EmergencyRollbackModal,
-  TransactionProgressModal,
-  ConfirmationModal,
-} from "@/components/dashboard/EnhancedModals";
+import { EmergencyRollbackModal } from "@/components/dashboard/EnhancedModals";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { useAppStore } from "@/stores/appStore";
 import {
@@ -28,14 +22,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/lib/toast";
 import { useNavigate } from "react-router-dom";
@@ -44,23 +30,8 @@ import {
   Clock,
   Settings,
   Copy,
-  Bell,
-  User,
-  Eye,
-  ExternalLink,
-  AlertTriangle,
-  CheckCircle2,
-  Activity,
-  TrendingUp,
   Shield,
-  Coins,
-  Timer,
   RefreshCw,
-  Info,
-  DollarSign,
-  BarChart3,
-  WifiOff,
-  Plus,
   Zap,
   ArrowRightLeft,
 } from "lucide-react";
@@ -186,8 +157,10 @@ const formatTokenDistribution = (portfolio: any) => {
 export default function Dashboard() {
   const { isConnected, address } = useAccount();
   const { openConnectModal } = useConnectModal();
+  const navigate = useNavigate();
+  const [isEmergencyRollback, setIsEmergencyRollback] = useState(false);
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
 
-  // Zustand store
   const {
     loadingStates,
     setLoading,
@@ -215,11 +188,6 @@ export default function Dashboard() {
     error: portfolioError,
     fetchPortfolioData,
   } = useTokenPortfolio(user);
-
-  const [isEmergencyRollback, setIsEmergencyRollback] = useState(false);
-  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
-
-  const navigate = useNavigate();
 
   // Check for rollback wallet on mount and when address changes
   useEffect(() => {
@@ -322,37 +290,25 @@ export default function Dashboard() {
     );
   }
 
-  // Show error state - likely no rollback wallet exists
-  if (isError) {
+  // Show error state - only if loading is complete and there's a definitive error
+  if (isError && !isLoading && hasInitiallyLoaded) {
     return <NoRollbackWalletState onCreateWallet={() => navigate("/create")} />;
   }
 
-  // Show no rollback wallet state
-  if (hasRollbackWallet === false) {
+  // Show no rollback wallet state - only after checking is complete and no wallet found
+  if (hasRollbackWallet === false && !isLoading && hasInitiallyLoaded) {
     return <NoRollbackWalletState onCreateWallet={() => navigate("/create")} />;
   }
 
-  // Show skeleton loading state during initial load or when dashboard is loading
+  // Show skeleton loading state during initial load, when dashboard is loading, or when wallet status is unknown
   if (
     loadingStates.dashboardLoading ||
     (isLoading && !hasInitiallyLoaded) ||
-    (!user && !hasInitiallyLoaded)
+    (!user && !hasInitiallyLoaded) ||
+    hasRollbackWallet === undefined
   ) {
     return <DashboardSkeleton />;
   }
-
-  // Enhanced debugging
-  console.log("Dashboard Debug:", {
-    user,
-    hasRollbackWallet,
-    rollbackWalletAddress,
-    isLoading,
-    isError,
-    isConnected,
-    address,
-    hasInitiallyLoaded,
-    loadingStates,
-  });
 
   // Main dashboard for users with rollback wallet
   return (
@@ -381,7 +337,11 @@ export default function Dashboard() {
                     {user?.rollbackConfig?.is_active
                       ? "Protection Active"
                       : "Protection Inactive"}{" "}
-                    • Updated {lastRefreshTime.toLocaleTimeString()}
+                    • Updated{" "}
+                    {(lastRefreshTime instanceof Date
+                      ? lastRefreshTime
+                      : new Date(lastRefreshTime)
+                    ).toLocaleTimeString()}
                   </span>
                 </div>
               </div>
@@ -680,7 +640,6 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Enhanced Emergency Rollback Modal */}
         <EmergencyRollbackModal
           isOpen={showEmergencyModal}
           onClose={() => setShowEmergencyModal(false)}

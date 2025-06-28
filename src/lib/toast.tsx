@@ -11,20 +11,20 @@ interface BaseSonnerProps extends React.HTMLAttributes<HTMLDivElement> {
   message: string;
   subMessage?: React.ReactNode;
   duration?: number;
-  toastProps?: any;
+  toastProps?: { id?: string | number; [key: string]: unknown };
 }
 
 interface LoadingSonnerProps extends React.HTMLAttributes<HTMLDivElement> {
   message: string;
   duration?: number;
-  toastProps?: any;
+  toastProps?: { id?: string | number; [key: string]: unknown };
 }
 
 interface PlainSonnerProps extends React.HTMLAttributes<HTMLDivElement> {
   message: string;
   duration?: number;
   color?: string;
-  toastProps?: any;
+  toastProps?: { id?: string | number; [key: string]: unknown };
 }
 
 const LoadingBar: React.FC<{ duration: number }> = ({ duration }) => {
@@ -44,10 +44,10 @@ const ToastHeader: React.FC<{
   icon: React.ReactNode;
   header: string;
 }> = ({ icon, header }) => (
-  <div className="bg-gray-800 flex items-center gap-2 justify-between p-3">
+  <div className=" flex items-center gap-2 justify-between p-2">
     <div className="flex items-center gap-2">
       {icon}
-      <span className="font-semibold text-xs text-white">{header}</span>
+      <span className="font-semibold text-xs text-black">{header}</span>
     </div>
     <div className="flex items-center pl-3 border-l border-gray-400 cursor-pointer">
       <IoClose
@@ -62,7 +62,7 @@ const ToastContent: React.FC<{
   message: string;
   subMessage?: React.ReactNode;
 }> = ({ message, subMessage }) => (
-  <div className="p-3">
+  <div className="p-2">
     {subMessage || (
       <div className="text-gray-600 text-sm font-normal">{message}</div>
     )}
@@ -77,7 +77,7 @@ export const sonnerToasts = () => {
     ...props
   }: LoadingSonnerProps) => {
     return toast.loading(
-      <div {...props} className={`w-full p-4 ${props.className || ""}`}>
+      <div {...props} className={`w-full p-4  ${props.className || ""}`}>
         <div className="font-semibold text-xs mb-2 w-full flex items-center gap-2">
           <RiLoader4Line className="w-4 h-4 animate-spin" />
           {message}
@@ -220,22 +220,55 @@ export const sonnerToasts = () => {
 export const toastHelpers = sonnerToasts();
 
 export const toastApi = {
-  success: (title: string, description?: string) =>
+  success: (
+    title: string,
+    description?: string,
+    toastProps?: { id?: string | number; [key: string]: unknown }
+  ) =>
     toastHelpers.SuccessfulSonner({
       header: title,
       message: description || title,
+      toastProps,
     }),
-  error: (title: string, description?: string) =>
-    toastHelpers.ErrorSonner({ header: title, message: description || title }),
-  warning: (title: string, description?: string) =>
+  error: (
+    title: string,
+    description?: string,
+    toastProps?: { id?: string | number; [key: string]: unknown }
+  ) =>
+    toastHelpers.ErrorSonner({
+      header: title,
+      message: description || title,
+      toastProps,
+    }),
+  warning: (
+    title: string,
+    description?: string,
+    toastProps?: { id?: string | number; [key: string]: unknown }
+  ) =>
     toastHelpers.WarningSonner({
       header: title,
       message: description || title,
+      toastProps,
     }),
-  info: (title: string, description?: string) =>
-    toastHelpers.InfoSonner({ header: title, message: description || title }),
-  loading: (message: string) => toastHelpers.LoadingSonner({ message }),
-  plain: (message: string) => toastHelpers.PlainSonner({ message }),
+  info: (
+    title: string,
+    description?: string,
+    toastProps?: { id?: string | number; [key: string]: unknown }
+  ) =>
+    toastHelpers.InfoSonner({
+      header: title,
+      message: description || title,
+      toastProps,
+    }),
+  loading: (
+    message: string,
+    toastProps?: { id?: string | number; [key: string]: unknown }
+  ) => toastHelpers.LoadingSonner({ message, toastProps }),
+  plain: (
+    message: string,
+    toastProps?: { id?: string | number; [key: string]: unknown }
+  ) => toastHelpers.PlainSonner({ message, toastProps }),
+  dismiss: (toastId?: string | number) => toast.dismiss(toastId),
 };
 
 export { toastApi as toast };
