@@ -43,6 +43,7 @@ export default function TokenApprovals() {
   const { openConnectModal } = useConnectModal();
   const { disconnect } = useDisconnect();
 
+  // Use the simplified hook
   const {
     isConnected: hookIsConnected,
     hasRollbackWallet,
@@ -227,6 +228,7 @@ export default function TokenApprovals() {
   );
 }
 
+// Wallet Card Component
 function WalletCard({
   wallet,
   tokens,
@@ -318,6 +320,7 @@ function WalletCard({
   );
 }
 
+// Enhanced Token Item Component with improved loading states
 function TokenItem({
   token,
   walletAddress,
@@ -351,7 +354,7 @@ function TokenItem({
       try {
         await tokenApproval.approve();
       } catch (error) {
-        // Error handled by hook
+        console.error("Approval failed:", error);
       }
     }
   }, [canManage, tokenApproval.approve]);
@@ -374,7 +377,7 @@ function TokenItem({
       try {
         await tokenApproval.revoke();
       } catch (error) {
-        // Error handled by hook
+        console.error("Revoke failed:", error);
       }
     }
   }, [canManage, tokenApproval.revoke]);
