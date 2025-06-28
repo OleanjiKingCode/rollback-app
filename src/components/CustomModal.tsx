@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -28,7 +28,7 @@ export function CustomModal({
   cancelButtonText = "Cancel",
   className,
 }: CustomModalProps) {
-  if (!isOpen) return null;
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const sizeClasses = {
     sm: "max-w-md",
@@ -43,23 +43,26 @@ export function CustomModal({
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Escape") {
-      onClose();
-    }
-  };
-
   React.useEffect(() => {
     if (isOpen) {
+      const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === "Escape") {
+          setIsAnimating(true);
+          setTimeout(() => {
+            onClose();
+            setIsAnimating(false);
+          }, 300);
+        }
+      };
+
       document.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+        document.body.style.overflow = "unset";
+      };
     }
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   return (
     <div

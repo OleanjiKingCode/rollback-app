@@ -129,9 +129,12 @@ export interface CreateWalletFormData {
   tokensToMonitor: Array<{
     address: string;
     type: "ERC20" | "ERC721";
+    symbol?: string;
+    name?: string;
   }>;
   isRandomized: boolean;
   fallbackWallet: string;
+  agentWallet?: string;
 }
 
 export interface AgentWallet {

@@ -6,6 +6,7 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useRollbackWallet } from "@/hooks/useRollback";
 import { useWriteContract, useChainId } from "wagmi";
 import { ROLLBACK_WALLET_ABI } from "@/config/contracts";
+import { useAppStore } from "@/stores/appStore";
 import {
   Card,
   CardContent,
@@ -27,7 +28,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/lib/toast";
 import { useNavigate } from "react-router-dom";
 import {
   Settings as SettingsIcon,
@@ -38,7 +39,6 @@ import {
   Timer,
   RefreshCw,
   Info,
-  Loader2,
   WifiOff,
   Plus,
   Trash2,
@@ -48,7 +48,10 @@ import {
   Wallet,
   Clock,
   Vote,
+  ExternalLink,
+  CheckSquare,
 } from "lucide-react";
+import { RiLoader4Line } from "react-icons/ri";
 
 // Wallet connection state
 const WalletConnectionState = ({ isConnected, address }: any) => {
@@ -81,23 +84,6 @@ const WalletConnectionState = ({ isConnected, address }: any) => {
 
   return null;
 };
-
-// Loading State
-const LoadingState = () => (
-  <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
-    <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-      <div className="text-center max-w-md">
-        <Loader2 className="h-6 w-6 animate-spin mx-auto mb-6 text-rollback-primary" />
-        <h3 className="text-lg font-semibold text-rollback-dark mb-3">
-          Loading Settings
-        </h3>
-        <p className="text-gray-600 text-sm">
-          Fetching your rollback wallet configuration...
-        </p>
-      </div>
-    </div>
-  </div>
-);
 
 // No Rollback Wallet State
 const NoRollbackWalletState = () => {
@@ -135,8 +121,17 @@ const NoRollbackWalletState = () => {
 
 export default function Settings() {
   const { isConnected, address } = useAccount();
-  const { user, hasRollbackWallet, isLoading, isError, refetch } =
-    useRollbackWallet();
+  const {
+    user,
+    hasRollbackWallet,
+    isLoading,
+    isError,
+    refetch,
+    invalidateCache,
+  } = useRollbackWallet();
+
+  // Use global store for state management
+  const { invalidateWalletCache } = useAppStore();
 
   const { writeContractAsync } = useWriteContract();
   const chainId = useChainId();
@@ -164,7 +159,6 @@ export default function Settings() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [newToken, setNewToken] = useState({ address: "", type: "ERC20" });
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   // Load settings from user data
@@ -173,7 +167,11 @@ export default function Settings() {
       setSettings((prev) => ({
         ...prev,
         inactivityThreshold: user.rollbackConfig.inactivity_threshold || 30,
-        rollbackMethod: user.rollbackConfig.rollback_method || "priority",
+        rollbackMethod:
+          user.rollbackConfig.rollback_method === "randomized"
+            ? "randomized"
+            : "priority",
+        isRandomized: user.rollbackConfig.rollback_method === "randomized",
         isActive: user.rollbackConfig.is_active || true,
         agentWallet: user.rollbackConfig.agent_wallet || "",
         fallbackWallet: user.rollbackConfig.fallback_wallet || "",
@@ -227,6 +225,21 @@ export default function Settings() {
         hasContractChanges = true;
       }
 
+      // Fallback wallet change (requires voting)
+      if (
+        settings.fallbackWallet !==
+        (user?.rollbackConfig?.fallback_wallet || "")
+      ) {
+        votes.push(
+          initiateVote(
+            2, // FALLBACK_CHANGE
+            settings.fallbackWallet,
+            BigInt(0)
+          )
+        );
+        hasContractChanges = true;
+      }
+
       // Agent wallet change (requires voting)
       if (settings.agentWallet !== (user?.rollbackConfig?.agent_wallet || "")) {
         votes.push(
@@ -243,41 +256,41 @@ export default function Settings() {
       if (votes.length > 0) {
         await Promise.all(votes);
 
-        toast({
-          title: "📊 Voting Initiated",
-          description: `${votes.length} vote(s) have been initiated for contract changes. These require approval from wallet owners.`,
-        });
+        toast.info(
+          "Voting Initiated",
+          `${votes.length} vote(s) have been initiated for contract changes. These require approval from wallet owners.`
+        );
       }
 
       // Update database settings (non-contract settings)
       // await updateRollbackConfig(user.user.id, settings);
 
-      // Mock save delay for database
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // TODO: Replace with actual API call to save settings
+      // await saveUserSettings(settings);
 
       if (hasContractChanges) {
-        toast({
-          title: "⏳ Settings Update Pending",
-          description:
-            "Some settings require voting approval. Database settings have been saved.",
-        });
+        toast.warning(
+          "Settings Update Pending",
+          "Some settings require voting approval. Database settings have been saved."
+        );
+
+        // Invalidate cache to force refresh on next load
+        if (address) {
+          invalidateWalletCache(address);
+          invalidateCache();
+        }
       } else {
-        toast({
-          title: "✅ Settings Saved",
-          description:
-            "Your rollback wallet settings have been updated successfully.",
-        });
+        toast.success(
+          "Settings Saved",
+          "Your rollback wallet settings have been updated successfully."
+        );
       }
 
       // Refresh user data
       await refetch();
     } catch (error) {
       console.error("Settings save error:", error);
-      toast({
-        title: "❌ Save Failed",
-        description: "Failed to save settings. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Save Failed", "Failed to save settings. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -307,10 +320,7 @@ export default function Settings() {
 
   const handleCopyAddress = (address: string) => {
     navigator.clipboard.writeText(address);
-    toast({
-      title: "📋 Address Copied",
-      description: "Address copied to clipboard.",
-    });
+    toast.plain("Address copied to clipboard");
   };
 
   // Show wallet connection state if not connected
@@ -320,45 +330,51 @@ export default function Settings() {
     );
   }
 
-  // Show loading state
+  // Show loading state while checking for wallet
   if (isLoading) {
-    return <LoadingState />;
-  }
-
-  // Show error state
-  if (isError) {
     return (
       <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
           <div className="text-center max-w-lg">
-            <AlertTriangle className="h-6 w-6 mx-auto mb-6 text-red-500" />
-            <h3 className="text-lg font-semibold text-rollback-dark mb-3">
-              Error Loading Settings
+            <div className="w-20 h-20 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-full flex items-center justify-center mx-auto mb-8">
+              <RiLoader4Line className="h-8 w-8 text-white animate-spin" />
+            </div>
+            <h3 className="text-2xl font-semibold text-rollback-dark mb-3">
+              Checking Wallet Status
             </h3>
-            <p className="text-gray-600 mb-8 text-sm leading-relaxed">
-              There was an error loading your settings. Please try refreshing.
+            <p className="text-gray-600 mb-8 text-lg leading-relaxed">
+              Searching for your rollback wallet configuration...
             </p>
-            <Button
-              onClick={() => window.location.reload()}
-              className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-8 py-3 text-sm"
-            >
-              <RefreshCw className="h-5 w-5 mr-3" />
-              Refresh Page
-            </Button>
           </div>
         </div>
       </div>
     );
   }
 
-  // Show no rollback wallet state
-  if (hasRollbackWallet === false) {
+  // Show no rollback wallet state only after checking is complete and no wallet found
+  if (hasRollbackWallet === false && !isLoading) {
     return <NoRollbackWalletState />;
   }
 
-  // Show loading if no wallet data yet
-  if (!user) {
-    return <LoadingState />;
+  // Don't render main settings until we know the wallet status
+  if (hasRollbackWallet === undefined || hasRollbackWallet === null) {
+    return (
+      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+          <div className="text-center max-w-lg">
+            <div className="w-20 h-20 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-full flex items-center justify-center mx-auto mb-8">
+              <RiLoader4Line className="h-8 w-8 text-white animate-spin" />
+            </div>
+            <h3 className="text-2xl font-semibold text-rollback-dark mb-3">
+              Loading Wallet Configuration
+            </h3>
+            <p className="text-gray-600 mb-8 text-lg leading-relaxed">
+              Please wait while we load your rollback wallet settings...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -391,7 +407,7 @@ export default function Settings() {
               className="bg-rollback-primary hover:bg-rollback-primary/90 text-white"
             >
               {isSaving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <RiLoader4Line className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
@@ -401,6 +417,110 @@ export default function Settings() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Navigation Card */}
+          <Card className="border-gray-200 bg-white rounded-2xl lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+                <SettingsIcon className="h-5 w-5 mr-2 text-rollback-primary" />
+                Quick Actions
+              </CardTitle>
+              <CardDescription>
+                Access additional settings and management tools
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/settings/token-approvals")}
+                  className="h-28 flex flex-col items-center justify-center  space-y-2 border-2 border-dashed border-gray-300 hover:border-rollback-primary hover:bg-rollback-primary/5"
+                >
+                  <CheckSquare className="h-6 w-6 text-rollback-primary" />
+                  <span className="text-sm font-medium">Token Approvals</span>
+                  <span className="text-xs text-gray-500">
+                    Manage ERC20/ERC721 approvals
+                  </span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/dashboard")}
+                  className="h-28  flex flex-col items-center justify-center space-y-2 border-2 border-dashed border-gray-300 hover:border-rollback-primary hover:bg-rollback-primary/5"
+                >
+                  <Shield className="h-6 w-6 text-rollback-primary" />
+                  <span className="text-sm font-medium">Dashboard</span>
+                  <span className="text-xs text-gray-500">
+                    View wallet status
+                  </span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={refetch}
+                  className="h-28  flex flex-col items-center justify-center space-y-2 border-2 border-dashed border-gray-300 hover:border-rollback-primary hover:bg-rollback-primary/5"
+                >
+                  <RefreshCw className="h-6 w-6 text-rollback-primary" />
+                  <span className="text-sm font-medium">Refresh Data</span>
+                  <span className="text-xs text-gray-500">
+                    Reload from blockchain
+                  </span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Status Information */}
+          <Card className="border-gray-200 bg-white rounded-2xl mt-8">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+                <Info className="h-5 w-5 mr-2 text-rollback-primary" />
+                Wallet Status Information
+              </CardTitle>
+              <CardDescription>
+                Current status of your rollback wallet system
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <User className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-900">
+                    Connected Wallet
+                  </p>
+                  <p className="text-xs text-gray-500 font-mono">
+                    {address?.slice(0, 6)}...{address?.slice(-4)}
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Shield className="h-6 w-6 text-green-600" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-900">
+                    Protection Status
+                  </p>
+                  <Badge variant={settings.isActive ? "default" : "secondary"}>
+                    {settings.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                </div>
+
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Clock className="h-6 w-6 text-orange-600" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-900">
+                    Next Check
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    In {settings.inactivityThreshold} days
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Contract Settings - Require Voting */}
           <Card className="border-gray-200 bg-white rounded-2xl">
             <CardHeader>
@@ -623,12 +743,11 @@ export default function Settings() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="priority">Priority Order</SelectItem>
-                    <SelectItem value="sequential">Sequential</SelectItem>
-                    <SelectItem value="random">Random</SelectItem>
+                    <SelectItem value="randomized">Randomized</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-gray-500 mt-1">
-                  How recovery wallets are displayed in UI
+                  Method used for asset distribution during rollback
                 </p>
               </div>
 
@@ -682,6 +801,27 @@ export default function Settings() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Quick Actions */}
+              <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div>
+                  <h4 className="text-sm font-semibold text-blue-800 mb-1">
+                    Token Approvals Required
+                  </h4>
+                  <p className="text-xs text-blue-700">
+                    Tokens must be approved for rollback protection to work
+                    effectively
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => navigate("/settings/token-approvals")}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Manage Approvals
+                </Button>
+              </div>
+
               <div>
                 <Label className="text-sm font-medium text-gray-600 mb-3 block">
                   Add New Token
@@ -720,12 +860,29 @@ export default function Settings() {
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Add tokens to monitor for rollback protection. Remember to
+                  approve them afterwards.
+                </p>
               </div>
 
               <div>
-                <Label className="text-sm font-medium text-gray-600 mb-3 block">
-                  Monitored Tokens ({settings.tokensToMonitor.length})
-                </Label>
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-sm font-medium text-gray-600">
+                    Monitored Tokens ({settings.tokensToMonitor.length})
+                  </Label>
+                  {settings.tokensToMonitor.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate("/settings/token-approvals")}
+                      className="text-xs text-rollback-primary hover:text-rollback-primary/80"
+                    >
+                      <CheckSquare className="h-3 w-3 mr-1" />
+                      Check Approvals
+                    </Button>
+                  )}
+                </div>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {settings.tokensToMonitor.length > 0 ? (
                     settings.tokensToMonitor.map((token, index) => (
@@ -736,13 +893,22 @@ export default function Settings() {
                         <div className="flex items-center">
                           <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
                           <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {token.address.slice(0, 6)}...
-                              {token.address.slice(-4)}
+                            <p className="text-sm font-medium text-gray-900 font-mono">
+                              {token.address.slice(0, 8)}...
+                              {token.address.slice(-6)}
                             </p>
-                            <Badge variant="secondary" className="text-xs">
-                              {token.type}
-                            </Badge>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <Badge variant="secondary" className="text-xs">
+                                {token.type}
+                              </Badge>
+                              <button
+                                onClick={() => handleCopyAddress(token.address)}
+                                className="text-xs text-gray-500 hover:text-gray-700 flex items-center"
+                              >
+                                <Copy className="h-3 w-3 mr-1" />
+                                Copy
+                              </button>
+                            </div>
                           </div>
                         </div>
                         <Button
@@ -759,6 +925,9 @@ export default function Settings() {
                     <div className="text-center p-6 text-gray-500">
                       <Coins className="h-8 w-8 mx-auto mb-2 opacity-50" />
                       <p className="text-sm">No tokens configured</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Add tokens above to enable rollback protection
+                      </p>
                     </div>
                   )}
                 </div>
@@ -867,56 +1036,6 @@ export default function Settings() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Status Information */}
-        <Card className="border-gray-200 bg-white rounded-2xl mt-8">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-              <Info className="h-5 w-5 mr-2 text-rollback-primary" />
-              Wallet Status Information
-            </CardTitle>
-            <CardDescription>
-              Current status of your rollback wallet system
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <User className="h-6 w-6 text-blue-600" />
-                </div>
-                <p className="text-sm font-medium text-gray-900">
-                  Connected Wallet
-                </p>
-                <p className="text-xs text-gray-500 font-mono">
-                  {address?.slice(0, 6)}...{address?.slice(-4)}
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Shield className="h-6 w-6 text-green-600" />
-                </div>
-                <p className="text-sm font-medium text-gray-900">
-                  Protection Status
-                </p>
-                <Badge variant={settings.isActive ? "default" : "secondary"}>
-                  {settings.isActive ? "Active" : "Inactive"}
-                </Badge>
-              </div>
-
-              <div className="text-center">
-                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Clock className="h-6 w-6 text-orange-600" />
-                </div>
-                <p className="text-sm font-medium text-gray-900">Next Check</p>
-                <p className="text-xs text-gray-500">
-                  In {settings.inactivityThreshold} days
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

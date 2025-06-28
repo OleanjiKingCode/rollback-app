@@ -20,9 +20,9 @@ import {
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Create Wallet", href: "/create", icon: Plus },
-  { name: "Governance", href: "/governance", icon: Settings },
+  { name: "Voting", href: "/governance", icon: Settings },
   { name: "Agent Management", href: "/agent", icon: User },
-  { name: "Subscription", href: "/subscribe", icon: Bell },
+  // { name: "Subscription", href: "/subscribe", icon: Bell },
 ];
 
 export function Navbar() {

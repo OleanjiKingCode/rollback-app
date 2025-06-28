@@ -51,6 +51,39 @@ export const ROLLBACK_MANAGER_ABI = [
   },
   {
     inputs: [],
+    name: "getAllCreationRequests",
+    outputs: [
+      { name: "ids", type: "uint256[]" },
+      {
+        components: [
+          { name: "requestId", type: "uint256" },
+          {
+            components: [
+              { name: "user", type: "address" },
+              { name: "wallets", type: "address[]" },
+              { name: "threshold", type: "uint256" },
+              { name: "tokensToMonitor", type: "address[]" },
+              { name: "tokenTypes", type: "uint8[]" },
+              { name: "isRandomized", type: "bool" },
+              { name: "fallbackWallet", type: "address" },
+              { name: "agentWallet", type: "address" },
+            ],
+            name: "params",
+            type: "tuple",
+          },
+          { name: "signers", type: "address[]" },
+          { name: "executed", type: "bool" },
+          { name: "signatureCount", type: "uint256" },
+        ],
+        name: "requests",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getInitializationFee",
     outputs: [{ name: "", type: "uint256" }],
     stateMutability: "pure",
@@ -99,7 +132,21 @@ export const ROLLBACK_MANAGER_ABI = [
     inputs: [
       { indexed: true, name: "requestId", type: "uint256" },
       { indexed: true, name: "proposer", type: "address" },
-      { indexed: false, name: "params", type: "tuple" },
+      {
+        indexed: false,
+        components: [
+          { name: "user", type: "address" },
+          { name: "wallets", type: "address[]" },
+          { name: "threshold", type: "uint256" },
+          { name: "tokensToMonitor", type: "address[]" },
+          { name: "tokenTypes", type: "uint8[]" },
+          { name: "isRandomized", type: "bool" },
+          { name: "fallbackWallet", type: "address" },
+          { name: "agentWallet", type: "address" },
+        ],
+        name: "params",
+        type: "tuple",
+      },
     ],
     name: "WalletCreationProposed",
     type: "event",
@@ -148,6 +195,7 @@ export const ROLLBACK_WALLET_ABI = [
         components: [
           { name: "walletAddress", type: "address" },
           { name: "lastActivity", type: "uint256" },
+          { name: "priorityPosition", type: "uint256" },
           { name: "isObsolete", type: "bool" },
           { name: "nextWalletInLine", type: "address" },
         ],
@@ -171,6 +219,16 @@ export const ROLLBACK_WALLET_ABI = [
         name: "",
         type: "tuple[]",
       },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getMonitoredTokens",
+    outputs: [
+      { name: "tokens", type: "address[]" },
+      { name: "types", type: "uint8[]" },
     ],
     stateMutability: "view",
     type: "function",

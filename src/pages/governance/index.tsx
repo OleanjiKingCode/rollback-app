@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useRollbackWallet } from "@/hooks/useRollback";
+import { useNavigate } from "react-router-dom";
 import { CustomModal, InfoModal } from "@/components/CustomModal";
 import {
   Card,
@@ -76,7 +78,7 @@ const WalletConnectionCheck = () => {
               Wallet Required
             </h3>
             <p className="text-gray-600 mb-8 text-xs leading-relaxed">
-              Connect your wallet to participate in governance and manage your
+              Connect your wallet to participate in voting and manage your
               rollback wallet settings.
             </p>
             <Button
@@ -95,8 +97,40 @@ const WalletConnectionCheck = () => {
   return null;
 };
 
-export default function Governance() {
+// No Rollback Wallet state component
+const NoRollbackWalletState = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+        <div className="text-center max-w-lg">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Settings className="h-8 w-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-rollback-dark mb-3">
+            No Rollback Wallet Found
+          </h3>
+          <p className="text-gray-600 mb-8 text-xs leading-relaxed">
+            You need to create a rollback wallet before you can participate in
+            voting and governance.
+          </p>
+          <Button
+            onClick={() => navigate("/create")}
+            className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-6 py-2 text-sm"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create Rollback Wallet
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function Voting() {
   const { isConnected } = useAccount();
+  const { hasRollbackWallet } = useRollbackWallet();
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(
     null
   );
@@ -116,6 +150,11 @@ export default function Governance() {
     return <WalletConnectionCheck />;
   }
 
+  // Show no rollback wallet state if user doesn't have one
+  if (hasRollbackWallet === false) {
+    return <NoRollbackWalletState />;
+  }
+
   const activeProposals = proposals.filter((p) => p.status === "active");
   const completedProposals = proposals.filter((p) => p.status !== "active");
 
@@ -130,7 +169,7 @@ export default function Governance() {
     setIsCreatingProposal(false);
     toast({
       title: "Proposal Created",
-      description: "Your governance proposal has been submitted successfully.",
+      description: "Your voting proposal has been submitted successfully.",
     });
 
     setNewProposal({
@@ -175,7 +214,7 @@ export default function Governance() {
         : 0;
 
     return (
-      <Card className="border-gray-200 bg-white hover:shadow-xl hover:shadow-[#E9A344]/10 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20">
+      <Card className="border-gray-200 bg-white hover:bg-gray-50 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20">
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-2">
@@ -253,9 +292,9 @@ export default function Governance() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
           <div>
-            <h1 className="text-xl font-bold text-gray-900 mb-2">Governance</h1>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">Voting</h1>
             <p className="text-xs text-gray-600">
-              Participate in wallet governance and voting
+              Participate in wallet voting and governance
             </p>
           </div>
 
@@ -288,8 +327,8 @@ export default function Governance() {
                     No Active Proposals
                   </h3>
                   <p className="text-gray-600">
-                    There are currently no active governance proposals. Create
-                    one to get started.
+                    There are currently no active voting proposals. Create one
+                    to get started.
                   </p>
                 </CardContent>
               </Card>
@@ -316,7 +355,7 @@ export default function Governance() {
           isOpen={isCreatingProposal}
           onClose={() => setIsCreatingProposal(false)}
           title="Create New Proposal"
-          description="Submit a new governance proposal for voting"
+          description="Submit a new proposal for voting"
           size="md"
         >
           <div className="space-y-4">

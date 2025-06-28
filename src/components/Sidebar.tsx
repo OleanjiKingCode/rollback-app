@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/lib/toast";
 import { useAccount, useDisconnect } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { cn } from "@/lib/utils";
@@ -27,9 +27,9 @@ import { useSidebarContext } from "@/App";
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Create Wallet", href: "/create", icon: PlusCircle },
-  { name: "Governance", href: "/governance", icon: Vote },
+  { name: "Voting", href: "/governance", icon: Vote },
   { name: "Wallet Agent", href: "/agent", icon: Bot },
-  { name: "Subscribe", href: "/subscribe", icon: Mail },
+  // { name: "Subscribe", href: "/subscribe", icon: Mail },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
@@ -40,7 +40,6 @@ export function Sidebar() {
   const { address, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { disconnect } = useDisconnect();
-  const { toast } = useToast();
 
   const formatAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -50,16 +49,9 @@ export function Sidebar() {
     if (address) {
       try {
         await navigator.clipboard.writeText(address);
-        toast({
-          title: "Address Copied",
-          description: "Wallet address copied to clipboard",
-        });
+        toast.success("Address Copied", "Wallet address copied to clipboard");
       } catch (err) {
-        toast({
-          title: "Copy Failed",
-          description: "Failed to copy address to clipboard",
-          variant: "destructive",
-        });
+        toast.error("Copy Failed", "Failed to copy address to clipboard");
       }
     }
   };
@@ -116,7 +108,11 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-4 space-y-2">
         {navigation.map((item) => {
-          const isActive = location.pathname === item.href;
+          // Check for exact match or if current path starts with the item href (for sub-routes)
+          const isActive =
+            location.pathname === item.href ||
+            (item.href !== "/" &&
+              location.pathname.startsWith(item.href + "/"));
           const Icon = item.icon;
 
           return (
@@ -186,11 +182,10 @@ export function Sidebar() {
               <Button
                 onClick={() => {
                   disconnect();
-                  toast({
-                    title: "Wallet Disconnected",
-                    description:
-                      "Your wallet has been disconnected successfully.",
-                  });
+                  toast.success(
+                    "Wallet Disconnected",
+                    "Your wallet has been disconnected successfully."
+                  );
                 }}
                 variant="outline"
                 size="sm"
