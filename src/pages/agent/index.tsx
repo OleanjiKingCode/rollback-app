@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useRollbackWallet } from "@/hooks/useRollback";
 import {
   Card,
   CardContent,
@@ -14,61 +15,82 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "@/lib/toast";
+import { useNavigate } from "react-router-dom";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { useUser } from "@/lib/api";
-import {
-  User,
-  Shield,
-  Check,
+  Bot,
+  Wallet,
   Plus,
-  Settings,
+  Shield,
+  CheckCircle2,
+  AlertTriangle,
   Copy,
   Ban,
-  Wallet,
+  Shuffle,
+  User,
+  Clock,
+  RefreshCw,
+  Loader2,
+  Unlink,
 } from "lucide-react";
+import {
+  useGetWalletSystemConfig,
+  useGetAllVotes,
+} from "@/hooks/contracts/useSimpleRollbackRead";
+import { useVoteManagement } from "@/hooks/contracts/useWalletOperations";
+import { VOTE_TYPE } from "@/config/contracts";
+import { type Address } from "viem";
 
-const agentCapabilities = [
-  "Automated activity monitoring",
-  "Enhanced security validations",
-  "Block hash randomization",
-  "Emergency recovery assistance",
-  "Gas optimization for transactions",
-  "Multi-signature coordination",
-];
+// Generate a new agent wallet
+const generateAgentWallet = () => {
+  // Simple wallet generation for demo (in production, use proper crypto libraries)
+  const privateKey = `0x${Array.from({ length: 64 }, () =>
+    Math.floor(Math.random() * 16).toString(16)
+  ).join("")}`;
+  const address = `0x${Array.from({ length: 40 }, () =>
+    Math.floor(Math.random() * 16).toString(16)
+  ).join("")}`;
 
-// Wallet connection states
-const WalletConnectionState = ({ isConnected }: any) => {
+  return { privateKey, address };
+};
+
+// Wallet connection check component
+const WalletConnectionCheck = () => {
+  const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-rollback-light to-white pt-16 lg:pt-8 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-center max-w-lg bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Ban className="h-8 w-8 text-red-500" />
+          <div className="text-center max-w-lg rounded-3xl p-8 border border-gray-100 relative overflow-hidden">
+            {/* Decorative background */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-rollback-primary/10 to-rollback-secondary/10 rounded-full -mr-16 -mt-16" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-rollback-cream to-rollback-secondary/20 rounded-full -ml-10 -mb-10" />
+
+            <div className="relative z-10">
+              <div className="w-20 h-20 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Unlink className="h-10 w-10 text-white" />
+              </div>
+
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                Connect Your Wallet
+              </h3>
+
+              <p className="text-gray-600 mb-8 text-sm leading-relaxed">
+                Connect your wallet to manage agents and automated rollback
+                operations.
+              </p>
+
+              <button
+                onClick={openConnectModal}
+                className="bg-gradient-to-r from-rollback-primary to-rollback-primary/90 hover:from-rollback-primary/90 hover:to-rollback-primary text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center mx-auto space-x-3"
+              >
+                <Wallet className="h-5 w-5" />
+                <span>Connect Wallet</span>
+              </button>
             </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">
-              Wallet Required
-            </h3>
-            <p className="text-gray-600 mb-8 text-xs leading-relaxed">
-              Connect your wallet to manage and configure agents for your
-              rollback protection system.
-            </p>
-            <Button
-              onClick={openConnectModal}
-              className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-6 py-2 text-sm rounded-xl"
-            >
-              <Wallet className="h-4 w-4 mr-2" />
-              Connect Wallet
-            </Button>
           </div>
         </div>
       </div>
@@ -78,317 +100,450 @@ const WalletConnectionState = ({ isConnected }: any) => {
   return null;
 };
 
+// No rollback wallet state component
+const NoRollbackWalletState = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+        <div className="text-center max-w-lg">
+          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertTriangle className="h-8 w-8 text-yellow-500" />
+          </div>
+          <h3 className="text-lg font-semibold text-rollback-dark mb-3">
+            No Rollback Wallet
+          </h3>
+          <p className="text-gray-600 mb-8 text-xs leading-relaxed">
+            You need a rollback wallet to manage agents. Create one to get
+            started with decentralized asset protection.
+          </p>
+          <Button
+            onClick={() => navigate("/create")}
+            className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-8 py-4 text-sm rounded-xl"
+            size="lg"
+          >
+            <Plus className="h-5 w-5 mr-3" />
+            Create Rollback Wallet
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function AgentManagement() {
   const { isConnected, address } = useAccount();
-  const { user, isLoading } = useUser(address);
-  const [selectedWallet, setSelectedWallet] = useState<any>(null);
+  const { user, hasRollbackWallet } = useRollbackWallet();
   const [newAgentAddress, setNewAgentAddress] = useState("");
-  const [isAssigning, setIsAssigning] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const { toast } = useToast();
+  const [generatedAgent, setGeneratedAgent] = useState<{
+    address: string;
+    privateKey: string;
+  } | null>(null);
+  const navigate = useNavigate();
 
-  // Set selected wallet from user data
-  useEffect(() => {
-    if (user) {
-      setSelectedWallet({
-        id: user.user.id,
-        address: user.user.address,
-        agentWallet: user.rollbackConfig?.agent_wallet || null,
-        status: user.rollbackConfig?.agent_wallet ? "active" : "no-agent",
-      });
-    }
-  }, [user]);
+  // Get wallet address for contract calls
+  const walletAddress = user?.rollbackConfig
+    ?.rollback_wallet_address as Address;
+
+  // Fetch system config from contract
+  const { data: systemConfig, refetch: refetchConfig } =
+    useGetWalletSystemConfig(walletAddress, !!walletAddress);
+
+  // Fetch active votes to check for pending agent changes
+  const { data: votesData } = useGetAllVotes(walletAddress, !!walletAddress);
+
+  // Vote management hook
+  const { requestAgentChange, isRequestingVote } =
+    useVoteManagement(walletAddress);
 
   // Show wallet connection state if not connected
   if (!isConnected) {
-    return <WalletConnectionState isConnected={isConnected} />;
+    return <WalletConnectionCheck />;
   }
 
-  // Show loading state while user data is being fetched
-  if (isLoading || !selectedWallet) {
-    return (
-      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-center max-w-md">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rollback-primary mx-auto mb-4"></div>
-            <h3 className="text-lg font-semibold text-rollback-dark mb-3">
-              Loading Agent Management
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Fetching your rollback wallet information...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+  // Show no rollback wallet state if user doesn't have one
+  if (hasRollbackWallet === false) {
+    return <NoRollbackWalletState />;
   }
 
-  const handleAssignAgent = async () => {
-    if (!newAgentAddress) {
-      toast({
-        title: "Invalid Address",
-        description: "Please enter a valid agent wallet address.",
-        variant: "destructive",
-      });
-      return;
+  // Extract current agent from system config
+  const currentAgent = systemConfig?.[3]; // agentWallet is the 4th element in the tuple
+
+  // Check for pending agent change votes
+  const pendingAgentVotes = votesData
+    ? (votesData as any[]).filter(
+        (vote: any) =>
+          Number(vote.voteType) === VOTE_TYPE.AGENT_CHANGE &&
+          !vote.executed &&
+          Date.now() / 1000 < Number(vote.expirationTime)
+      )
+    : [];
+
+  const hasPendingAgentVote = pendingAgentVotes.length > 0;
+
+  const getAgentStatus = () => {
+    if (hasPendingAgentVote) {
+      return "pending";
     }
-    setIsAssigning(true);
-    try {
-      // Mock agent assignment - replace with actual contract call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      toast({
-        title: "Agent Assigned",
-        description:
-          "Agent wallet has been successfully assigned to your rollback wallet.",
-      });
-      setNewAgentAddress("");
-    } catch (error) {
-      toast({
-        title: "Assignment Failed",
-        description: "Failed to assign agent wallet. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAssigning(false);
+    if (
+      currentAgent &&
+      currentAgent !== "0x0000000000000000000000000000000000000000"
+    ) {
+      return "active";
     }
+    return "none";
   };
 
-  const handleGenerateAgent = async () => {
-    setIsGenerating(true);
-    try {
-      // Mock agent generation - replace with actual contract call
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      const generatedAddress = "0x" + Math.random().toString(16).substr(2, 40);
-      setNewAgentAddress(generatedAddress);
-      toast({
-        title: "Agent Generated",
-        description: "A new agent wallet has been generated and whitelisted.",
-      });
-    } catch (error) {
-      toast({
-        title: "Generation Failed",
-        description: "Failed to generate agent wallet. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleCopyAddress = (address: string) => {
-    navigator.clipboard.writeText(address);
-    toast({
-      title: "Address Copied",
-      description: "Agent wallet address copied to clipboard.",
-    });
-  };
+  const agentStatus = getAgentStatus();
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-[#E9A344]/10 text-[#E9A344] border-[#E9A344]";
-      case "no-agent":
-        return "bg-gray-100 text-gray-600 border-gray-300";
+        return "bg-green-100 text-green-800 border-green-300";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+  };
+
+  const handleGenerateAgent = () => {
+    const agent = generateAgentWallet();
+    setGeneratedAgent(agent);
+    setNewAgentAddress(agent.address);
+  };
+
+  const handleCopyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.plain(`${label} copied to clipboard`);
+  };
+
+  const handleProposeAgentChange = async () => {
+    if (!newAgentAddress) {
+      toast.error(
+        "Agent Required",
+        "Please enter or generate an agent address."
+      );
+      return;
+    }
+
+    try {
+      await requestAgentChange(newAgentAddress as Address);
+      toast.success(
+        "Agent Change Proposed",
+        "Agent change vote has been created. Other wallet owners need to approve it."
+      );
+      setNewAgentAddress("");
+      setGeneratedAgent(null);
+      await refetchConfig();
+    } catch (error) {
+      toast.error(
+        "Proposal Failed",
+        "Failed to propose agent change. Please try again."
+      );
     }
   };
 
   return (
-    <div className="min-h-screen bg-rollback-light pt-16 lg:pt-0 pb-6">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8">
+      <div className="container mx-auto px-4 py-6 lg:py-8">
         {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-xl font-bold text-gray-900 mb-2">
-            Wallet Agent Management
-          </h1>
-          <p className="text-gray-600 text-xs max-w-2xl mx-auto">
-            Manage Agent Wallets for enhanced architecture security and
-            automation
-          </p>
-        </div>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">
+              Agent Management
+            </h1>
+            <p className="text-xs text-gray-600">
+              Configure automated rollback operations and agent wallets
+            </p>
+          </div>
 
-        {/* Wallet Selector */}
-        <Card className="border-gray-200 bg-white mb-8 rounded-3xl border-2 shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-xl flex items-center justify-center">
-                <Wallet className="h-4 w-4 text-white" />
-              </div>
-              <span>Select Rollback Wallet</span>
-            </CardTitle>
-            <CardDescription className="text-gray-600">
-              Choose which rollback wallet to manage the agent for
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {selectedWallet ? (
-              <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-xl">
-                <span className="font-mono text-sm">
-                  {selectedWallet.address?.slice(0, 10)}...
-                  {selectedWallet.address?.slice(-8)}
-                </span>
-                <Badge
-                  className={`${getStatusColor(
-                    selectedWallet.status || "no-agent"
-                  )} rounded-full`}
-                >
-                  {selectedWallet.agentWallet ? "Agent Active" : "No Agent"}
-                </Badge>
-              </div>
-            ) : (
-              <div className="p-3 bg-gray-50 rounded-xl text-sm text-gray-500">
-                {isLoading ? "Loading wallet..." : "No wallet found"}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          <div className="flex items-center space-x-3 mt-4 lg:mt-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/governance")}
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
+              <User className="h-4 w-4 mr-2" />
+              View Votes
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => refetchConfig()}
+              className="bg-rollback-primary hover:bg-rollback-primary/90 text-white"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Current Agent Status */}
-          <Card className="border-gray-200 bg-white hover:shadow-xl hover:shadow-[#E9A344]/10 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-xl flex items-center justify-center">
-                  <User className="h-4 w-4 text-white" />
-                </div>
-                <span>Current Agent Status</span>
+          <Card className="border-gray-200 bg-white rounded-2xl">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+                <Bot className="h-5 w-5 mr-2 text-rollback-primary" />
+                Current Agent
               </CardTitle>
-              <CardDescription className="text-gray-600">
-                View and manage the current agent wallet assignment
+              <CardDescription>
+                Wallet authorized to perform automated rollbacks
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-xl">
+                {currentAgent &&
+                currentAgent !==
+                  "0x0000000000000000000000000000000000000000" ? (
+                  <>
+                    <span className="font-mono text-sm">
+                      {currentAgent.slice(0, 10)}...{currentAgent.slice(-8)}
+                    </span>
+                    <Badge
+                      className={`${getStatusColor(agentStatus)} rounded-full`}
+                    >
+                      {agentStatus === "active" ? "Agent Active" : agentStatus}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        handleCopyToClipboard(currentAgent, "Agent address")
+                      }
+                      className="ml-auto"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-gray-500 text-sm">
+                      No agent assigned
+                    </span>
+                    <Badge
+                      className={`${getStatusColor(agentStatus)} rounded-full`}
+                    >
+                      No Agent
+                    </Badge>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Agent Operations */}
+          <Card className="border-gray-200 bg-white rounded-2xl">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+                <Shield className="h-5 w-5 mr-2 text-rollback-primary" />
+                Agent Operations
+              </CardTitle>
+              <CardDescription>
+                Manage automated rollback settings
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {selectedWallet?.agentWallet ? (
+              {currentAgent &&
+              currentAgent !== "0x0000000000000000000000000000000000000000" ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-gradient-to-br from-[#E9A344]/10 to-[#D4941A]/10 border border-[#E9A344]/20 rounded-2xl">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Check className="h-4 w-4 text-[#E9A344]" />
-                      <span className="font-medium text-[#E9A344]">
-                        Agent Active
-                      </span>
+                  <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-xl">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="font-medium text-green-900">
+                          Agent Active
+                        </p>
+                        <p className="text-sm text-green-700 font-mono">
+                          {currentAgent.slice(0, 6)}...{currentAgent.slice(-4)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-sm text-gray-900">
-                        {selectedWallet?.agentWallet}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          handleCopyAddress(selectedWallet?.agentWallet || "")
-                        }
-                        className="rounded-xl"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate("/governance")}
+                      className="border-green-300 text-green-700 hover:bg-green-50"
+                    >
+                      Manage
+                    </Button>
                   </div>
 
-                  <div className="text-sm text-gray-600">
-                    <p>Agent wallet is active and providing:</p>
-                    <ul className="list-disc list-inside mt-2 space-y-1">
-                      {agentCapabilities
-                        .slice(0, 3)
-                        .map((capability, index) => (
-                          <li key={index}>{capability}</li>
-                        ))}
-                    </ul>
-                  </div>
+                  {hasPendingAgentVote && (
+                    <Alert className="border-yellow-200 bg-yellow-50">
+                      <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                      <AlertDescription className="text-yellow-800">
+                        Agent change vote in progress. Check the voting page for
+                        details.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Shield className="h-4 w-4 text-gray-600" />
-                      <span className="font-medium text-gray-600">
-                        No Agent Assigned
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      This rollback wallet doesn't have an agent wallet
-                      assigned. Consider assigning one for enhanced features.
-                    </p>
+                <div className="text-center py-6">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Bot className="h-8 w-8 text-gray-400" />
                   </div>
-
-                  <div className="text-sm text-gray-600">
-                    <p>Benefits of assigning an agent wallet:</p>
-                    <ul className="list-disc list-inside mt-2 space-y-1">
-                      {agentCapabilities
-                        .slice(0, 3)
-                        .map((capability, index) => (
-                          <li key={index}>{capability}</li>
-                        ))}
-                    </ul>
-                  </div>
+                  <h3 className="text-lg font-semibold mb-2">
+                    No Agent Assigned
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Assign an agent to enable automated rollback operations.
+                  </p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Assign/Update Agent */}
-          <Card className="border-gray-200 bg-white hover:shadow-xl hover:shadow-[#E9A344]/10 transition-all duration-300 rounded-3xl border-2 hover:border-[#E9A344]/20">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-xl flex items-center justify-center">
-                  <Settings className="h-4 w-4 text-white" />
-                </div>
-                <span>
-                  {selectedWallet?.agentWallet ? "Update" : "Assign"} Agent
-                  Wallet
-                </span>
+          {/* Agent Configuration */}
+          <Card className="border-gray-200 bg-white rounded-2xl lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+                <Plus className="h-5 w-5 mr-2 text-rollback-primary" />
+                Configure Agent
               </CardTitle>
-              <CardDescription className="text-gray-600">
-                {selectedWallet?.agentWallet
-                  ? "Update the current agent wallet assignment"
-                  : "Assign a new agent wallet for features"}
+              <CardDescription>
+                Set up or change the agent wallet for automated operations
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label
-                  htmlFor="agentAddress"
-                  className="text-sm font-medium text-gray-900"
-                >
-                  Agent Wallet Address
-                </Label>
-                <Input
-                  id="agentAddress"
-                  placeholder="0x..."
-                  value={newAgentAddress}
-                  onChange={(e) => setNewAgentAddress(e.target.value)}
-                  className="mt-2 border-gray-300 focus:border-[#E9A344] focus:ring-[#E9A344] rounded-xl"
-                />
-              </div>
-
-              <div className="flex space-x-2">
+            <CardContent className="space-y-6">
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900">
+                  Generate New Agent
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Create a new wallet to use as your automated rollback agent.
+                </p>
                 <Button
                   onClick={handleGenerateAgent}
-                  disabled={isGenerating}
                   variant="outline"
-                  className="flex-1 border-[#E9A344] text-[#E9A344] hover:bg-[#E9A344] hover:text-white rounded-xl"
+                  className="border-rollback-primary text-rollback-primary hover:bg-rollback-primary/5"
                 >
-                  {isGenerating ? "Generating..." : "Generate Agent"}
+                  <Shuffle className="h-4 w-4 mr-2" />
+                  Generate Agent Wallet
                 </Button>
-                <Button
-                  onClick={handleAssignAgent}
-                  disabled={isAssigning || !newAgentAddress}
-                  className="flex-1 bg-gradient-to-r from-[#E9A344] to-[#D4941A] hover:from-[#D4941A] hover:to-[#E9A344] text-white rounded-xl"
-                >
-                  {isAssigning ? "Assigning..." : "Assign Agent"}
-                </Button>
+
+                {generatedAgent && (
+                  <Alert className="border-green-200 bg-green-50">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800">
+                      <div className="space-y-2">
+                        <p className="font-medium">
+                          Agent Generated Successfully!
+                        </p>
+                        <div className="font-mono text-xs bg-white p-2 rounded border">
+                          <p>
+                            <strong>Address:</strong> {generatedAgent.address}
+                          </p>
+                          <p>
+                            <strong>Private Key:</strong>{" "}
+                            {generatedAgent.privateKey.slice(0, 20)}...
+                          </p>
+                        </div>
+                        <p className="text-xs">Keep your private key secure!</p>
+                        <div className="flex space-x-2 mt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              handleCopyToClipboard(
+                                generatedAgent.address,
+                                "Agent address"
+                              )
+                            }
+                            className="text-xs"
+                          >
+                            <Copy className="h-3 w-3 mr-1" />
+                            Copy Address
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              handleCopyToClipboard(
+                                generatedAgent.privateKey,
+                                "Private key"
+                              )
+                            }
+                            className="text-xs"
+                          >
+                            <Copy className="h-3 w-3 mr-1" />
+                            Copy Private Key
+                          </Button>
+                        </div>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
 
-              <div className="p-4 bg-blue-50 rounded-2xl border border-blue-200">
-                <h4 className="font-medium text-sm mb-2 text-blue-800">
-                  Agent Wallet Requirements:
-                </h4>
-                <ul className="text-xs text-blue-700 space-y-1">
-                  <li>• Must be a valid Ethereum address</li>
-                  <li>• Will be whitelisted for operations</li>
-                  <li>• Can be changed through governance</li>
-                  <li>• Enables block hash randomization</li>
-                </ul>
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900">Set Agent Address</h4>
+                <p className="text-sm text-gray-600">
+                  Enter an existing wallet address to use as the agent, or use
+                  the generated address above.
+                </p>
+                <div className="flex space-x-2">
+                  <Input
+                    placeholder="0x..."
+                    value={newAgentAddress}
+                    onChange={(e) => setNewAgentAddress(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    onClick={handleProposeAgentChange}
+                    disabled={
+                      isRequestingVote ||
+                      !newAgentAddress ||
+                      hasPendingAgentVote
+                    }
+                    className="bg-rollback-primary hover:bg-rollback-primary/90 text-white"
+                  >
+                    {isRequestingVote ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Proposing...
+                      </>
+                    ) : (
+                      <>
+                        <User className="h-4 w-4 mr-2" />
+                        Propose Agent Change
+                      </>
+                    )}
+                  </Button>
+                </div>
+                {hasPendingAgentVote && (
+                  <p className="text-xs text-yellow-600">
+                    ⚠️ Agent change vote already in progress. Wait for it to
+                    complete before proposing another.
+                  </p>
+                )}
+              </div>
+
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start">
+                  <AlertTriangle className="h-5 w-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="text-sm font-semibold text-blue-800 mb-1">
+                      Voting Required
+                    </h4>
+                    <p className="text-xs text-blue-700">
+                      Agent changes require approval from multiple wallet
+                      owners. A vote will be created when you propose a change.
+                      You can monitor the voting progress on the governance
+                      page.
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate("/governance")}
+                      className="text-blue-600 hover:text-blue-700 mt-2 p-0 h-auto"
+                    >
+                      View Voting Page →
+                    </Button>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

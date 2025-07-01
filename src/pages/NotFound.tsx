@@ -88,7 +88,7 @@ const NotFound = () => {
                   size="sm"
                   className="text-rollback-brown hover:text-rollback-primary hover:bg-rollback-cream/50 rounded-xl"
                 >
-                  <Link to="/governance">Governance</Link>
+                  <Link to="/governance">Voting</Link>
                 </Button>
                 <Button
                   asChild
@@ -96,7 +96,7 @@ const NotFound = () => {
                   size="sm"
                   className="text-rollback-brown hover:text-rollback-primary hover:bg-rollback-cream/50 rounded-xl"
                 >
-                  <Link to="/subscribe">Subscribe</Link>
+                  <Link to="/settings">Settings</Link>
                 </Button>
               </div>
             </div>

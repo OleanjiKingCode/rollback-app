@@ -1,5 +1,4 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -11,10 +10,11 @@ import { Sidebar } from "@/components/Sidebar";
 import { Footer } from "@/components/Footer";
 import Dashboard from "./pages/dashboard/index";
 import CreateWallet from "./pages/create/index";
-import Governance from "./pages/governance/index";
+import Voting from "./pages/governance/index";
 import Agent from "./pages/agent/index";
-import Subscribe from "./pages/subscribe/index";
+// import Subscribe from "./pages/subscribe/index";
 import Settings from "./pages/settings/index";
+import TokenApprovals from "./pages/settings/TokenApprovals";
 import NotFound from "./pages/NotFound";
 import { useState, createContext, useContext } from "react";
 
@@ -44,7 +44,6 @@ const App = () => {
           <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
             <TooltipProvider>
               <Toaster />
-              <Sonner />
               <BrowserRouter>
                 <div className="min-h-screen flex bg-gray-50">
                   <Sidebar />
@@ -63,10 +62,14 @@ const App = () => {
                         />
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/create" element={<CreateWallet />} />
-                        <Route path="/governance" element={<Governance />} />
+                        <Route path="/governance" element={<Voting />} />
                         <Route path="/agent" element={<Agent />} />
-                        <Route path="/subscribe" element={<Subscribe />} />
+                        {/* <Route path="/subscribe" element={<Subscribe />} /> */}
                         <Route path="/settings" element={<Settings />} />
+                        <Route
+                          path="/settings/token-approvals"
+                          element={<TokenApprovals />}
+                        />
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
                       </Routes>
