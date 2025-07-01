@@ -6,26 +6,26 @@
 
 @layer base {
   :root {
-    --background: 249 243 229; /* rollback-light */
-    --foreground: 60 36 21; /* rollback-dark */
+    --background: 0 0% 100%; /* white */
+    --foreground: 30 70% 16%; /* rollback-dark */
 
     --card: 0 0% 100%;
-    --card-foreground: 60 36 21;
+    --card-foreground: 30 70% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 60 36 21;
+    --popover-foreground: 30 70% 16%;
 
     --primary: 36 73% 58%; /* rollback-primary */
-    --primary-foreground: 60 36 21;
+    --primary-foreground: 30 70% 16%;
 
     --secondary: 36 82% 71%; /* rollback-secondary */
-    --secondary-foreground: 60 36 21;
+    --secondary-foreground: 30 70% 16%;
 
     --muted: 43 82% 89%; /* rollback-cream */
-    --muted-foreground: 60 36 21; /* rollback-dark */
+    --muted-foreground: 30 70% 16%; /* rollback-dark */
 
     --accent: 43 82% 89%; /* rollback-cream */
-    --accent-foreground: 60 36 21; /* rollback-dark */
+    --accent-foreground: 30 70% 16%; /* rollback-dark */
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -36,37 +36,37 @@
 
     --radius: 0.5rem;
 
-    --sidebar-background: 249 243 229; /* rollback-light */
-    --sidebar-foreground: 60 36 21; /* rollback-dark */
+    --sidebar-background: 43 82% 90%; /* rollback-light */
+    --sidebar-foreground: 30 70% 16%; /* rollback-dark */
     --sidebar-primary: 36 73% 58%; /* rollback-primary */
-    --sidebar-primary-foreground: 60 36 21; /* rollback-dark */
+    --sidebar-primary-foreground: 30 70% 16%; /* rollback-dark */
     --sidebar-accent: 43 82% 89%; /* rollback-cream */
-    --sidebar-accent-foreground: 60 36 21; /* rollback-dark */
+    --sidebar-accent-foreground: 30 70% 16%; /* rollback-dark */
     --sidebar-border: 43 82% 89%; /* rollback-cream */
     --sidebar-ring: 36 73% 58%; /* rollback-primary */
   }
 
   .dark {
-    --background: 60 36 21; /* rollback-dark */
-    --foreground: 249 243 229; /* rollback-light */
+    --background: 30 70% 16%; /* rollback-dark */
+    --foreground: 43 82% 90%; /* rollback-light */
 
-    --card: 60 36 21;
-    --card-foreground: 249 243 229;
+    --card: 30 70% 16%;
+    --card-foreground: 43 82% 90%;
 
-    --popover: 60 36 21;
-    --popover-foreground: 249 243 229;
+    --popover: 30 70% 16%;
+    --popover-foreground: 43 82% 90%;
 
     --primary: 36 73% 58%; /* rollback-primary */
-    --primary-foreground: 60 36 21;
+    --primary-foreground: 30 70% 16%;
 
-    --secondary: 44 85% 72%; /* rollback-secondary */
-    --secondary-foreground: 60 36 21; /* rollback-dark */
+    --secondary: 36 82% 71%; /* rollback-secondary */
+    --secondary-foreground: 30 70% 16%; /* rollback-dark */
 
     --muted: 30 39% 39%; /* rollback-brown */
-    --muted-foreground: 249 243 229; /* rollback-light */
+    --muted-foreground: 43 82% 90%; /* rollback-light */
 
     --accent: 30 39% 39%; /* rollback-brown */
-    --accent-foreground: 249 243 229; /* rollback-light */
+    --accent-foreground: 43 82% 90%; /* rollback-light */
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
@@ -75,12 +75,12 @@
     --input: 30 39% 39%; /* rollback-brown */
     --ring: 36 73% 58%;
 
-    --sidebar-background: 60 36 21; /* rollback-dark */
-    --sidebar-foreground: 249 243 229; /* rollback-light */
+    --sidebar-background: 30 70% 16%; /* rollback-dark */
+    --sidebar-foreground: 43 82% 90%; /* rollback-light */
     --sidebar-primary: 36 73% 58%; /* rollback-primary */
-    --sidebar-primary-foreground: 60 36 21; /* rollback-dark */
+    --sidebar-primary-foreground: 30 70% 16%; /* rollback-dark */
     --sidebar-accent: 30 39% 39%; /* rollback-brown */
-    --sidebar-accent-foreground: 249 243 229; /* rollback-light */
+    --sidebar-accent-foreground: 43 82% 90%; /* rollback-light */
     --sidebar-border: 30 39% 39%; /* rollback-brown */
     --sidebar-ring: 36 73% 58%; /* rollback-primary */
   }

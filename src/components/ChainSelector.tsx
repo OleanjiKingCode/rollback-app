@@ -129,7 +129,7 @@ export function ChainSelector({
 
         {/* Chain Selection Modal - same as before */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="sm:max-w-lg max-h-[80vh] flex flex-col">
+          <DialogContent className="w-[95vw] max-w-lg sm:max-w-lg max-h-[85vh] sm:max-h-[80vh] flex flex-col p-4 sm:p-6 bg-white">
             <DialogHeader>
               <DialogTitle>Supported Networks</DialogTitle>
             </DialogHeader>
@@ -189,25 +189,25 @@ export function ChainSelector({
                     {mainnets.length}
                   </Badge>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                   {mainnets.map((chain) => (
                     <Button
                       key={chain.id}
                       onClick={() => handleChainSelect(chain)}
                       variant="ghost"
-                      className={`h-24 flex flex-col items-center justify-center p-3 relative ${
+                      className={`h-20 sm:h-24 flex flex-col items-center justify-center p-2 sm:p-3 relative ${
                         chainId === chain.id
                           ? "bg-[#E9A344] text-white hover:bg-[#D4941A] ring-2 ring-[#E9A344]"
                           : "hover:bg-gray-50 border border-gray-200"
                       } rounded-xl transition-all duration-200`}
                     >
                       {chainId === chain.id && (
-                        <Check className="h-4 w-4 absolute top-2 right-2" />
+                        <Check className="h-3 w-3 sm:h-4 sm:w-4 absolute top-1 right-1 sm:top-2 sm:right-2" />
                       )}
                       <img
                         src={chain.logo}
                         alt={chain.name}
-                        className="h-8 w-8 rounded-full mb-2"
+                        className="h-6 w-6 sm:h-8 sm:w-8 rounded-full mb-1 sm:mb-2"
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
                         }}
@@ -247,25 +247,25 @@ export function ChainSelector({
                   <h4 className="text-sm font-medium text-gray-900">
                     Testnets
                   </h4>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                     {testnets.map((chain) => (
                       <Button
                         key={chain.id}
                         onClick={() => handleChainSelect(chain)}
                         variant="ghost"
-                        className={`h-28 flex flex-col items-center justify-center p-3 relative ${
+                        className={`h-24 sm:h-28 flex flex-col items-center justify-center p-2 sm:p-3 relative ${
                           chainId === chain.id
                             ? "bg-[#E9A344] text-white hover:bg-[#D4941A] ring-2 ring-[#E9A344]"
                             : "hover:bg-gray-50 border border-gray-200"
                         } rounded-xl transition-all duration-200`}
                       >
                         {chainId === chain.id && (
-                          <Check className="h-4 w-4 absolute top-2 right-2" />
+                          <Check className="h-3 w-3 sm:h-4 sm:w-4 absolute top-1 right-1 sm:top-2 sm:right-2" />
                         )}
                         <img
                           src={chain.logo}
                           alt={chain.name}
-                          className="h-6 w-6 rounded-full mb-1 opacity-75"
+                          className="h-5 w-5 sm:h-6 sm:w-6 rounded-full mb-1 opacity-75"
                           onError={(e) => {
                             e.currentTarget.style.display = "none";
                           }}
@@ -276,7 +276,7 @@ export function ChainSelector({
                           </span>
                           <Badge
                             variant="secondary"
-                            className="text-[10px] px-2 py-0.5"
+                            className="text-[10px] px-1.5 py-0.5 sm:px-2"
                           >
                             Testnet
                           </Badge>
@@ -361,7 +361,7 @@ export function ChainSelector({
 
       {/* Chain Selection Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[80vh] flex flex-col">
+        <DialogContent className="w-[95vw] max-w-lg sm:max-w-lg max-h-[85vh] sm:max-h-[80vh] flex flex-col p-4 sm:p-6 bg-white">
           <DialogHeader>
             <DialogTitle>Supported Networks</DialogTitle>
           </DialogHeader>
@@ -375,25 +375,25 @@ export function ChainSelector({
                   {mainnets.length}
                 </Badge>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                 {mainnets.map((chain) => (
                   <Button
                     key={chain.id}
                     onClick={() => handleChainSelect(chain)}
                     variant="ghost"
-                    className={`h-24 flex flex-col items-center justify-center p-3 relative ${
+                    className={`h-20 sm:h-24 flex flex-col items-center justify-center p-2 sm:p-3 relative ${
                       chainId === chain.id
                         ? "bg-[#E9A344] text-white hover:bg-[#D4941A] ring-2 ring-[#E9A344]"
                         : "hover:bg-gray-50 border border-gray-200"
                     } rounded-xl transition-all duration-200`}
                   >
                     {chainId === chain.id && (
-                      <Check className="h-4 w-4 absolute top-2 right-2" />
+                      <Check className="h-3 w-3 sm:h-4 sm:w-4 absolute top-1 right-1 sm:top-2 sm:right-2" />
                     )}
                     <img
                       src={chain.logo}
                       alt={chain.name}
-                      className="h-10 w-10 rounded-full mb-2"
+                      className="h-8 w-8 sm:h-10 sm:w-10 rounded-full mb-1 sm:mb-2"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
                       }}
@@ -431,25 +431,25 @@ export function ChainSelector({
             >
               <div className="space-y-3 pt-2">
                 <h4 className="text-sm font-medium text-gray-900">Testnets</h4>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                   {testnets.map((chain) => (
                     <Button
                       key={chain.id}
                       onClick={() => handleChainSelect(chain)}
                       variant="ghost"
-                      className={`h-28 flex flex-col items-center justify-center p-3 relative ${
+                      className={`h-24 sm:h-28 flex flex-col items-center justify-center p-2 sm:p-3 relative ${
                         chainId === chain.id
                           ? "bg-[#E9A344] text-white hover:bg-[#D4941A] ring-2 ring-[#E9A344]"
                           : "hover:bg-gray-50 border border-gray-200"
                       } rounded-xl transition-all duration-200`}
                     >
                       {chainId === chain.id && (
-                        <Check className="h-4 w-4 absolute top-2 right-2" />
+                        <Check className="h-3 w-3 sm:h-4 sm:w-4 absolute top-1 right-1 sm:top-2 sm:right-2" />
                       )}
                       <img
                         src={chain.logo}
                         alt={chain.name}
-                        className="h-8 w-8 rounded-full mb-1 opacity-75"
+                        className="h-6 w-6 sm:h-8 sm:w-8 rounded-full mb-1 opacity-75"
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
                         }}
@@ -460,7 +460,7 @@ export function ChainSelector({
                         </span>
                         <Badge
                           variant="secondary"
-                          className="text-[10px] px-2 py-0.5"
+                          className="text-[10px] px-1.5 py-0.5 sm:px-2"
                         >
                           Testnet
                         </Badge>
