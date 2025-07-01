@@ -53,11 +53,11 @@ const WalletConnectionState = ({ isConnected, address }: any) => {
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-rollback-cream to-rollback-secondary/20 rounded-full -ml-10 -mb-10" />
 
             <div className="relative z-10">
-              <div className="w-20 h-20 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <Unlink className="h-10 w-10 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Unlink className="h-5 w-5 text-white" />
               </div>
 
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
                 Connect Your Wallet
               </h3>
 
@@ -67,10 +67,10 @@ const WalletConnectionState = ({ isConnected, address }: any) => {
 
               <button
                 onClick={openConnectModal}
-                className="bg-gradient-to-r from-rollback-primary to-rollback-primary/90 hover:from-rollback-primary/90 hover:to-rollback-primary text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center mx-auto space-x-3"
+                className="bg-gradient-to-r from-rollback-primary to-rollback-primary/90 hover:from-rollback-primary/90 hover:to-rollback-primary text-white px-4 py-2 rounded-xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center mx-auto space-x-3"
               >
-                <Wallet className="h-5 w-5" />
-                <span>Connect Wallet</span>
+                <Wallet className="h-4 w-4" />
+                <span className="text-sm">Connect Wallet</span>
               </button>
             </div>
           </div>
@@ -270,7 +270,7 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Token Monitoring */}
           <Card className="border-gray-200 bg-white rounded-2xl">
             <CardHeader>
