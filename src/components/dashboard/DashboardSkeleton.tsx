@@ -147,41 +147,6 @@ export const WalletConfigSkeleton = () => {
   );
 };
 
-// Recent Activity Skeleton
-export const RecentActivitySkeleton = () => {
-  return (
-    <Card className="border-gray-200 bg-white rounded-2xl">
-      <CardHeader>
-        <div className="flex items-center">
-          <Skeleton className="h-4 w-4 mr-2" />
-          <Skeleton className="h-5 w-28" />
-        </div>
-        <Skeleton className="h-3 w-36" />
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {[...Array(4)].map((_, i) => (
-            <div
-              key={i}
-              className="flex items-center space-x-4 p-3 rounded-xl bg-gray-50"
-            >
-              <Skeleton className="w-10 h-10 rounded-full" />
-              <div className="flex-1">
-                <Skeleton className="h-4 w-32 mb-1" />
-                <Skeleton className="h-3 w-48" />
-              </div>
-              <div className="text-right">
-                <Skeleton className="h-3 w-16 mb-1" />
-                <Skeleton className="h-3 w-12" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
 // Header Skeleton
 export const DashboardHeaderSkeleton = () => {
   return (
@@ -226,9 +191,8 @@ export const DashboardSkeleton = () => {
         </div>
 
         {/* Detailed Sections Skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="max-w-4xl mx-auto">
           <WalletConfigSkeleton />
-          <RecentActivitySkeleton />
         </div>
       </div>
     </div>

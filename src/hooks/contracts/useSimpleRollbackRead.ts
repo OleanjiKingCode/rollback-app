@@ -20,8 +20,6 @@ export const useCheckDirectRollbackWallet = (
     args: userAddress ? [userAddress] : undefined,
     query: {
       enabled: enabled && !!userAddress,
-      staleTime: 30000,
-      retry: 2,
     },
   });
 };
@@ -100,6 +98,23 @@ export const useGetMonitoredTokens = (
 };
 
 /**
+ * Hook to get all votes from a rollback wallet
+ */
+export const useGetAllVotes = (
+  walletAddress?: Address,
+  enabled: boolean = true
+) => {
+  return useReadContract({
+    address: walletAddress,
+    abi: ROLLBACK_WALLET_ABI,
+    functionName: "getAllVotes",
+    query: {
+      enabled: enabled && !!walletAddress,
+    },
+  });
+};
+
+/**
  * Hook to find if user is in any rollback system (as owner or recovery wallet)
  */
 export const useSimpleFindRollbackWallet = (
@@ -112,6 +127,8 @@ export const useSimpleFindRollbackWallet = (
     isLoading: isLoadingDirect,
     error: directError,
   } = useCheckDirectRollbackWallet(userAddress, enabled);
+
+  console.log(userAddress, directWalletAddress);
 
   // Check all creation requests to see if user is in any system
   const {
@@ -235,6 +252,8 @@ export const useCompleteWalletData = (
 
   const walletAddress = walletResult?.walletAddress as Address;
   const hasWallet = !!walletResult?.hasWallet && !!walletAddress;
+
+  console.log({ walletAddress });
 
   // Get system config
   const {

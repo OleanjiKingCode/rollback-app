@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Shield, Wallet, WifiOff } from "lucide-react";
+import { Shield, Wallet, Unlink } from "lucide-react";
 import { RiLoader4Line } from "react-icons/ri";
 
 interface SkeletonProps {
@@ -146,7 +146,7 @@ export function WalletConnectionState({
 
           <div className="relative z-10">
             <div className="w-20 h-20 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <WifiOff className="h-10 w-10 text-white animate-pulse" />
+              <Unlink className="h-10 w-10 text-white" />
             </div>
 
             <h3 className="text-2xl font-bold text-gray-900 mb-3">
@@ -165,10 +165,6 @@ export function WalletConnectionState({
               <Wallet className="h-5 w-5" />
               <span>Connect Wallet</span>
             </button>
-
-            <div className="mt-6 text-xs text-gray-500">
-              <p>Supported wallets: MetaMask, WalletConnect, Coinbase Wallet</p>
-            </div>
           </div>
         </div>
       </div>

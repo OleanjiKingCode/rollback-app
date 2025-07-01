@@ -62,6 +62,7 @@ import {
   Loader2,
   RefreshCw,
   Users,
+  Unlink,
 } from "lucide-react";
 import { RiLoader4Line } from "react-icons/ri";
 import type { CreateWalletFormData } from "@/types/api";
@@ -423,26 +424,35 @@ export default function CreateWalletFlow() {
   // Wallet connection check
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-rollback-light to-white pt-16 lg:pt-8 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-center max-w-lg bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-            <div className="w-20 h-20 bg-gradient-to-br from-[#E9A344] to-[#D4941A] rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <WifiOff className="h-10 w-10 text-white" />
+          <div className="text-center max-w-lg rounded-3xl p-8 border border-gray-100 relative overflow-hidden">
+            {/* Decorative background */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-rollback-primary/10 to-rollback-secondary/10 rounded-full -mr-16 -mt-16" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-rollback-cream to-rollback-secondary/20 rounded-full -ml-10 -mb-10" />
+
+            <div className="relative z-10">
+              <div className="w-20 h-20 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Unlink className="h-10 w-10 text-white" />
+              </div>
+
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                Connect Your Wallet
+              </h3>
+
+              <p className="text-gray-600 mb-8 text-sm leading-relaxed">
+                Connect your wallet to participate in governance voting and
+                manage your rollback wallet proposals.
+              </p>
+
+              <button
+                onClick={openConnectModal}
+                className="bg-gradient-to-r from-rollback-primary to-rollback-primary/90 hover:from-rollback-primary/90 hover:to-rollback-primary text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center mx-auto space-x-3"
+              >
+                <Wallet className="h-5 w-5" />
+                <span>Connect Wallet</span>
+              </button>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">
-              Wallet Required
-            </h3>
-            <p className="text-gray-600 mb-8 text-sm leading-relaxed">
-              Connect your wallet to create rollback protection for your crypto
-              assets.
-            </p>
-            <Button
-              onClick={openConnectModal}
-              className="bg-gradient-to-r from-[#E9A344] to-[#D4941A] hover:from-[#D4941A] hover:to-[#E9A344] text-white px-8 py-3 text-lg rounded-2xl"
-            >
-              <Wallet className="h-5 w-5 mr-3" />
-              Connect Wallet
-            </Button>
           </div>
         </div>
       </div>

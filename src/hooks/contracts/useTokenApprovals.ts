@@ -3,7 +3,7 @@ import { useAccount, useReadContract } from "wagmi";
 import { type Address } from "viem";
 import { ERC20_ABI, ERC721_ABI } from "@/config/contracts";
 import {
-  useCheckDirectRollbackWallet,
+  useSimpleFindRollbackWallet,
   useGetAllWallets,
   useGetMonitoredTokens,
 } from "./useSimpleRollbackRead";
@@ -81,18 +81,27 @@ export const useTokenApprovals = () => {
     []
   );
 
-  const { data: rollbackWalletData, isLoading: loadingRollback } =
-    useCheckDirectRollbackWallet(address, isConnected);
+  const { data: rollbackWalletResult, isLoading: loadingRollback } =
+    useSimpleFindRollbackWallet(address, isConnected);
 
   const rollbackWalletAddress = useMemo(() => {
+    console.log(
+      "Token Approvals - Rollback wallet result:",
+      rollbackWalletResult
+    );
     if (
-      rollbackWalletData &&
-      rollbackWalletData !== "0x0000000000000000000000000000000000000000"
+      rollbackWalletResult?.hasWallet &&
+      rollbackWalletResult?.walletAddress
     ) {
-      return rollbackWalletData as string;
+      console.log(
+        "Token Approvals - Found rollback wallet:",
+        rollbackWalletResult.walletAddress
+      );
+      return rollbackWalletResult.walletAddress;
     }
+    console.log("Token Approvals - No rollback wallet found");
     return null;
-  }, [rollbackWalletData]);
+  }, [rollbackWalletResult]);
 
   const { data: allWalletsData, isLoading: loadingWallets } = useGetAllWallets(
     rollbackWalletAddress as Address,

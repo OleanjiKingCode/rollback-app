@@ -23,6 +23,7 @@ import {
   Copy,
 } from "lucide-react";
 import { useSidebarContext } from "@/App";
+import { ChainSelector } from "./ChainSelector";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -155,10 +156,30 @@ export function Sidebar() {
           >
             {(!isCollapsed || isMobile) && (
               <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs text-gray-500 mb-1">Connected Wallet</p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-gray-500">Connected Wallet</p>
+                  <ChainSelector
+                    isCollapsed={false}
+                    isMobile={isMobile}
+                    showAsStackedLogos={true}
+                  />
+                </div>
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {formatAddress(address!)}
                 </p>
+              </div>
+            )}
+
+            {isCollapsed && !isMobile && (
+              <div className="flex flex-col items-center space-y-2">
+                <ChainSelector
+                  isCollapsed={true}
+                  isMobile={isMobile}
+                  showAsStackedLogos={true}
+                />
+                <div className="text-xs text-gray-600 text-center truncate">
+                  {formatAddress(address!)}
+                </div>
               </div>
             )}
 

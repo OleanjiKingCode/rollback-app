@@ -25,25 +25,25 @@ class CustomError extends Error {
 }
 
 /**
- * Hook for requesting votes in rollback wallet
+ * Hook for requesting votes in rollback wallet with dynamic parameters
  */
-export const useWriteRequestVote = (
-  walletAddress?: Address,
-  voteType?: "AGENT_CHANGE" | "THRESHOLD_CHANGE" | "OBSOLETE_WALLET",
-  targetAddress?: Address,
-  targetValue?: number
-) => {
+export const useWriteRequestVote = (walletAddress?: Address) => {
   const { address } = useAccount();
   const { ErrorSonner, LoadingSonner, SuccessfulSonner } = sonnerToasts();
 
   const [enabled, setEnabled] = useState(false);
+  const [voteParams, setVoteParams] = useState<{
+    voteType: "AGENT_CHANGE" | "THRESHOLD_CHANGE" | "OBSOLETE_WALLET";
+    targetAddress: Address;
+    targetValue: bigint;
+  } | null>(null);
   const [errorException, setErrorException] = useState<Error>();
   const toastIdRef = useRef<string | number>();
   const newFetchRef = useRef(false);
 
-  const voteTypeEnum = voteType ? VOTE_TYPE[voteType] : undefined;
-  const target = targetAddress || "0x0000000000000000000000000000000000000000";
-  const value = targetValue ? BigInt(targetValue) : BigInt(0);
+  const voteTypeNumber = voteParams
+    ? VOTE_TYPE[voteParams.voteType]
+    : undefined;
 
   const {
     data: simData,
@@ -54,15 +54,20 @@ export const useWriteRequestVote = (
     address: walletAddress,
     abi: ROLLBACK_WALLET_ABI,
     functionName: "requestVote",
-    args:
-      voteTypeEnum !== undefined ? [voteTypeEnum, target, value] : undefined,
+    args: voteParams
+      ? [voteTypeNumber!, voteParams.targetAddress, voteParams.targetValue]
+      : undefined,
     query: {
-      enabled: enabled && !!walletAddress && voteTypeEnum !== undefined,
+      enabled:
+        enabled &&
+        !!walletAddress &&
+        !!voteParams &&
+        voteTypeNumber !== undefined,
     },
   });
 
   const {
-    writeContract: requestVote,
+    writeContract: writeRequestVote,
     data: writeData,
     error: writeError,
     status: writeStatus,
@@ -70,8 +75,13 @@ export const useWriteRequestVote = (
   } = useWriteContract({
     mutation: {
       onMutate() {
+        const voteTypeLabel =
+          voteParams?.voteType === "OBSOLETE_WALLET"
+            ? "Emergency Rollback"
+            : voteParams?.voteType.replace("_", " ") || "Vote";
+
         const toastId = LoadingSonner({
-          message: `Requesting ${voteType?.replace("_", " ")} Vote`,
+          message: `Requesting ${voteTypeLabel}`,
         });
         if (toastId !== toastIdRef.current) {
           toastApi.dismiss(toastIdRef.current);
@@ -79,26 +89,38 @@ export const useWriteRequestVote = (
         }
         setEnabled(false);
       },
-      onSuccess() {
+      onSuccess(data) {
+        const voteTypeLabel =
+          voteParams?.voteType === "OBSOLETE_WALLET"
+            ? "Emergency Rollback"
+            : voteParams?.voteType.replace("_", " ") || "Vote";
+
         SuccessfulSonner({
-          header: "Vote Request",
-          message: `${voteType?.replace("_", " ")} vote requested successfully`,
-          duration: 3000,
+          header: "Vote Request Submitted",
+          message: `${voteTypeLabel} vote created successfully. Waiting for approvals.`,
+          duration: 4000,
           toastProps: {
             id: toastIdRef.current,
           },
         });
         setEnabled(false);
+        setVoteParams(null);
       },
-      onError() {
+      onError(error) {
+        const voteTypeLabel =
+          voteParams?.voteType === "OBSOLETE_WALLET"
+            ? "Emergency Rollback"
+            : voteParams?.voteType.replace("_", " ") || "Vote";
+
         ErrorSonner({
-          header: "Vote Request Error",
-          message: `Failed to request ${voteType?.replace("_", " ")} vote`,
+          header: "Vote Request Failed",
+          message: `Failed to create ${voteTypeLabel} vote. Please try again.`,
           toastProps: {
             id: toastIdRef.current,
           },
         });
         setEnabled(false);
+        setVoteParams(null);
       },
     },
   });
@@ -116,10 +138,10 @@ export const useWriteRequestVote = (
       simStatus === "success" &&
       simData?.request
     ) {
-      requestVote(simData.request);
+      writeRequestVote(simData.request);
       newFetchRef.current = false;
     }
-  }, [simStatus, simData, enabled, requestVote]);
+  }, [simStatus, simData, enabled, writeRequestVote]);
 
   useEffect(() => {
     if (simError && enabled) {
@@ -131,6 +153,7 @@ export const useWriteRequestVote = (
           id: toastIdRef.current,
         },
       });
+      setVoteParams(null);
     }
   }, [simError, enabled]);
 
@@ -150,18 +173,40 @@ export const useWriteRequestVote = (
   useEffect(() => {
     if (writeStatus === "error") {
       writeReset();
+      setVoteParams(null);
     }
   }, [writeStatus, writeReset]);
 
   useEffect(() => {
     if (errorException !== undefined) {
-      console.error("Sentry capture:", errorException);
-      // TODO: Add Sentry.captureException(errorException);
+      // TODO: Add error tracking
     }
   }, [errorException]);
 
+  const requestVote = useCallback(
+    (
+      voteType: "AGENT_CHANGE" | "THRESHOLD_CHANGE" | "OBSOLETE_WALLET",
+      targetAddress: Address,
+      targetValue: bigint = BigInt(0)
+    ) => {
+      const voteTypeNumber = VOTE_TYPE[voteType];
+      console.log("🎯 requestVote called with:", {
+        voteType,
+        voteTypeNumber,
+        targetAddress,
+        targetValue: targetValue.toString(),
+        walletAddress,
+        VOTE_TYPE_ENUM: VOTE_TYPE,
+      });
+
+      setVoteParams({ voteType, targetAddress, targetValue });
+      setEnabled(true);
+    },
+    [walletAddress]
+  );
+
   return {
-    requestVote: useCallback(() => setEnabled(true), []),
+    requestVote,
     data: writeData,
     error: writeError,
     status: writeStatus,
@@ -172,17 +217,17 @@ export const useWriteRequestVote = (
 };
 
 /**
- * Hook for confirming votes in rollback wallet
+ * Hook for confirming votes in rollback wallet with dynamic parameters
  */
-export const useWriteConfirmVote = (
-  walletAddress?: Address,
-  voteId?: number,
-  approve?: boolean
-) => {
+export const useWriteConfirmVote = (walletAddress?: Address) => {
   const { address } = useAccount();
   const { ErrorSonner, LoadingSonner, SuccessfulSonner } = sonnerToasts();
 
   const [enabled, setEnabled] = useState(false);
+  const [voteParams, setVoteParams] = useState<{
+    voteId: number;
+    approve: boolean;
+  } | null>(null);
   const [errorException, setErrorException] = useState<Error>();
   const toastIdRef = useRef<string | number>();
   const newFetchRef = useRef(false);
@@ -196,21 +241,16 @@ export const useWriteConfirmVote = (
     address: walletAddress,
     abi: ROLLBACK_WALLET_ABI,
     functionName: "confirmVote",
-    args:
-      voteId !== undefined && approve !== undefined
-        ? [BigInt(voteId), approve]
-        : undefined,
+    args: voteParams
+      ? [BigInt(voteParams.voteId), voteParams.approve]
+      : undefined,
     query: {
-      enabled:
-        enabled &&
-        !!walletAddress &&
-        voteId !== undefined &&
-        approve !== undefined,
+      enabled: enabled && !!walletAddress && !!voteParams,
     },
   });
 
   const {
-    writeContract: confirmVote,
+    writeContract: writeConfirmVote,
     data: writeData,
     error: writeError,
     status: writeStatus,
@@ -218,8 +258,9 @@ export const useWriteConfirmVote = (
   } = useWriteContract({
     mutation: {
       onMutate() {
+        const action = voteParams?.approve ? "Approving" : "Rejecting";
         const toastId = LoadingSonner({
-          message: `${approve ? "Approving" : "Rejecting"} Vote`,
+          message: `${action} Vote #${voteParams?.voteId}`,
         });
         if (toastId !== toastIdRef.current) {
           toastApi.dismiss(toastIdRef.current);
@@ -228,25 +269,29 @@ export const useWriteConfirmVote = (
         setEnabled(false);
       },
       onSuccess() {
+        const action = voteParams?.approve ? "approved" : "rejected";
         SuccessfulSonner({
-          header: "Vote Confirmation",
-          message: `Vote ${approve ? "approved" : "rejected"} successfully`,
+          header: "Vote Confirmed",
+          message: `Vote #${voteParams?.voteId} ${action} successfully`,
           duration: 3000,
           toastProps: {
             id: toastIdRef.current,
           },
         });
         setEnabled(false);
+        setVoteParams(null);
       },
       onError() {
+        const action = voteParams?.approve ? "approve" : "reject";
         ErrorSonner({
-          header: "Vote Confirmation Error",
-          message: `Failed to ${approve ? "approve" : "reject"} vote`,
+          header: "Vote Confirmation Failed",
+          message: `Failed to ${action} vote. Please try again.`,
           toastProps: {
             id: toastIdRef.current,
           },
         });
         setEnabled(false);
+        setVoteParams(null);
       },
     },
   });
@@ -264,10 +309,10 @@ export const useWriteConfirmVote = (
       simStatus === "success" &&
       simData?.request
     ) {
-      confirmVote(simData.request);
+      writeConfirmVote(simData.request);
       newFetchRef.current = false;
     }
-  }, [simStatus, simData, enabled, confirmVote]);
+  }, [simStatus, simData, enabled, writeConfirmVote]);
 
   useEffect(() => {
     if (simError && enabled) {
@@ -279,6 +324,7 @@ export const useWriteConfirmVote = (
           id: toastIdRef.current,
         },
       });
+      setVoteParams(null);
     }
   }, [simError, enabled]);
 
@@ -298,17 +344,23 @@ export const useWriteConfirmVote = (
   useEffect(() => {
     if (writeStatus === "error") {
       writeReset();
+      setVoteParams(null);
     }
   }, [writeStatus, writeReset]);
 
   useEffect(() => {
     if (errorException !== undefined) {
-      console.error("Sentry capture:", errorException);
+      // TODO: Add error tracking
     }
   }, [errorException]);
 
+  const confirmVote = useCallback((voteId: number, approve: boolean) => {
+    setVoteParams({ voteId, approve });
+    setEnabled(true);
+  }, []);
+
   return {
-    confirmVote: useCallback(() => setEnabled(true), []),
+    confirmVote,
     data: writeData,
     error: writeError,
     status: writeStatus,
@@ -319,58 +371,61 @@ export const useWriteConfirmVote = (
 };
 
 /**
- * Composite hook for complete vote management
+ * Composite hook for complete vote management with proper parameter handling
  */
 export const useVoteManagement = (walletAddress?: Address) => {
-  // Individual hooks for different vote operations
-  const agentChangeVote = useWriteRequestVote(walletAddress, "AGENT_CHANGE");
-  const thresholdChangeVote = useWriteRequestVote(
-    walletAddress,
-    "THRESHOLD_CHANGE"
-  );
-  const obsoleteWalletVote = useWriteRequestVote(
-    walletAddress,
-    "OBSOLETE_WALLET"
-  );
+  const requestVoteHook = useWriteRequestVote(walletAddress);
   const confirmVoteHook = useWriteConfirmVote(walletAddress);
 
+  // Specific request functions
+  const requestAgentChange = (targetAddress: Address) => {
+    console.log("🧑‍💼 requestAgentChange called:", { targetAddress });
+    requestVoteHook.requestVote("AGENT_CHANGE", targetAddress);
+  };
+
+  const requestThresholdChange = (newThresholdDays: number) => {
+    const thresholdSeconds = BigInt(newThresholdDays * 24 * 60 * 60);
+    console.log("⏰ requestThresholdChange called:", {
+      newThresholdDays,
+      thresholdSeconds: thresholdSeconds.toString(),
+    });
+    requestVoteHook.requestVote(
+      "THRESHOLD_CHANGE",
+      "0x0000000000000000000000000000000000000000" as Address,
+      thresholdSeconds
+    );
+  };
+
+  const requestEmergencyRollback = (targetWalletAddress: Address) => {
+    console.log("🚨 requestEmergencyRollback called:", { targetWalletAddress });
+    requestVoteHook.requestVote("OBSOLETE_WALLET", targetWalletAddress);
+  };
+
   return {
-    // Vote request functions
-    requestAgentChange: agentChangeVote.requestVote,
-    requestThresholdChange: thresholdChangeVote.requestVote,
-    requestObsoleteWallet: obsoleteWalletVote.requestVote,
+    // Vote request functions with proper parameters
+    requestAgentChange,
+    requestThresholdChange,
+    requestEmergencyRollback,
+    // Generic request function for custom use
+    requestVote: requestVoteHook.requestVote,
 
     // Vote confirmation function
     confirmVote: confirmVoteHook.confirmVote,
 
     // Loading states
-    isRequestingVote:
-      agentChangeVote.isLoading ||
-      thresholdChangeVote.isLoading ||
-      obsoleteWalletVote.isLoading,
+    isRequestingVote: requestVoteHook.isLoading,
     isConfirmingVote: confirmVoteHook.isLoading,
 
     // Error states
-    voteRequestError:
-      agentChangeVote.error ||
-      thresholdChangeVote.error ||
-      obsoleteWalletVote.error,
+    voteRequestError: requestVoteHook.error,
     voteConfirmError: confirmVoteHook.error,
 
     // Status tracking
-    voteRequestStatus: {
-      agentChange: agentChangeVote.status,
-      thresholdChange: thresholdChangeVote.status,
-      obsoleteWallet: obsoleteWalletVote.status,
-    },
+    voteRequestStatus: requestVoteHook.status,
     voteConfirmStatus: confirmVoteHook.status,
 
     // Transaction data
-    voteRequestData: {
-      agentChange: agentChangeVote.data,
-      thresholdChange: thresholdChangeVote.data,
-      obsoleteWallet: obsoleteWalletVote.data,
-    },
+    voteRequestData: requestVoteHook.data,
     voteConfirmData: confirmVoteHook.data,
   };
 };
