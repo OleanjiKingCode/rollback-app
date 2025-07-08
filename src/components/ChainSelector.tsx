@@ -134,8 +134,7 @@ export function ChainSelector({
               <DialogTitle>Supported Networks</DialogTitle>
             </DialogHeader>
 
-            <div className="flex-1 overflow-y-auto space-y-4">
-              {/* Active Network */}
+            <div className="flex-1 overflow-y-auto space-y-4 p-2">
               {currentChain && (
                 <div className="space-y-3">
                   <div className="bg-[#E9A344]/10 border border-[#E9A344]/20 rounded-xl p-2">

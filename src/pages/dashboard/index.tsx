@@ -318,47 +318,189 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Wallet Configuration */}
+        {/* Wallet Details */}
         <div className="mb-8">
-          <Card className="border-gray-200 bg-white rounded-2xl shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-gray-900 flex items-center">
-                <Shield className="h-6 w-6 mr-3 text-rollback-primary" />
-                Wallet Configuration
-              </CardTitle>
-              <CardDescription className="text-gray-600">
-                Manage your rollback protection settings and recovery options
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-8">
-              {/* Protection Settings */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-                  <div className="flex items-center mb-3">
-                    <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
-                      <span className="text-white text-sm font-bold">T</span>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">
-                        Inactivity Threshold
-                      </h4>
-                      <p className="text-xs text-gray-600">
-                        Days until rollback triggers
-                      </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Recovery Wallets Card */}
+            <Card className="border-gray-200 bg-white rounded-2xl shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-bold text-gray-900 flex items-center">
+                  <Wallet className="h-5 w-5 mr-2 text-rollback-primary" />
+                  Recovery Wallets
+                </CardTitle>
+                <CardDescription className="text-gray-600 text-sm">
+                  All wallets configured for asset recovery
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Recovery Sequence */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-gray-900">
+                      Recovery Sequence ({user.wallets?.length || 0})
+                    </h4>
+                    <Badge variant="outline" className="text-xs">
+                      Priority Order
+                    </Badge>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-xl p-3">
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {user.wallets?.map((wallet, index) => (
+                        <div
+                          key={wallet.id}
+                          className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div
+                              className={`w-6 h-6 rounded-lg flex items-center justify-center text-white text-xs font-semibold ${
+                                wallet.is_obsolete
+                                  ? "bg-red-500"
+                                  : "bg-green-500"
+                              }`}
+                            >
+                              {wallet.priority_position || index + 1}
+                            </div>
+                            <div>
+                              <p className="text-xs font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                                {wallet.address?.slice(0, 6)}...
+                                {wallet.address?.slice(-4)}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {wallet.is_obsolete
+                                  ? "Marked as obsolete"
+                                  : "Active recovery wallet"}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge
+                            variant={
+                              wallet.is_obsolete ? "destructive" : "secondary"
+                            }
+                            className="text-xs"
+                          >
+                            {wallet.is_obsolete ? "Obsolete" : "Active"}
+                          </Badge>
+                        </div>
+                      )) || (
+                        <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-6 h-6 bg-green-500 rounded-lg flex items-center justify-center text-white text-xs font-semibold">
+                              1
+                            </div>
+                            <div>
+                              <p className="text-xs font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                                {address?.slice(0, 6)}...{address?.slice(-4)}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Primary connected wallet
+                              </p>
+                            </div>
+                          </div>
+                          <Badge variant="secondary" className="text-xs">
+                            Primary
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <p className="text-2xl font-bold text-blue-700">
-                    {user.rollbackConfig?.inactivity_threshold || 30} days
-                  </p>
                 </div>
 
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
-                  <div className="flex items-center mb-3">
-                    <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-3">
+                {/* Protected Assets */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-gray-900">
+                      Protected Assets (
+                      {user.rollbackConfig?.tokens_to_monitor?.length || 0})
+                    </h4>
+                    <Badge variant="outline" className="text-xs">
+                      Under Protection
+                    </Badge>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-xl p-3">
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {portfolioLoading ? (
+                        <div className="flex items-center justify-center p-4">
+                          <RiLoader4Line className="h-4 w-4 animate-spin text-rollback-primary mr-2" />
+                          <span className="text-gray-600 text-sm">
+                            Loading assets...
+                          </span>
+                        </div>
+                      ) : portfolio?.tokens?.length ? (
+                        portfolio.tokens.map((token, index) => (
+                          <div
+                            key={token.address}
+                            className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center">
+                                <span className="text-white text-xs font-bold">
+                                  {token.symbol.slice(0, 2).toUpperCase()}
+                                </span>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {token.symbol}
+                                </p>
+                                <p className="text-xs text-gray-600">
+                                  {token.name}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-semibold text-gray-900">
+                                {formatBalance(
+                                  token.totalBalance,
+                                  token.decimals,
+                                  token.symbol
+                                )}
+                              </p>
+                              <Badge variant="outline" className="text-xs mt-1">
+                                {token.type}
+                              </Badge>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="flex flex-col items-center justify-center p-4 text-center">
+                          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mb-2">
+                            <Wallet className="h-4 w-4 text-gray-400" />
+                          </div>
+                          <p className="text-gray-600 text-sm font-medium">
+                            No tokens configured
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Add tokens to enable protection
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Wallet Details Card */}
+            <Card className="border-gray-200 bg-white rounded-2xl shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-bold text-gray-900 flex items-center">
+                  <Shield className="h-5 w-5 mr-2 text-rollback-primary" />
+                  Wallet Details
+                </CardTitle>
+                <CardDescription className="text-gray-600 text-sm">
+                  Rollback method and critical wallet addresses
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Rollback Method */}
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+                  <div className="flex items-center mb-2">
+                    <div className="w-7 h-7 bg-green-500 rounded-lg flex items-center justify-center mr-3">
                       <ArrowRightLeft className="h-4 w-4 text-white" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900">
+                      <h4 className="text-sm font-semibold text-gray-900">
                         Rollback Method
                       </h4>
                       <p className="text-xs text-gray-600">
@@ -370,237 +512,105 @@ export default function Dashboard() {
                     {user.rollbackConfig?.rollback_method || "sequential"}
                   </p>
                 </div>
-              </div>
 
-              {/* Wallet Addresses */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Wallet className="h-5 w-5 mr-2 text-rollback-primary" />
-                  Recovery Wallets
-                </h3>
+                {/* Agent Wallet */}
+                <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-medium text-amber-900">
+                      Agent Wallet
+                    </h4>
+                    <Badge
+                      variant="secondary"
+                      className="bg-amber-100 text-amber-800 text-xs"
+                    >
+                      Primary
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-mono text-amber-800 bg-amber-100 px-3 py-2 rounded-lg">
+                      {user.rollbackConfig?.agent_wallet
+                        ? `${user.rollbackConfig.agent_wallet.slice(
+                            0,
+                            6
+                          )}...${user.rollbackConfig.agent_wallet.slice(-4)}`
+                        : "Not configured"}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        handleCopyAddress(
+                          user.rollbackConfig?.agent_wallet || ""
+                        )
+                      }
+                      className="border-amber-300 hover:bg-amber-100"
+                      disabled={!user.rollbackConfig?.agent_wallet}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-amber-900">
-                        Agent Wallet
+                {/* Fallback Wallet */}
+                <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-medium text-purple-900">
+                      Fallback Wallet
+                    </h4>
+                    <Badge
+                      variant="secondary"
+                      className="bg-purple-100 text-purple-800 text-xs"
+                    >
+                      Backup
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-mono text-purple-800 bg-purple-100 px-3 py-2 rounded-lg">
+                      {user.rollbackConfig?.fallback_wallet
+                        ? `${user.rollbackConfig.fallback_wallet.slice(
+                            0,
+                            6
+                          )}...${user.rollbackConfig.fallback_wallet.slice(-4)}`
+                        : "Not configured"}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        handleCopyAddress(
+                          user.rollbackConfig?.fallback_wallet || ""
+                        )
+                      }
+                      className="border-purple-300 hover:bg-purple-100"
+                      disabled={!user.rollbackConfig?.fallback_wallet}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Inactivity Threshold */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                  <div className="flex items-center mb-2">
+                    <div className="w-7 h-7 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                      <span className="text-white text-sm font-bold">T</span>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900">
+                        Inactivity Threshold
                       </h4>
-                      <Badge
-                        variant="secondary"
-                        className="bg-amber-100 text-amber-800"
-                      >
-                        Primary
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-mono text-amber-800 bg-amber-100 px-3 py-1 rounded-lg">
-                        {user.rollbackConfig?.agent_wallet
-                          ? `${user.rollbackConfig.agent_wallet.slice(
-                              0,
-                              6
-                            )}...${user.rollbackConfig.agent_wallet.slice(-4)}`
-                          : "Not configured"}
+                      <p className="text-xs text-gray-600">
+                        Days until rollback triggers
                       </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handleCopyAddress(
-                            user.rollbackConfig?.agent_wallet || ""
-                          )
-                        }
-                        className="border-amber-300 hover:bg-amber-100"
-                        disabled={!user.rollbackConfig?.agent_wallet}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
-
-                  <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-purple-900">
-                        Fallback Wallet
-                      </h4>
-                      <Badge
-                        variant="secondary"
-                        className="bg-purple-100 text-purple-800"
-                      >
-                        Backup
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-mono text-purple-800 bg-purple-100 px-3 py-1 rounded-lg">
-                        {user.rollbackConfig?.fallback_wallet
-                          ? `${user.rollbackConfig.fallback_wallet.slice(
-                              0,
-                              6
-                            )}...${user.rollbackConfig.fallback_wallet.slice(
-                              -4
-                            )}`
-                          : "Not configured"}
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handleCopyAddress(
-                            user.rollbackConfig?.fallback_wallet || ""
-                          )
-                        }
-                        className="border-purple-300 hover:bg-purple-100"
-                        disabled={!user.rollbackConfig?.fallback_wallet}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                  <p className="text-lg font-bold text-blue-700">
+                    {user.rollbackConfig?.inactivity_threshold || 30} days
+                  </p>
                 </div>
-              </div>
-
-              {/* Recovery Wallets List */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Recovery Sequence ({user.wallets?.length || 0} wallets)
-                  </h3>
-                  <Badge variant="outline" className="text-xs">
-                    Priority Order
-                  </Badge>
-                </div>
-
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="space-y-3 max-h-48 overflow-y-auto">
-                    {user.wallets?.map((wallet, index) => (
-                      <div
-                        key={wallet.id}
-                        className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-semibold ${
-                              wallet.is_obsolete ? "bg-red-500" : "bg-green-500"
-                            }`}
-                          >
-                            {wallet.priority_position || index + 1}
-                          </div>
-                          <div>
-                            <p className="text-sm font-mono text-gray-700 bg-gray-100 px-3 py-1 rounded-lg">
-                              {wallet.address?.slice(0, 6)}...
-                              {wallet.address?.slice(-4)}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {wallet.is_obsolete
-                                ? "Marked as obsolete"
-                                : "Active recovery wallet"}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge
-                          variant={
-                            wallet.is_obsolete ? "destructive" : "secondary"
-                          }
-                        >
-                          {wallet.is_obsolete ? "Obsolete" : "Active"}
-                        </Badge>
-                      </div>
-                    )) || (
-                      <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center text-white font-semibold">
-                            1
-                          </div>
-                          <div>
-                            <p className="text-sm font-mono text-gray-700 bg-gray-100 px-3 py-1 rounded-lg">
-                              {address?.slice(0, 6)}...{address?.slice(-4)}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Primary connected wallet
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant="secondary">Primary</Badge>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Monitored Tokens */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Protected Assets (
-                    {user.rollbackConfig?.tokens_to_monitor?.length || 0}{" "}
-                    tokens)
-                  </h3>
-                  <Badge variant="outline" className="text-xs">
-                    Under Protection
-                  </Badge>
-                </div>
-
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="space-y-3 max-h-40 overflow-y-auto">
-                    {portfolioLoading ? (
-                      <div className="flex items-center justify-center p-6">
-                        <RiLoader4Line className="h-5 w-5 animate-spin text-rollback-primary mr-2" />
-                        <span className="text-gray-600">
-                          Loading protected assets...
-                        </span>
-                      </div>
-                    ) : portfolio?.tokens?.length ? (
-                      portfolio.tokens.map((token, index) => (
-                        <div
-                          key={token.address}
-                          className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                              <span className="text-white text-xs font-bold">
-                                {token.symbol.slice(0, 2).toUpperCase()}
-                              </span>
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                {token.symbol}
-                              </p>
-                              <p className="text-xs text-gray-600">
-                                {token.name}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-gray-900">
-                              {formatBalance(
-                                token.totalBalance,
-                                token.decimals,
-                                token.symbol
-                              )}
-                            </p>
-                            <Badge variant="outline" className="text-xs mt-1">
-                              {token.type}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="flex flex-col items-center justify-center p-8 text-center">
-                        <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mb-3">
-                          <Wallet className="h-6 w-6 text-gray-400" />
-                        </div>
-                        <p className="text-gray-600 font-medium">
-                          No tokens configured
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Add tokens to enable protection
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Portfolio Overview */}

@@ -225,20 +225,12 @@ export default function Settings() {
             </p>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate("/dashboard")}
-            className="border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
+          
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Quick Access to Token Approvals */}
-          <Card className="border-gray-200 bg-white rounded-2xl lg:col-span-2">
+          <Card className="border-gray-200 bg-white rounded-2xl ">
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
                 <CheckSquare className="h-5 w-5 mr-2 text-rollback-primary" />
@@ -248,8 +240,8 @@ export default function Settings() {
                 Essential tool for managing your rollback wallet protection
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between p-6 bg-blue-50 border border-blue-200 rounded-lg">
+            <CardContent className="">
+              <div className="flex flex-col gap-6 items-start p-6 h-full bg-blue-50 border border-blue-200 rounded-lg">
                 <div>
                   <h4 className="text-lg font-semibold text-blue-800 mb-2">
                     Manage Token Approvals
