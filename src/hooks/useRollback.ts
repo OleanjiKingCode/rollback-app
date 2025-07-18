@@ -29,7 +29,10 @@ import type {
   TokenToMonitor,
 } from "@/types/api";
 import { useAppStore } from "@/stores/appStore";
-import { useCompleteWalletData } from "./contracts/useSimpleRollbackRead";
+import {
+  useCompleteWalletData,
+  useSimpleFindRollbackWallet,
+} from "./contracts/useSimpleRollbackRead";
 
 // Rollback Wallet type for hook usage
 export interface RollbackWallet {
@@ -133,7 +136,7 @@ export const useRollbackWallet = () => {
     error: contractError,
   } = useCompleteWalletData(address, isConnected);
 
-  console.log({contractData})
+  console.log({ contractData });
 
   // Combined state from both sources
   const [userData, setUserData] = useState<any>(null);
@@ -338,6 +341,13 @@ export const useWalletCreationFlow = () => {
     totalSignersNeeded: 0,
   });
 
+  // Add the useSimpleFindRollbackWallet hook
+  const {
+    data: rollbackWalletData,
+    isLoading: isLoadingRollbackWallet,
+    error: rollbackWalletError,
+  } = useSimpleFindRollbackWallet(address, isConnected);
+
   // Check for pending creation requests when wallet connects
   const checkPendingRequests = useCallback(async () => {
     if (!publicClient || !address || !isConnected) return;
@@ -530,29 +540,37 @@ export const useWalletCreationFlow = () => {
           isCreating: true,
         }));
 
-        // Step 1: Get the real wallet address from contract (not placeholder)
+        // Step 1: Get the real wallet address from useSimpleFindRollbackWallet (not placeholder)
         let realWalletAddress = state.walletAddress;
 
-        if (state.walletAddress === "WALLET_CREATED_PENDING" && publicClient) {
+        if (state.walletAddress === "WALLET_CREATED_PENDING") {
           console.log(
-            "🔍 [WALLET] Getting real wallet address from contract..."
+            "🔍 [WALLET] Getting real wallet address from useSimpleFindRollbackWallet..."
           );
-          try {
-            const contractWalletAddress = await publicClient.readContract({
-              address: config.rollbackManagerAddress as Address,
-              abi: ROLLBACK_MANAGER_ABI,
-              functionName: "getUserWallet",
-              args: [address],
-            });
+
+          // Wait for the hook to load and get accurate data
+          let retryCount = 0;
+          const maxRetries = 5;
+
+          while (retryCount < maxRetries) {
+            if (isLoadingRollbackWallet) {
+              console.log(
+                `⏳ [WALLET] Waiting for useSimpleFindRollbackWallet data... (attempt ${
+                  retryCount + 1
+                }/${maxRetries})`
+              );
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+              retryCount++;
+              continue;
+            }
 
             if (
-              contractWalletAddress &&
-              contractWalletAddress !==
-                "0x0000000000000000000000000000000000000000"
+              rollbackWalletData?.hasWallet &&
+              rollbackWalletData?.walletAddress
             ) {
-              realWalletAddress = contractWalletAddress as string;
+              realWalletAddress = rollbackWalletData.walletAddress;
               console.log(
-                "✅ [WALLET] Real wallet address retrieved:",
+                "✅ [WALLET] Real wallet address retrieved from useSimpleFindRollbackWallet:",
                 realWalletAddress
               );
 
@@ -561,15 +579,22 @@ export const useWalletCreationFlow = () => {
                 ...prev,
                 walletAddress: realWalletAddress,
               }));
+              break;
             } else {
               console.warn(
-                "⚠️ [WALLET] Contract still returns zero address, using placeholder"
+                "⚠️ [WALLET] useSimpleFindRollbackWallet still returns no wallet, retrying..."
               );
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+              retryCount++;
             }
-          } catch (contractError) {
+          }
+
+          if (
+            retryCount >= maxRetries &&
+            realWalletAddress === "WALLET_CREATED_PENDING"
+          ) {
             console.warn(
-              "⚠️ [WALLET] Failed to get real wallet address from contract:",
-              contractError
+              "⚠️ [WALLET] Failed to get real wallet address from useSimpleFindRollbackWallet after retries, using placeholder"
             );
             // Continue with placeholder - better to store something than nothing
           }
@@ -621,22 +646,25 @@ export const useWalletCreationFlow = () => {
             );
           }
 
-          console.log("📊 [WALLET] Preparing backend payload...", {
-            userAddress: address,
-            rollbackWalletAddress: realWalletAddress,
-            agentWalletAddress: agentWallet || "",
-            email: formData.email,
-            walletsCount: formData.wallets.length,
-            threshold: formData.threshold,
-            isRandomized: formData.isRandomized,
-            fallbackWallet: formData.fallbackWallet,
-            tokensToMonitorCount: formData.tokensToMonitor.length,
-            timestamp: new Date().toISOString(),
-          });
+          console.log(
+            "📊 [WALLET] Preparing backend payload with accurate useSimpleFindRollbackWallet data...",
+            {
+              userAddress: address,
+              rollbackWalletAddress: realWalletAddress,
+              agentWalletAddress: agentWallet || "",
+              email: formData.email,
+              walletsCount: formData.wallets.length,
+              threshold: formData.threshold,
+              isRandomized: formData.isRandomized,
+              fallbackWallet: formData.fallbackWallet,
+              tokensToMonitorCount: formData.tokensToMonitor.length,
+              timestamp: new Date().toISOString(),
+            }
+          );
 
           await updateBackendWithWalletData({
             userAddress: address,
-            rollbackWalletAddress: realWalletAddress, // Use real address here
+            rollbackWalletAddress: realWalletAddress, // Use accurate data from useSimpleFindRollbackWallet
             agentWalletAddress: agentWallet || "",
             agentWalletPrivateKey: agentWalletPrivateKey,
             wallets: formData.wallets,
@@ -652,7 +680,9 @@ export const useWalletCreationFlow = () => {
             })),
           });
 
-          console.log("✅ [WALLET] User data stored in backend successfully");
+          console.log(
+            "✅ [WALLET] User data stored in backend successfully using useSimpleFindRollbackWallet data"
+          );
           backendIntegrated = true;
         } catch (backendError) {
           console.warn(
@@ -671,12 +701,15 @@ export const useWalletCreationFlow = () => {
           isCreating: false,
         }));
 
-        console.log("🎉 [WALLET] Wallet creation completed successfully!", {
-          walletAddress: realWalletAddress,
-          agentWallet,
-          backendIntegrated,
-          timestamp: new Date().toISOString(),
-        });
+        console.log(
+          "🎉 [WALLET] Wallet creation completed successfully with useSimpleFindRollbackWallet data!",
+          {
+            walletAddress: realWalletAddress,
+            agentWallet,
+            backendIntegrated,
+            timestamp: new Date().toISOString(),
+          }
+        );
 
         return {
           walletAddress: realWalletAddress,
@@ -697,7 +730,7 @@ export const useWalletCreationFlow = () => {
         throw error;
       }
     },
-    [address, state.walletAddress, publicClient]
+    [address, state.walletAddress, rollbackWalletData, isLoadingRollbackWallet]
   );
 
   // Reset state

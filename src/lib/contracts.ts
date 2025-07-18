@@ -243,47 +243,42 @@ export const finalizeWalletCreation = async (
     // Wait a bit for the contract state to update
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Get the wallet address by calling getUserWallet
+    // Use findRollbackWalletForAddress for accurate wallet data (equivalent to useSimpleFindRollbackWallet)
     try {
-      const walletAddress = await publicClient.readContract({
-        address: ROLLBACK_MANAGER_ADDRESS,
-        abi: ROLLBACK_MANAGER_ABI,
-        functionName: "getUserWallet",
-        args: [walletClient.account.address],
-      });
+      console.log(
+        "🔍 Getting accurate wallet data using findRollbackWalletForAddress..."
+      );
 
-      console.log({ walletAddress });
-      const walletAddressString = walletAddress as string;
+      const walletResult = await findRollbackWalletForAddress(
+        publicClient,
+        walletClient.account.address
+      );
 
-      // Check if we got a valid address (not zero address)
-      if (
-        walletAddressString &&
-        walletAddressString !== "0x0000000000000000000000000000000000000000"
-      ) {
+      if (walletResult.hasWallet && walletResult.walletAddress) {
         console.log(
           "🎉 Wallet creation finalized successfully! Wallet address:",
-          walletAddressString
+          walletResult.walletAddress
         );
-        return walletAddressString;
+        return walletResult.walletAddress;
       } else {
-        // If still zero address, try getting creation request to verify
+        // If no wallet found, verify the creation request was executed
         const creationRequest = await getCreationRequest(
           publicClient,
           requestId
         );
         if (creationRequest.executed) {
-          // Wallet was created but getUserWallet might be delayed
           console.log(
-            "✅ Wallet created but address not yet available from getUserWallet"
+            "✅ Wallet created but address not yet available - returning pending status"
           );
           return "WALLET_CREATED_PENDING"; // Special value to indicate success but address pending
         }
       }
     } catch (readError) {
       console.warn(
-        "Could not read wallet address immediately after creation:",
+        "Could not get accurate wallet data immediately after creation:",
         readError
       );
+      // Return pending status - the hooks will provide accurate data
       return "WALLET_CREATED_PENDING"; // Special value to indicate success but address pending
     }
 
