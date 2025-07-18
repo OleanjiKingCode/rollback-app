@@ -13,7 +13,8 @@ interface WalletCache {
   [address: string]: {
     data: UserData;
     userRole: "owner" | "recovery_wallet";
-    isFromContract: boolean;
+    isFromContract: boolean; // backward compatibility
+    dataSource: "api" | "contract" | "both"; // new field
     lastFetched: number;
     expiresAt: number;
   };
@@ -24,7 +25,8 @@ interface PersistentWalletInfo {
   address: string;
   rollbackWalletAddress: string;
   userRole: "owner" | "recovery_wallet";
-  isFromContract: boolean;
+  isFromContract: boolean; // backward compatibility
+  dataSource: "api" | "contract" | "both"; // new field
   agentWallet: string;
   fallbackWallet: string;
   threshold: number;
@@ -62,17 +64,18 @@ interface AppState {
   setLastRefreshTime: (time: Date) => void;
   setHasInitiallyLoaded: (loaded: boolean) => void;
 
-  // Wallet cache actions (temporary)
+  // Wallet cache actions (temporary) - updated to support both signatures
   setWalletData: (
     address: string,
     data: UserData,
     userRole: "owner" | "recovery_wallet",
-    isFromContract: boolean
+    isFromContractOrDataSource: boolean | "api" | "contract" | "both"
   ) => void;
   getWalletData: (address: string) => {
     data: UserData;
     userRole: "owner" | "recovery_wallet";
     isFromContract: boolean;
+    dataSource?: "api" | "contract" | "both"; // optional for backward compatibility
   } | null;
   invalidateWalletCache: (address?: string) => void;
 
@@ -156,8 +159,23 @@ export const useAppStore = create<AppState>()(
             `setCurrentAddress:${address}`
           ),
 
-        setWalletData: (address, data, userRole, isFromContract) => {
+        setWalletData: (
+          address,
+          data,
+          userRole,
+          isFromContractOrDataSource
+        ) => {
           const now = Date.now();
+          const isFromContract =
+            typeof isFromContractOrDataSource === "boolean"
+              ? isFromContractOrDataSource
+              : isFromContractOrDataSource !== "api";
+
+          const dataSource =
+            typeof isFromContractOrDataSource === "string"
+              ? isFromContractOrDataSource
+              : (isFromContractOrDataSource ? "contract" : "api");
+
           set(
             (state) => ({
               walletCache: {
@@ -166,6 +184,7 @@ export const useAppStore = create<AppState>()(
                   data,
                   userRole,
                   isFromContract,
+                  dataSource,
                   lastFetched: now,
                   expiresAt: now + CACHE_DURATION,
                 },
@@ -182,6 +201,7 @@ export const useAppStore = create<AppState>()(
                 data.rollbackConfig.rollback_wallet_address,
               userRole,
               isFromContract,
+              dataSource,
               agentWallet: data.rollbackConfig.agent_wallet || "",
               fallbackWallet: data.rollbackConfig.fallback_wallet || "",
               threshold: data.rollbackConfig.inactivity_threshold || 30,
@@ -213,6 +233,7 @@ export const useAppStore = create<AppState>()(
             data: cached.data,
             userRole: cached.userRole,
             isFromContract: cached.isFromContract,
+            dataSource: cached.dataSource,
           };
         },
 

@@ -109,7 +109,7 @@ export const wagmiConfig = createConfig({
 
 // Enhanced public client for direct blockchain interactions
 export const publicClient = createPublicClient({
-  chain: baseSepolia, // Default to testnet
+  chain: baseSepolia,
   transport: http(),
   batch: {
     multicall: true,

@@ -135,6 +135,7 @@ export interface CreateWalletFormData {
   isRandomized: boolean;
   fallbackWallet: string;
   agentWallet?: string;
+  email?: string;
 }
 
 export interface AgentWallet {

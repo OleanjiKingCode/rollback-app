@@ -169,7 +169,6 @@ export default function Voting() {
     isLoading: isLoadingVotes,
     refetch: refetchVotes,
   } = useGetAllVotes(walletAddress, !!walletAddress);
-  console.log({ votesData, walletAddress });
 
   // Mark as initially loaded once we get any response
   useEffect(() => {
@@ -468,7 +467,6 @@ export default function Voting() {
     const isInitiator = vote.initiator.toLowerCase() === address?.toLowerCase();
     const hasUserVoted = userVotes.hasOwnProperty(vote.voteId);
     const userVoteChoice = userVotes[vote.voteId]; // true=approved, false=rejected
-    console.log({ userVotes });
 
     return (
       <Card

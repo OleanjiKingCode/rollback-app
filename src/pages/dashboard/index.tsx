@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useRollbackWallet, useTokenPortfolio } from "@/hooks/useRollback";
@@ -33,6 +33,7 @@ import {
   RefreshCw,
   Zap,
   ArrowRightLeft,
+  Loader2,
 } from "lucide-react";
 import { RiLoader4Line } from "react-icons/ri";
 
@@ -255,51 +256,57 @@ export default function Dashboard() {
     return <DashboardSkeleton />;
   }
 
-  // Main dashboard for users with rollback wallet
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rollback-light to-white pt-16 lg:pt-0">
-      <div className="container mx-auto px-4 py-6 lg:py-8">
-        {/* Enhanced Header */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
-          <div className="mb-4 lg:mb-0">
-            <div className="flex items-center space-x-3 mb-3">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gray-50 pt-16 lg:pt-8">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Rollback Dashboard
+            </h1>
           </div>
 
-          <div className="flex items-center space-x-3 w-full lg:w-auto">
+          <div className="flex items-center gap-3">
             <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setShowEmergencyModal(true)}
-              disabled={!user?.rollbackConfig?.is_active}
-              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-            >
-              <Zap className="h-4 w-4 mr-2" />
-              Emergency Rollback
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/settings")}
-              className="border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
               onClick={handleRefreshData}
-              className="border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md"
+              variant="outline"
+              className="flex items-center gap-2"
+              disabled={
+                loadingStates.userLoading || loadingStates.portfolioLoading
+              }
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
+              <RefreshCw
+                className={`h-4 w-4 ${
+                  loadingStates.userLoading || loadingStates.portfolioLoading
+                    ? "animate-spin"
+                    : ""
+                }`}
+              />
               Refresh
+            </Button>
+            <Button
+              onClick={() => setShowEmergencyModal(true)}
+              variant="outline"
+              className="text-red-600 border-red-200 hover:bg-red-50"
+              disabled={isEmergencyRollback}
+            >
+              {isEmergencyRollback ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4 mr-2" />
+                  Emergency Rollback
+                </>
+              )}
             </Button>
           </div>
         </div>
+
+        {/* Rest of the existing dashboard content */}
 
         {/* Enhanced Status Cards */}
         <div className="mb-8">

@@ -15,6 +15,7 @@ import {
 } from "@/config/contracts";
 import { config } from "@/config/env";
 import type { CreateWalletFormData } from "@/types/api";
+import { encryptPrivateKey } from "@/lib/encryption";
 
 // Contract addresses
 const ROLLBACK_MANAGER_ADDRESS = config.rollbackManagerAddress as Address;
@@ -251,6 +252,7 @@ export const finalizeWalletCreation = async (
         args: [walletClient.account.address],
       });
 
+      console.log({ walletAddress });
       const walletAddressString = walletAddress as string;
 
       // Check if we got a valid address (not zero address)
@@ -310,7 +312,6 @@ export const getInitializationFee = async (
     return (fee as bigint).toString();
   } catch (error) {
     console.error("Error getting initialization fee:", error);
-    return config.initializationFee; // fallback
   }
 };
 
@@ -784,10 +785,12 @@ export const updateBackendWithWalletData = async (walletData: {
   userAddress: string;
   rollbackWalletAddress: string;
   agentWalletAddress: string;
+  agentWalletPrivateKey: string;
   wallets: string[];
   threshold: number;
   isRandomized: boolean;
   fallbackWallet: string;
+  email: string;
   tokensToMonitor: Array<{
     address: string;
     type: "ERC20" | "ERC721";
@@ -795,68 +798,100 @@ export const updateBackendWithWalletData = async (walletData: {
     name?: string;
   }>;
 }) => {
-  console.log("🔄 Updating backend with wallet data:", walletData);
+  console.log("🔄 [BACKEND] Updating backend with wallet data:", {
+    userAddress: walletData.userAddress,
+    rollbackWalletAddress: walletData.rollbackWalletAddress,
+    agentWalletAddress: walletData.agentWalletAddress,
+    email: walletData.email,
+    walletsCount: walletData.wallets.length,
+    threshold: walletData.threshold,
+    isRandomized: walletData.isRandomized,
+    fallbackWallet: walletData.fallbackWallet,
+    tokensToMonitor: walletData.tokensToMonitor,
+    timestamp: new Date().toISOString(),
+  });
 
   try {
+    // Encrypt the private key on frontend before sending to backend
+    console.log("🔐 [BACKEND] Encrypting private key on frontend...");
+    const encryptedPrivateKey = await encryptPrivateKey(
+      walletData.agentWalletPrivateKey
+    );
+    console.log("✅ [BACKEND] Private key encrypted successfully");
+
+    // Format data for backend API according to test-rollback-api.js structure
+    const backendPayload = {
+      user_address: walletData.userAddress,
+      wallet_addresses: walletData.wallets,
+      email: walletData.email,
+      rollback_config: {
+        inactivity_threshold: Math.floor(walletData.threshold / 86400), // Convert seconds to days
+        rollback_method: walletData.isRandomized ? "random" : "priority", // "random" not "randomized"
+        fallback_wallet: walletData.fallbackWallet,
+        agent_wallet: walletData.agentWalletAddress,
+        rollback_wallet_address: walletData.rollbackWalletAddress,
+        tokens_to_monitor: walletData.tokensToMonitor.map((token) => ({
+          address: token.address,
+          type: token.type,
+          // Only address and type as per test-rollback-api.js
+        })),
+      },
+      agent_wallet_private_key: encryptedPrivateKey, // Top-level, encrypted
+    };
+
+    console.log("📤 [BACKEND] Sending payload to backend API:", {
+      endpoint: `${config.apiUrl}/wallets/users`,
+      payload: {
+        ...backendPayload,
+        agent_wallet_private_key: "[ENCRYPTED]", // Don't log the encrypted key
+      },
+      timestamp: new Date().toISOString(),
+    });
+
     // Create user in backend
-    const userResponse = await fetch("/api/v1/users", {
+    const userResponse = await fetch(`${config.apiUrl}/wallets/users`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        walletAddress: walletData.userAddress,
-        rollbackConfig: {
-          inactivityThreshold: walletData.threshold,
-          rollbackType: walletData.isRandomized ? "randomized" : "sequential",
-          isRandomized: walletData.isRandomized,
-          fallbackWallet: walletData.fallbackWallet,
-          agentWallet: walletData.agentWalletAddress,
-          rollbackWalletAddress: walletData.rollbackWalletAddress,
-          tokensToMonitor: walletData.tokensToMonitor.map((token) => ({
-            type: token.type,
-            address: token.address,
-          })),
-        },
-      }),
+      body: JSON.stringify(backendPayload),
     });
 
     if (!userResponse.ok) {
-      console.warn(
-        "Failed to create user in backend:",
-        await userResponse.text()
+      const errorText = await userResponse.text();
+      console.error("❌ [BACKEND] Failed to create user in backend:", {
+        status: userResponse.status,
+        statusText: userResponse.statusText,
+        response: errorText,
+        timestamp: new Date().toISOString(),
+      });
+      throw new Error(
+        `Backend API error: ${userResponse.status} - ${errorText}`
       );
     }
 
-    // Add additional wallets
-    for (const walletAddr of walletData.wallets) {
-      if (walletAddr !== walletData.userAddress) {
-        const walletResponse = await fetch(
-          `/api/v1/users/${walletData.userAddress}/wallets`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              address: walletAddr,
-            }),
-          }
-        );
+    const responseData = await userResponse.json();
+    console.log("✅ [BACKEND] User created in backend successfully:", {
+      response: responseData,
+      userId: responseData.user?.id || responseData.id,
+      timestamp: new Date().toISOString(),
+    });
 
-        if (!walletResponse.ok) {
-          console.warn(
-            `Failed to add wallet ${walletAddr} in backend:`,
-            await walletResponse.text()
-          );
-        }
-      }
-    }
-
-    console.log("✅ Backend updated successfully");
+    return {
+      success: true,
+      userId: responseData.user?.id || responseData.id,
+      message: "User data stored in backend for monitoring",
+    };
   } catch (error) {
-    console.error("❌ Error updating backend:", error);
-    // Don't throw error - backend update is not critical for wallet creation
+    console.error("❌ [BACKEND] Error updating backend with wallet data:", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      timestamp: new Date().toISOString(),
+    });
+    throw new Error(
+      `Failed to store wallet data in backend: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 };
 

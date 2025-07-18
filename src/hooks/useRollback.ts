@@ -2,7 +2,12 @@ import { useState, useCallback, useEffect } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { type Address } from "viem";
 import { config } from "@/config/env";
-import { TOKEN_TYPE, ERC20_ABI, ERC721_ABI } from "@/config/contracts";
+import {
+  TOKEN_TYPE,
+  ERC20_ABI,
+  ERC721_ABI,
+  ROLLBACK_MANAGER_ABI,
+} from "@/config/contracts";
 import {
   checkPendingCreationRequests,
   proposeWalletCreation,
@@ -12,8 +17,10 @@ import {
   getCreationRequest,
   approveERC20Token,
   approveERC721Token,
+  updateBackendWithWalletData,
   type CreationRequest,
 } from "@/lib/contracts";
+import { useUser, createUser, createAgentWallet } from "@/lib/api";
 import type {
   CreateWalletFormData,
   AgentWallet,
@@ -91,7 +98,7 @@ export interface WalletCreationState {
   totalSignersNeeded: number;
 }
 
-// Enhanced hook to fetch rollback wallet data with contract only (no backend)
+// Enhanced hook to fetch rollback wallet data from both backend API and smart contracts
 export const useRollbackWallet = () => {
   const { address, isConnected } = useAccount();
   const [loading, setLoading] = useState(true);
@@ -108,6 +115,14 @@ export const useRollbackWallet = () => {
     setPersistentWalletInfo,
   } = useAppStore();
 
+  // Fetch user data from backend API
+  const {
+    user: apiUser,
+    isLoading: isLoadingApi,
+    isError: apiError,
+    mutate: refetchApi,
+  } = useUser(address);
+
   // Use the comprehensive contract data hook
   const {
     data: contractData,
@@ -118,7 +133,9 @@ export const useRollbackWallet = () => {
     error: contractError,
   } = useCompleteWalletData(address, isConnected);
 
-  // For backward compatibility - convert to old structure
+  console.log({contractData})
+
+  // Combined state from both sources
   const [userData, setUserData] = useState<any>(null);
   const [hasRollbackWallet, setHasRollbackWallet] = useState<
     boolean | undefined
@@ -129,7 +146,9 @@ export const useRollbackWallet = () => {
   const [currentUserRole, setCurrentUserRole] = useState<
     "owner" | "recovery_wallet" | null
   >(null);
-  const [isFromContract, setIsFromContract] = useState(true); // Always from contract now
+  const [dataSource, setDataSource] = useState<"api" | "contract" | "both">(
+    "contract"
+  );
 
   const checkWallet = useCallback(async () => {
     if (!address || !isConnected) {
@@ -138,13 +157,16 @@ export const useRollbackWallet = () => {
       setHasRollbackWallet(false);
       setRollbackWalletAddress(null);
       setCurrentUserRole(null);
-      setIsFromContract(true);
+      setDataSource("contract");
       setLoading(false);
       setHasInitiallyChecked(true);
       return;
     }
 
-    console.log("🔍 Starting contract-only wallet check for address:", address);
+    console.log(
+      "🔍 Starting combined API + contract wallet check for address:",
+      address
+    );
     setLoading(true);
 
     try {
@@ -155,57 +177,101 @@ export const useRollbackWallet = () => {
         setUserData(cachedData.data);
         setHasRollbackWallet(true);
         setRollbackWalletAddress(
-          cachedData.data.rollbackConfig.rollback_wallet_address
+          cachedData.data.rollbackConfig?.rollback_wallet_address ||
+            walletAddress
         );
         setCurrentUserRole(cachedData.userRole);
-        setIsFromContract(true);
+        setDataSource(cachedData.dataSource || "contract");
         setLoading(false);
         setHasInitiallyChecked(true);
         return;
       }
 
-      // Wait for contract data if still loading
-      if (isLoadingContract) {
-        console.log("⏳ Contract data still loading...");
+      // Wait for both API and contract data if still loading
+      if (isLoadingApi || isLoadingContract) {
+        console.log("⏳ API or contract data still loading...");
         return;
       }
 
-      // Use contract data directly (no backend calls)
-      if (hasWallet && contractData && walletAddress) {
-        console.log("✅ Found wallet data from contract");
+      // Prioritize API data if available, fallback to contract data
+      let finalUserData = null;
+      let finalDataSource: "api" | "contract" | "both" = "contract";
+      let finalWalletAddress = null;
+      let finalUserRole: "owner" | "recovery_wallet" | null = null;
 
-        // Cache the data
-        setWalletData(address, contractData, userRole || "owner", true);
-        setUserData(contractData);
+      // Check API data first
+      if (apiUser && !apiError) {
+        console.log("✅ Found user data from API");
+        finalUserData = apiUser;
+        finalWalletAddress = apiUser.rollbackConfig?.rollback_wallet_address;
+        finalUserRole = "owner"; // API users are always owners
+        finalDataSource = "api";
+
+        // Enhance with contract data if available
+        if (hasWallet && contractData) {
+          console.log("✅ Enhancing API data with contract data");
+          finalUserData = {
+            ...apiUser,
+            contractData: contractData,
+          };
+          finalDataSource = "both";
+          if (!finalWalletAddress) {
+            finalWalletAddress = walletAddress;
+          }
+        }
+      }
+      // Fallback to contract-only data
+      else if (hasWallet && contractData && walletAddress) {
+        console.log("✅ Using contract-only data (no API data found)");
+        finalUserData = contractData;
+        finalWalletAddress = walletAddress;
+        finalUserRole = userRole || "owner";
+        finalDataSource = "contract";
+      }
+
+      if (finalUserData && finalWalletAddress) {
+        // Cache the combined data
+        setWalletData(
+          address,
+          finalUserData,
+          finalUserRole || "owner",
+          finalDataSource
+        );
+        setUserData(finalUserData);
         setHasRollbackWallet(true);
-        setRollbackWalletAddress(walletAddress);
-        setCurrentUserRole(userRole || "owner");
-        setIsFromContract(true);
+        setRollbackWalletAddress(finalWalletAddress);
+        setCurrentUserRole(finalUserRole);
+        setDataSource(finalDataSource);
 
-        console.log("✅ Contract-only wallet detection successful");
+        console.log(
+          `✅ Wallet detection successful (source: ${finalDataSource})`
+        );
       } else {
         console.log("❌ No wallet found for address:", address);
         setUserData(null);
         setHasRollbackWallet(false);
         setRollbackWalletAddress(null);
         setCurrentUserRole(null);
-        setIsFromContract(true);
+        setDataSource("contract");
       }
     } catch (error) {
-      console.error("❌ Error during contract wallet check:", error);
+      console.error("❌ Error during wallet check:", error);
       setUserData(null);
       setHasRollbackWallet(false);
       setRollbackWalletAddress(null);
       setCurrentUserRole(null);
-      setIsFromContract(true);
+      setDataSource("contract");
     } finally {
       setLoading(false);
       setHasInitiallyChecked(true);
-      console.log("🔄 Contract-only wallet check completed");
+      console.log("🔄 Combined wallet check completed");
     }
   }, [
     address,
     isConnected,
+    apiUser,
+    apiError,
+    isLoadingApi,
     contractData,
     hasWallet,
     walletAddress,
@@ -221,7 +287,9 @@ export const useRollbackWallet = () => {
 
   // Enhanced loading state logic
   const shouldShowLoading =
-    isConnected && !hasInitiallyChecked && (loading || isLoadingContract);
+    isConnected &&
+    !hasInitiallyChecked &&
+    (loading || isLoadingContract || isLoadingApi);
 
   return {
     // Backward compatible returns for existing dashboard
@@ -232,20 +300,22 @@ export const useRollbackWallet = () => {
     isError:
       !loading &&
       !isLoadingContract &&
+      !isLoadingApi &&
       !userData &&
       hasInitiallyChecked &&
       isConnected,
     checkRollbackWallet: checkWallet,
     refetch: () => {
-      // Clear cache and refetch
+      // Clear cache and refetch from both sources
       if (address) {
         invalidateWalletCache(address);
+        refetchApi();
         checkWallet();
       }
     },
     // Enhanced returns
     userRole: currentUserRole,
-    isFromContract,
+    dataSource,
     invalidateCache: () => address && invalidateWalletCache(address),
   };
 };
@@ -436,19 +506,198 @@ export const useWalletCreationFlow = () => {
     [publicClient, walletClient, isConnected]
   );
 
-  // Complete the creation process (contract-only, no backend)
+  // Complete the creation process with backend integration
   const completeCreation = useCallback(
-    async (formData?: CreateWalletFormData, agentWalletAddress?: string) => {
-      setState((prev) => ({
-        ...prev,
-        step: "completed",
-        isCreating: false,
-      }));
+    async (
+      formData?: CreateWalletFormData,
+      agentWalletAddress?: string,
+      agentWalletPrivateKey?: string
+    ) => {
+      if (!address || !state.walletAddress || !formData) {
+        console.error("❌ [WALLET] Missing required data for completion:", {
+          hasAddress: !!address,
+          hasWalletAddress: !!state.walletAddress,
+          hasFormData: !!formData,
+          timestamp: new Date().toISOString(),
+        });
+        throw new Error("Missing required data for completion");
+      }
 
-      // Contract-only implementation - no backend updates needed
-      console.log("✅ Wallet creation completed successfully (contract-only)");
+      try {
+        setState((prev) => ({
+          ...prev,
+          step: "completed",
+          isCreating: true,
+        }));
+
+        // Step 1: Get the real wallet address from contract (not placeholder)
+        let realWalletAddress = state.walletAddress;
+
+        if (state.walletAddress === "WALLET_CREATED_PENDING" && publicClient) {
+          console.log(
+            "🔍 [WALLET] Getting real wallet address from contract..."
+          );
+          try {
+            const contractWalletAddress = await publicClient.readContract({
+              address: config.rollbackManagerAddress as Address,
+              abi: ROLLBACK_MANAGER_ABI,
+              functionName: "getUserWallet",
+              args: [address],
+            });
+
+            if (
+              contractWalletAddress &&
+              contractWalletAddress !==
+                "0x0000000000000000000000000000000000000000"
+            ) {
+              realWalletAddress = contractWalletAddress as string;
+              console.log(
+                "✅ [WALLET] Real wallet address retrieved:",
+                realWalletAddress
+              );
+
+              // Update state with real address
+              setState((prev) => ({
+                ...prev,
+                walletAddress: realWalletAddress,
+              }));
+            } else {
+              console.warn(
+                "⚠️ [WALLET] Contract still returns zero address, using placeholder"
+              );
+            }
+          } catch (contractError) {
+            console.warn(
+              "⚠️ [WALLET] Failed to get real wallet address from contract:",
+              contractError
+            );
+            // Continue with placeholder - better to store something than nothing
+          }
+        }
+
+        // Step 2: Create or get agent wallet from backend
+        let agentWallet = agentWalletAddress;
+        if (!agentWallet) {
+          console.log("🔧 [WALLET] Creating agent wallet via backend API...");
+          try {
+            const createdAgent = await createAgentWallet();
+            agentWallet = createdAgent.address;
+            console.log("✅ [WALLET] Agent wallet created:", {
+              address: agentWallet,
+              timestamp: new Date().toISOString(),
+            });
+          } catch (agentError) {
+            console.warn(
+              "⚠️ [WALLET] Failed to create agent wallet via API, continuing without...",
+              {
+                error: agentError,
+                timestamp: new Date().toISOString(),
+              }
+            );
+            // Continue without agent wallet - can be added later
+          }
+        }
+
+        // Step 3: Store user data in backend for monitoring
+        console.log(
+          "💾 [WALLET] Storing user data in backend for monitoring..."
+        );
+        let backendIntegrated = false;
+        try {
+          // Only proceed if we have email and agent wallet private key
+          if (!formData.email) {
+            throw new Error(
+              "Email address is required for backend integration"
+            );
+          }
+          if (!agentWalletAddress) {
+            throw new Error(
+              "Agent wallet address is required for backend integration"
+            );
+          }
+          if (!agentWalletPrivateKey) {
+            throw new Error(
+              "Agent wallet private key is required for backend integration"
+            );
+          }
+
+          console.log("📊 [WALLET] Preparing backend payload...", {
+            userAddress: address,
+            rollbackWalletAddress: realWalletAddress,
+            agentWalletAddress: agentWallet || "",
+            email: formData.email,
+            walletsCount: formData.wallets.length,
+            threshold: formData.threshold,
+            isRandomized: formData.isRandomized,
+            fallbackWallet: formData.fallbackWallet,
+            tokensToMonitorCount: formData.tokensToMonitor.length,
+            timestamp: new Date().toISOString(),
+          });
+
+          await updateBackendWithWalletData({
+            userAddress: address,
+            rollbackWalletAddress: realWalletAddress, // Use real address here
+            agentWalletAddress: agentWallet || "",
+            agentWalletPrivateKey: agentWalletPrivateKey,
+            wallets: formData.wallets,
+            threshold: formData.threshold,
+            isRandomized: formData.isRandomized,
+            fallbackWallet: formData.fallbackWallet,
+            email: formData.email,
+            tokensToMonitor: formData.tokensToMonitor.map((token) => ({
+              address: token.address,
+              type: token.type,
+              symbol: token.symbol,
+              name: token.name,
+            })),
+          });
+
+          console.log("✅ [WALLET] User data stored in backend successfully");
+          backendIntegrated = true;
+        } catch (backendError) {
+          console.warn(
+            "⚠️ [WALLET] Failed to store data in backend, wallet still functional:",
+            {
+              error: backendError,
+              timestamp: new Date().toISOString(),
+            }
+          );
+          // Wallet creation still succeeded, just no backend monitoring
+        }
+
+        setState((prev) => ({
+          ...prev,
+          step: "completed",
+          isCreating: false,
+        }));
+
+        console.log("🎉 [WALLET] Wallet creation completed successfully!", {
+          walletAddress: realWalletAddress,
+          agentWallet,
+          backendIntegrated,
+          timestamp: new Date().toISOString(),
+        });
+
+        return {
+          walletAddress: realWalletAddress,
+          agentWallet,
+          backendIntegrated,
+        };
+      } catch (error: any) {
+        console.error("❌ [WALLET] Error during completion:", {
+          error: error.message || "Unknown error",
+          timestamp: new Date().toISOString(),
+        });
+        setState((prev) => ({
+          ...prev,
+          step: "error",
+          error: error.message || "Failed to complete wallet creation",
+          isCreating: false,
+        }));
+        throw error;
+      }
     },
-    []
+    [address, state.walletAddress, publicClient]
   );
 
   // Reset state

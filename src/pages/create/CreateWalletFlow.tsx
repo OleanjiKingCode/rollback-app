@@ -274,7 +274,7 @@ const ContractStatusCard = ({
       <CardContent>
         <p className="text-gray-600 mb-4">{statusInfo.description}</p>
 
-        {creationState.requestId && (
+        {/* {creationState.requestId && (
           <div className="mb-4">
             <Label className="text-sm font-medium">Request ID</Label>
             <div className="flex items-center space-x-2">
@@ -294,7 +294,7 @@ const ContractStatusCard = ({
               </Button>
             </div>
           </div>
-        )}
+        )} */}
 
         {creationState.step === "pending_signatures" &&
           creationState.needsSignature && (
@@ -381,7 +381,7 @@ export default function CreateWalletFlow() {
     resetState,
   } = useWalletCreationFlow();
   const { approveTokens, isApproving } = useTokenApprovals();
-  const { hasRollbackWallet, isLoading } = useRollbackWallet();
+  const { hasRollbackWallet, isLoading, refetch } = useRollbackWallet();
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0); // Start with intro screen
@@ -391,6 +391,7 @@ export default function CreateWalletFlow() {
     tokensToMonitor: [],
     isRandomized: false,
     fallbackWallet: "",
+    email: "", // Add email field
   });
 
   const [customTokenAddress, setCustomTokenAddress] = useState("");
@@ -403,6 +404,10 @@ export default function CreateWalletFlow() {
   const [approvalStatus, setApprovalStatus] = useState<Record<string, boolean>>(
     {}
   );
+
+  // State for Step 3 - Inactivity Threshold
+  const [useCustomThreshold, setUseCustomThreshold] = useState(false);
+  const [customDays, setCustomDays] = useState(30);
 
   // Check for pending requests on mount and address change
   useEffect(() => {
@@ -617,26 +622,48 @@ export default function CreateWalletFlow() {
                   <Button
                     onClick={async () => {
                       try {
-                        // Update backend with wallet data
+                        // Complete wallet creation with backend integration
+
+                        let result = null;
                         if (
                           generatedAgentWallet &&
                           creationState.walletAddress
                         ) {
-                          await completeCreation(
+                          result = await completeCreation(
                             formData,
-                            generatedAgentWallet.address
+                            generatedAgentWallet.address,
+                            generatedAgentWallet.privateKey
                           );
                         } else {
-                          completeCreation();
+                          result = await completeCreation();
                         }
 
-                        toast.success(
-                          "Setup Complete",
-                          "Your rollback wallet is now active!"
-                        );
+                        console.log("✅ Wallet completion result:", result);
+
+                        // Refresh the wallet data to show updated UI
+                        console.log("🔄 Refreshing wallet data...");
+                        refetch();
+
+                        // Show success message based on backend integration status
+                        if (result?.backendIntegrated) {
+                          toast.success(
+                            "Setup Complete with Monitoring!",
+                            "Your rollback wallet is now active and being monitored by our backend service for inactivity."
+                          );
+                        } else {
+                          toast.success(
+                            "Setup Complete",
+                            "Your rollback wallet is now active! Note: Backend monitoring may be limited."
+                          );
+                        }
+
                         navigate("/dashboard");
                       } catch (error) {
-                        console.error("Error completing setup:", error);
+                        console.error("❌ Error completing setup:", error);
+                        toast.warning(
+                          "Setup Completed with Warnings",
+                          "Your wallet was created successfully, but some backend features may not be available."
+                        );
                         navigate("/dashboard"); // Navigate anyway since wallet was created
                       }
                     }}
@@ -817,7 +844,10 @@ export default function CreateWalletFlow() {
           formData.wallets.every((w) => w.trim() !== "") &&
           formData.fallbackWallet.trim() !== "" &&
           formData.fallbackWallet.startsWith("0x") &&
-          formData.fallbackWallet.length === 42
+          formData.fallbackWallet.length === 42 &&
+          formData.email &&
+          formData.email.includes("@") &&
+          formData.email.includes(".")
         );
       case 2:
         return true;
@@ -1063,6 +1093,47 @@ export default function CreateWalletFlow() {
             </Alert>
           </CardContent>
         </Card>
+
+        <Card className="border-2 border-green-200 hover:border-green-300 rounded-3xl max-w-[600px] mx-auto">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Bell className="h-5 w-5 text-green-600" />
+              <span>Notification Email</span>
+            </CardTitle>
+            <CardDescription>
+              Email address for inactivity alerts and rollback notifications
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Email Address</Label>
+              <Input
+                type="email"
+                value={formData.email || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    email: e.target.value,
+                  }))
+                }
+                placeholder="your.email@example.com"
+                className="rounded-xl"
+              />
+              <p className="text-xs text-gray-500">
+                You'll receive warnings before rollbacks and confirmations after
+                successful transfers
+              </p>
+            </div>
+
+            <Alert className="border-green-200 bg-green-50 rounded-2xl">
+              <Info className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                <strong>Stay Informed:</strong> Email notifications help you
+                track your wallet activity and prevent unwanted rollbacks.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
@@ -1145,18 +1216,16 @@ export default function CreateWalletFlow() {
     </div>
   );
 
+  // Handler for custom days change
+  const handleCustomDaysChange = (days: number) => {
+    if (days >= 3) {
+      setCustomDays(days);
+      setFormData((prev) => ({ ...prev, threshold: days * 86400 })); // Convert days to seconds
+    }
+  };
+
   // Step 3: Inactivity Threshold
   const renderStep3 = () => {
-    const [useCustomThreshold, setUseCustomThreshold] = useState(false);
-    const [customDays, setCustomDays] = useState(30);
-
-    const handleCustomDaysChange = (days: number) => {
-      if (days >= 3) {
-        setCustomDays(days);
-        setFormData((prev) => ({ ...prev, threshold: days * 86400 })); // Convert days to seconds
-      }
-    };
-
     return (
       <div className="space-y-8">
         <div className="text-center mb-8">
@@ -1592,6 +1661,10 @@ export default function CreateWalletFlow() {
                 {generatedAgentWallet?.address.slice(0, 6)}...
                 {generatedAgentWallet?.address.slice(-4)}
               </p>
+            </div>
+            <div>
+              <Label className="font-medium">Notification Email</Label>
+              <p className="text-gray-600 text-xs">{formData.email}</p>
             </div>
           </div>
 

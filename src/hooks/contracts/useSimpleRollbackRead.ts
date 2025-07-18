@@ -183,7 +183,7 @@ export const useSimpleFindRollbackWallet = (
           if (isInWallets || isPrimaryUser) {
             return {
               hasWallet: true,
-              walletAddress: "", // Will be resolved by another call
+              walletAddress: "",
               userRole: isPrimaryUser
                 ? ("owner" as const)
                 : ("recovery_wallet" as const),
@@ -250,10 +250,10 @@ export const useCompleteWalletData = (
     error: walletError,
   } = useSimpleFindRollbackWallet(userAddress, enabled);
 
+  console.log({ userAddress, walletResult });
+
   const walletAddress = walletResult?.walletAddress as Address;
   const hasWallet = !!walletResult?.hasWallet && !!walletAddress;
-
-  console.log({ walletAddress });
 
   // Get system config
   const {
