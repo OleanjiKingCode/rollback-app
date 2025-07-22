@@ -85,21 +85,13 @@ export const useTokenApprovals = () => {
     useSimpleFindRollbackWallet(address, isConnected);
 
   const rollbackWalletAddress = useMemo(() => {
-    console.log(
-      "Token Approvals - Rollback wallet result:",
-      rollbackWalletResult
-    );
     if (
       rollbackWalletResult?.hasWallet &&
       rollbackWalletResult?.walletAddress
     ) {
-      console.log(
-        "Token Approvals - Found rollback wallet:",
-        rollbackWalletResult.walletAddress
-      );
       return rollbackWalletResult.walletAddress;
     }
-    console.log("Token Approvals - No rollback wallet found");
+
     return null;
   }, [rollbackWalletResult]);
 
@@ -123,6 +115,8 @@ export const useTokenApprovals = () => {
         isConnected: w.walletAddress.toLowerCase() === address?.toLowerCase(),
       }));
   }, [allWalletsData, address]);
+
+  console.log({ activeWallets, allWalletsData });
 
   const parsedTokens = useMemo(() => {
     if (!monitoredTokensData) return [];
@@ -180,7 +174,6 @@ export const useTokenApprovals = () => {
         }
       }
     };
-
     loadData();
 
     return () => {

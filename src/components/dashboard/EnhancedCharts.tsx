@@ -120,9 +120,9 @@ export function EnhancedCharts({
   const timeRanges = ["24H", "7D", "30D", "90D", "1Y"];
 
   return (
-    <div className={`grid grid-cols-3 gap-6 `}>
+    <div className={`grid grid-cols-2 lg:grid-cols-3 gap-6 `}>
       {/* Portfolio Overview Chart */}
-      <Card className="border-gray-200 col-span-2 bg-white shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
+      <Card className="border-gray-200 hidden lg:block lg:col-span-2 bg-white shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
         <CardHeader className="pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
@@ -278,7 +278,7 @@ export function EnhancedCharts({
       </Card>
 
       {/* Token Distribution Chart */}
-      <Card className="border-gray-200 col-span-1 bg-white shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
+      <Card className="border-gray-200 col-span-2 lg:col-span-1 bg-white shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2 text-xl font-bold text-gray-900">
             <PieChartIcon className="h-5 w-5 text-rollback-primary" />

@@ -1597,6 +1597,16 @@ export default function CreateWalletFlow() {
                   This wallet will be used to execute rollbacks automatically.
                 </AlertDescription>
               </Alert>
+
+              <Alert className="border-blue-200 bg-blue-50 rounded-2xl">
+                <Coins className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800">
+                  <strong>Funding Required:</strong> After saving your private
+                  key, make sure to fund this agent wallet with at least{" "}
+                  <strong>$5 worth of ETH</strong>
+                  to cover gas fees for automatic rollback transactions.
+                </AlertDescription>
+              </Alert>
             </div>
           )}
         </CardContent>

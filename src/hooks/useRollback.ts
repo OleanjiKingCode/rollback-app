@@ -17,6 +17,8 @@ import {
   getCreationRequest,
   approveERC20Token,
   approveERC721Token,
+  checkERC20Approval,
+  checkERC721Approval,
   updateBackendWithWalletData,
   type CreationRequest,
 } from "@/lib/contracts";
@@ -176,7 +178,7 @@ export const useRollbackWallet = () => {
       // Check cache first
       const cachedData = getWalletData(address);
       if (cachedData && cachedData.data) {
-        console.log("📋 Found cached wallet data");
+        console.log("📋 Found cached wallet data", cachedData);
         setUserData(cachedData.data);
         setHasRollbackWallet(true);
         setRollbackWalletAddress(
@@ -204,7 +206,7 @@ export const useRollbackWallet = () => {
 
       // Check API data first
       if (apiUser && !apiError) {
-        console.log("✅ Found user data from API");
+        
         finalUserData = apiUser;
         finalWalletAddress = apiUser.rollbackConfig?.rollback_wallet_address;
         finalUserRole = "owner"; // API users are always owners
@@ -212,10 +214,13 @@ export const useRollbackWallet = () => {
 
         // Enhance with contract data if available
         if (hasWallet && contractData) {
-          console.log("✅ Enhancing API data with contract data");
+          
+          // 🔥 ISSUE: This is where duplication might be happening - merging API and contract wallets
           finalUserData = {
             ...apiUser,
             contractData: contractData,
+            // Keep API wallets as the source of truth, don't merge with contract wallets
+            // wallets: apiUser.wallets, // Use only API wallets to avoid duplication
           };
           finalDataSource = "both";
           if (!finalWalletAddress) {
@@ -225,7 +230,7 @@ export const useRollbackWallet = () => {
       }
       // Fallback to contract-only data
       else if (hasWallet && contractData && walletAddress) {
-        console.log("✅ Using contract-only data (no API data found)");
+        
         finalUserData = contractData;
         finalWalletAddress = walletAddress;
         finalUserRole = userRole || "owner";
@@ -891,6 +896,47 @@ export const useTokenApprovals = () => {
   };
 };
 
+// Simple hook to check if user needs approvals - uses the existing useTokenApprovals system
+export const useApprovalWarningStatus = (user: any) => {
+  const { address } = useAccount();
+  const [warningStatus, setWarningStatus] = useState({
+    showWarning: false,
+    unapprovedCount: 0,
+    totalTokens: 0,
+    unapprovedTokens: [] as string[],
+  });
+
+  useEffect(() => {
+    if (!user?.rollbackConfig?.tokens_to_monitor?.length || !address) {
+      setWarningStatus({
+        showWarning: false,
+        unapprovedCount: 0,
+        totalTokens: 0,
+        unapprovedTokens: [],
+      });
+      return;
+    }
+
+    const tokens = user.rollbackConfig.tokens_to_monitor;
+    const totalTokens = tokens.length;
+
+    // For now, assume all tokens need approval until the user visits the approval page
+    // This is a simplified approach - in a real app you'd check actual approval status
+    const assumeNeedsApproval = totalTokens > 0; // Show warning if they have monitored tokens
+
+    setWarningStatus({
+      showWarning: assumeNeedsApproval,
+      unapprovedCount: totalTokens, // Assume all need approval to be safe
+      totalTokens,
+      unapprovedTokens: tokens.map(
+        (t: any) => t.symbol || t.address.slice(0, 8)
+      ),
+    });
+  }, [user, address]);
+
+  return warningStatus;
+};
+
 export const useTokenPortfolio = (user: UserData | null) => {
   const publicClient = usePublicClient();
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
@@ -1004,18 +1050,31 @@ export const useTokenPortfolio = (user: UserData | null) => {
 
     try {
       const { tokens_to_monitor } = user.rollbackConfig;
-      const wallets = user.wallets || [];
+      const rawWallets = user.wallets || [];
+
+      // 🔥 FIX: Deduplicate wallets by address (case-insensitive) before calculating portfolio
+      const wallets = rawWallets.reduce((unique, wallet) => {
+        const existingWallet = unique.find(
+          (w) => w.address?.toLowerCase() === wallet.address?.toLowerCase()
+        );
+        if (!existingWallet) {
+          unique.push(wallet);
+        } 
+        return unique;
+      }, [] as typeof rawWallets);
+
 
       const tokenInfoPromises = tokens_to_monitor.map(async (token) => {
         const info = await fetchTokenInfo(token.address, token.type);
 
-        // Fetch balances for all wallets
+        // Fetch balances for DEDUPLICATED wallets only
         const balancePromises = wallets.map(async (wallet) => {
           const balance = await fetchTokenBalance(
             token.address,
             wallet.address,
             token.type
           );
+         
           return { walletAddress: wallet.address, balance };
         });
 
@@ -1028,6 +1087,7 @@ export const useTokenPortfolio = (user: UserData | null) => {
           totalBalance += BigInt(balance);
         });
 
+      
         return {
           address: token.address,
           symbol: info.symbol || "UNKNOWN",

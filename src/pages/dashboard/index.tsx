@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { useRollbackWallet, useTokenPortfolio } from "@/hooks/useRollback";
+import {
+  useRollbackWallet,
+  useTokenPortfolio,
+  useApprovalWarningStatus,
+} from "@/hooks/useRollback";
 import { EnhancedCharts } from "@/components/dashboard/EnhancedCharts";
 import { EnhancedStatusCards } from "@/components/dashboard/EnhancedStatusCards";
 import {
@@ -12,6 +16,7 @@ import {
 } from "@/components/dashboard/EnhancedLoadingStates";
 import { EmergencyRollbackModal } from "@/components/dashboard/EnhancedModals";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
+import { ApprovalWarningBanner } from "@/components/dashboard/ApprovalWarningBanner";
 import { useAppStore } from "@/stores/appStore";
 import {
   Card,
@@ -135,6 +140,32 @@ export default function Dashboard() {
     fetchPortfolioData,
   } = useTokenPortfolio(user);
 
+  // Check approval status for warning banner
+  const approvalWarning = useApprovalWarningStatus(user);
+
+  // Deduplicate wallets by address (case-insensitive)
+  const deduplicatedWallets =
+    user?.wallets?.reduce((unique, wallet) => {
+      const existingWallet = unique.find(
+        (w) => w.address?.toLowerCase() === wallet.address?.toLowerCase()
+      );
+      if (!existingWallet) {
+        unique.push(wallet);
+      } else {
+        console.log("🚨 Found duplicate wallet address:", {
+          existing: existingWallet.address,
+          duplicate: wallet.address,
+          existingId: existingWallet.id,
+          duplicateId: wallet.id,
+          bothLowercase: [
+            existingWallet.address?.toLowerCase(),
+            wallet.address?.toLowerCase(),
+          ],
+        });
+      }
+      return unique;
+    }, [] as typeof user.wallets) || [];
+
   // Check for rollback wallet on mount and when address changes
   useEffect(() => {
     if (isConnected && address) {
@@ -257,7 +288,15 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16 lg:pt-8">
+    <div className="min-h-screen bg-gray-50 pt-16 lg:pt-8 relative">
+      {/* Floating Approval Warning Icon */}
+      <ApprovalWarningBanner
+        showWarning={approvalWarning.showWarning}
+        unapprovedCount={approvalWarning.unapprovedCount}
+        totalTokens={approvalWarning.totalTokens}
+        unapprovedTokens={approvalWarning.unapprovedTokens}
+      />
+
       <div className="container mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -339,12 +378,12 @@ export default function Dashboard() {
                   All wallets configured for asset recovery
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="flex flex-col justify-between gap-4 h-[420px]">
                 {/* Recovery Sequence */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-semibold text-gray-900">
-                      Recovery Sequence ({user.wallets?.length || 0})
+                      Recovery Sequence ({deduplicatedWallets.length})
                     </h4>
                     <Badge variant="outline" className="text-xs">
                       Priority Order
@@ -353,7 +392,7 @@ export default function Dashboard() {
 
                   <div className="bg-gray-50 rounded-xl p-3">
                     <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {user.wallets?.map((wallet, index) => (
+                      {deduplicatedWallets.map((wallet, index) => (
                         <div
                           key={wallet.id}
                           className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow"
@@ -389,7 +428,10 @@ export default function Dashboard() {
                             {wallet.is_obsolete ? "Obsolete" : "Active"}
                           </Badge>
                         </div>
-                      )) || (
+                      ))}
+
+                      {/* Show connected wallet as fallback only if no wallets found */}
+                      {deduplicatedWallets.length === 0 && (
                         <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
                           <div className="flex items-center space-x-3">
                             <div className="w-6 h-6 bg-green-500 rounded-lg flex items-center justify-center text-white text-xs font-semibold">
@@ -499,9 +541,9 @@ export default function Dashboard() {
                   Rollback method and critical wallet addresses
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="flex flex-col justify-between gap-4 h-[420px]">
                 {/* Rollback Method */}
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-2 border border-green-200">
                   <div className="flex items-center mb-2">
                     <div className="w-7 h-7 bg-green-500 rounded-lg flex items-center justify-center mr-3">
                       <ArrowRightLeft className="h-4 w-4 text-white" />
@@ -515,13 +557,13 @@ export default function Dashboard() {
                       </p>
                     </div>
                   </div>
-                  <p className="text-lg font-bold text-green-700 capitalize">
+                  <p className="text-sm font-bold text-green-700 capitalize">
                     {user.rollbackConfig?.rollback_method || "sequential"}
                   </p>
                 </div>
 
                 {/* Agent Wallet */}
-                <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                <div className="bg-amber-50 rounded-xl p-2 border border-amber-200">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-sm font-medium text-amber-900">
                       Agent Wallet
@@ -559,7 +601,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Fallback Wallet */}
-                <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                <div className="bg-purple-50 rounded-xl p-2 border border-purple-200">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-sm font-medium text-purple-900">
                       Fallback Wallet
@@ -572,7 +614,7 @@ export default function Dashboard() {
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-mono text-purple-800 bg-purple-100 px-3 py-2 rounded-lg">
+                    <p className="text-sm font-mono text-purple-800 bg-purple-100 px-2 py-2 rounded-lg">
                       {user.rollbackConfig?.fallback_wallet
                         ? `${user.rollbackConfig.fallback_wallet.slice(
                             0,
@@ -597,7 +639,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Inactivity Threshold */}
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-2 border border-blue-200">
                   <div className="flex items-center mb-2">
                     <div className="w-7 h-7 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
                       <span className="text-white text-sm font-bold">T</span>
@@ -611,7 +653,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                   </div>
-                  <p className="text-lg font-bold text-blue-700">
+                  <p className="text-sm font-bold text-blue-700">
                     {user.rollbackConfig?.inactivity_threshold || 30} days
                   </p>
                 </div>

@@ -186,7 +186,7 @@ export default function TokenApprovals() {
         <Alert className="shadow-none border-2">
           <Info className="h-4 w-4" />
           <AlertDescription>
-            No wallets found in your rollback system. Add wallets to your
+            No Active wallets found in your rollback system. Add wallets to your
             rollback configuration.
           </AlertDescription>
         </Alert>
