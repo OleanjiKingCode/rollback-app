@@ -35,6 +35,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/lib/toast";
 import { useNavigate } from "react-router-dom";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { useTokenValidation } from "@/hooks/contracts/useTokenValidation";
 import {
   Wallet,
   Plus,
@@ -397,6 +398,12 @@ export default function CreateWalletFlow() {
   const [customTokenAddress, setCustomTokenAddress] = useState("");
   const [customTokenType, setCustomTokenType] = useState<"ERC20" | "ERC721">(
     "ERC20"
+  );
+
+  // Token validation for custom token input
+  const tokenValidation = useTokenValidation(
+    customTokenAddress,
+    customTokenType
   );
   const [generatedAgentWallet, setGeneratedAgentWallet] =
     useState<GeneratedAgentWallet | null>(null);
@@ -1401,15 +1408,76 @@ export default function CreateWalletFlow() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label>Token Contract Address</Label>
-              <Input
-                value={customTokenAddress}
-                onChange={(e) => setCustomTokenAddress(e.target.value)}
-                placeholder="0x..."
-                className="rounded-xl"
-              />
+            <div className="space-y-3">
+              <div>
+                <Label>Token Contract Address</Label>
+                <div className="relative">
+                  <Input
+                    value={customTokenAddress}
+                    onChange={(e) => setCustomTokenAddress(e.target.value)}
+                    placeholder="0x..."
+                    className={`rounded-xl pr-8 ${
+                      customTokenAddress && tokenValidation.isValid
+                        ? "border-green-500 focus:border-green-500"
+                        : customTokenAddress && tokenValidation.error
+                        ? "border-red-500 focus:border-red-500"
+                        : ""
+                    }`}
+                  />
+                  {tokenValidation.isLoading && (
+                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                    </div>
+                  )}
+                  {customTokenAddress && !tokenValidation.isLoading && tokenValidation.isValid && (
+                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    </div>
+                  )}
+                  {customTokenAddress && !tokenValidation.isLoading && tokenValidation.error && (
+                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Token Validation Feedback */}
+              {customTokenAddress && !tokenValidation.isLoading && tokenValidation.isValid && (
+                <Alert className="bg-green-50 border-green-200">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">
+                    <div className="space-y-1">
+                      <div className="font-medium">
+                        ✅ {tokenValidation.name} ({tokenValidation.symbol}) - {tokenValidation.tokenType}
+                      </div>
+                      {tokenValidation.tokenType === 'ERC20' && tokenValidation.decimals && (
+                        <div className="text-sm">
+                          Decimals: {tokenValidation.decimals} | Total Supply: {tokenValidation.totalSupply ? 
+                            (BigInt(tokenValidation.totalSupply) / BigInt(10 ** tokenValidation.decimals)).toString() : 'Unknown'}
+                        </div>
+                      )}
+                      {tokenValidation.tokenType === 'ERC721' && (
+                        <div className="text-sm">
+                          NFT Collection | Total Supply: {tokenValidation.totalSupply || 'Unknown'} NFTs
+                        </div>
+                      )}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {customTokenAddress && !tokenValidation.isLoading && tokenValidation.error && (
+                <Alert className="bg-red-50 border-red-200">
+                  <AlertTriangle className="h-4 w-4 text-red-600" />
+                  <AlertDescription className="text-red-800">
+                    <div className="font-medium">❌ Invalid Token</div>
+                    <div className="text-sm mt-1">{tokenValidation.error}</div>
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
+
             <div>
               <Label>Token Type</Label>
               <Select
@@ -1429,15 +1497,18 @@ export default function CreateWalletFlow() {
             </div>
             <Button
               onClick={() => {
-                if (customTokenAddress) {
+                if (customTokenAddress && tokenValidation.isValid) {
                   handleAddToken({
                     address: customTokenAddress,
                     type: customTokenType,
+                    symbol: tokenValidation.symbol || "UNKNOWN",
+                    name: tokenValidation.name || "Unknown Token",
                   });
                   setCustomTokenAddress("");
                 }
               }}
               className="w-full"
+              disabled={!customTokenAddress || !tokenValidation.isValid || tokenValidation.isLoading}
             >
               Add Token
             </Button>

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useAccount, useConnect, useDisconnect, useChainId } from "wagmi";
 import {
   Card,
   CardContent,
@@ -36,9 +36,11 @@ import {
 } from "@/hooks/contracts";
 import { Address } from "viem";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { getExplorerUrl, getExplorerName } from "@/lib/utils";
 
 export default function TokenApprovals() {
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
   const { connect, connectors } = useConnect();
   const { openConnectModal } = useConnectModal();
   const { disconnect } = useDisconnect();
@@ -110,14 +112,15 @@ export default function TokenApprovals() {
                 </p>
               </div>
               <a
-                href={`https://basescan.org/address/${rollbackWalletAddress}`}
+                href={getExplorerUrl(chainId, rollbackWalletAddress)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ml-4 flex-shrink-0"
+                title={`View on ${getExplorerName(chainId)}`}
               >
                 <Button size="sm" variant="outline">
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  View Contract
+                  View on {getExplorerName(chainId)}
                 </Button>
               </a>
             </div>
@@ -220,6 +223,7 @@ export default function TokenApprovals() {
                 currentAddress={address}
                 rollbackWalletAddress={rollbackWalletAddress}
                 formatTokenAmount={formatTokenAmount}
+                chainId={chainId}
               />
             ))}
           </div>
@@ -235,12 +239,14 @@ function WalletCard({
   currentAddress,
   rollbackWalletAddress,
   formatTokenAmount,
+  chainId,
 }: {
   wallet: any;
   tokens: any[];
   currentAddress?: string;
   rollbackWalletAddress: string;
   formatTokenAmount: (amount: string, decimals?: number) => string;
+  chainId: number;
 }) {
   const isConnected = wallet.isConnected;
   const approvedCount = wallet.tokens.filter((t: any) => t.isApproved).length;
@@ -289,9 +295,10 @@ function WalletCard({
 
           <div className="flex items-center space-x-2">
             <a
-              href={`https://basescan.org/address/${wallet.address}`}
+              href={getExplorerUrl(chainId, wallet.address)}
               target="_blank"
               rel="noopener noreferrer"
+              title={`View wallet on ${getExplorerName(chainId)}`}
             >
               <Button size="sm" variant="outline">
                 <ExternalLink className="h-4 w-4 mr-2" />
@@ -312,6 +319,7 @@ function WalletCard({
               rollbackWalletAddress={rollbackWalletAddress}
               canManage={isConnected}
               formatTokenAmount={formatTokenAmount}
+              chainId={chainId}
             />
           ))}
         </div>
@@ -327,12 +335,14 @@ function TokenItem({
   rollbackWalletAddress,
   canManage,
   formatTokenAmount,
+  chainId,
 }: {
   token: any;
   walletAddress: string;
   rollbackWalletAddress: string;
   canManage: boolean;
   formatTokenAmount: (amount: string, decimals?: number) => string;
+  chainId: number;
 }) {
   const [customAmount, setCustomAmount] = useState("");
 
@@ -458,9 +468,10 @@ function TokenItem({
         </div>
 
         <a
-          href={`https://basescan.org/token/${token.address}`}
+          href={getExplorerUrl(chainId, token.address, "token")}
           target="_blank"
           rel="noopener noreferrer"
+          title={`View token on ${getExplorerName(chainId)}`}
         >
           <Button size="sm" variant="outline">
             <ExternalLink className="h-3 w-3" />

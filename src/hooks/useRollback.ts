@@ -35,6 +35,7 @@ import {
   useCompleteWalletData,
   useSimpleFindRollbackWallet,
 } from "./contracts/useSimpleRollbackRead";
+import { useTokenInfo } from "./contracts/useTokenInfo";
 
 // Rollback Wallet type for hook usage
 export interface RollbackWallet {
@@ -206,7 +207,6 @@ export const useRollbackWallet = () => {
 
       // Check API data first
       if (apiUser && !apiError) {
-        
         finalUserData = apiUser;
         finalWalletAddress = apiUser.rollbackConfig?.rollback_wallet_address;
         finalUserRole = "owner"; // API users are always owners
@@ -214,7 +214,6 @@ export const useRollbackWallet = () => {
 
         // Enhance with contract data if available
         if (hasWallet && contractData) {
-          
           // 🔥 ISSUE: This is where duplication might be happening - merging API and contract wallets
           finalUserData = {
             ...apiUser,
@@ -230,7 +229,6 @@ export const useRollbackWallet = () => {
       }
       // Fallback to contract-only data
       else if (hasWallet && contractData && walletAddress) {
-        
         finalUserData = contractData;
         finalWalletAddress = walletAddress;
         finalUserRole = userRole || "owner";
@@ -939,78 +937,10 @@ export const useApprovalWarningStatus = (user: any) => {
 
 export const useTokenPortfolio = (user: UserData | null) => {
   const publicClient = usePublicClient();
+  const { fetchTokenInfo } = useTokenInfo();
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const fetchTokenInfo = useCallback(
-    async (
-      tokenAddress: string,
-      tokenType: string
-    ): Promise<Partial<TokenInfo>> => {
-      if (!publicClient) return {};
-
-      try {
-        if (tokenType === "ERC20") {
-          const [symbol, name, decimals] = await Promise.all([
-            publicClient.readContract({
-              address: tokenAddress as `0x${string}`,
-              abi: ERC20_ABI,
-              functionName: "symbol",
-            }),
-            publicClient.readContract({
-              address: tokenAddress as `0x${string}`,
-              abi: ERC20_ABI,
-              functionName: "name",
-            }),
-            publicClient.readContract({
-              address: tokenAddress as `0x${string}`,
-              abi: ERC20_ABI,
-              functionName: "decimals",
-            }),
-          ]);
-
-          return {
-            symbol: symbol as string,
-            name: name as string,
-            decimals: decimals as number,
-            type: "ERC20" as const,
-          };
-        } else if (tokenType === "ERC721") {
-          const [symbol, name] = await Promise.all([
-            publicClient.readContract({
-              address: tokenAddress as `0x${string}`,
-              abi: ERC721_ABI,
-              functionName: "symbol",
-            }),
-            publicClient.readContract({
-              address: tokenAddress as `0x${string}`,
-              abi: ERC721_ABI,
-              functionName: "name",
-            }),
-          ]);
-
-          return {
-            symbol: symbol as string,
-            name: name as string,
-            decimals: 0,
-            type: "ERC721" as const,
-          };
-        }
-      } catch (err) {
-        console.error(`Error fetching token info for ${tokenAddress}:`, err);
-        return {
-          symbol: "UNKNOWN",
-          name: "Unknown Token",
-          decimals: 18,
-          type: tokenType as "ERC20" | "ERC721",
-        };
-      }
-
-      return {};
-    },
-    [publicClient]
-  );
 
   const fetchTokenBalance = useCallback(
     async (
@@ -1059,10 +989,9 @@ export const useTokenPortfolio = (user: UserData | null) => {
         );
         if (!existingWallet) {
           unique.push(wallet);
-        } 
+        }
         return unique;
       }, [] as typeof rawWallets);
-
 
       const tokenInfoPromises = tokens_to_monitor.map(async (token) => {
         const info = await fetchTokenInfo(token.address, token.type);
@@ -1074,7 +1003,7 @@ export const useTokenPortfolio = (user: UserData | null) => {
             wallet.address,
             token.type
           );
-         
+
           return { walletAddress: wallet.address, balance };
         });
 
@@ -1087,7 +1016,6 @@ export const useTokenPortfolio = (user: UserData | null) => {
           totalBalance += BigInt(balance);
         });
 
-      
         return {
           address: token.address,
           symbol: info.symbol || "UNKNOWN",

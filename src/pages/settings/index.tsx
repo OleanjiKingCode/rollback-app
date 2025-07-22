@@ -36,7 +36,13 @@ import {
   ArrowLeft,
   Shield,
   Unlink,
+  Loader2,
+  AlertTriangle,
+  CheckCircle2,
+  Info,
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTokenValidation } from "@/hooks/contracts/useTokenValidation";
 import { RiLoader4Line } from "react-icons/ri";
 
 // Wallet connection state
@@ -125,6 +131,12 @@ export default function Settings() {
   >([]);
   const [newToken, setNewToken] = useState({ address: "", type: "ERC20" });
   const navigate = useNavigate();
+  
+  // Token validation for custom token input
+  const tokenValidation = useTokenValidation(
+    newToken.address,
+    newToken.type as "ERC20" | "ERC721"
+  );
 
   // Load tokens from user data
   useEffect(() => {
@@ -279,39 +291,99 @@ export default function Settings() {
                 <Label className="text-sm font-medium text-gray-600 mb-3 block">
                   Add New Token
                 </Label>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    placeholder="Token address (0x...)"
-                    value={newToken.address}
-                    onChange={(e) =>
-                      setNewToken((prev) => ({
-                        ...prev,
-                        address: e.target.value,
-                      }))
-                    }
-                    className="flex-1"
-                  />
-                  <Select
-                    value={newToken.type}
-                    onValueChange={(value) =>
-                      setNewToken((prev) => ({ ...prev, type: value }))
-                    }
-                  >
-                    <SelectTrigger className="w-24">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ERC20">ERC20</SelectItem>
-                      <SelectItem value="ERC721">ERC721</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    size="sm"
-                    onClick={handleAddToken}
-                    disabled={!newToken.address}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex-1 relative">
+                      <Input
+                        placeholder="Token address (0x...)"
+                        value={newToken.address}
+                        onChange={(e) =>
+                          setNewToken((prev) => ({
+                            ...prev,
+                            address: e.target.value,
+                          }))
+                        }
+                        className={`pr-8 ${
+                          newToken.address && tokenValidation.isValid
+                            ? "border-green-500 focus:border-green-500"
+                            : newToken.address && tokenValidation.error
+                            ? "border-red-500 focus:border-red-500"
+                            : ""
+                        }`}
+                      />
+                      {tokenValidation.isLoading && (
+                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                          <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                        </div>
+                      )}
+                      {newToken.address && !tokenValidation.isLoading && tokenValidation.isValid && (
+                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        </div>
+                      )}
+                      {newToken.address && !tokenValidation.isLoading && tokenValidation.error && (
+                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                          <AlertTriangle className="h-4 w-4 text-red-500" />
+                        </div>
+                      )}
+                    </div>
+                    <Select
+                      value={newToken.type}
+                      onValueChange={(value) =>
+                        setNewToken((prev) => ({ ...prev, type: value }))
+                      }
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ERC20">ERC20</SelectItem>
+                        <SelectItem value="ERC721">ERC721</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      size="sm"
+                      onClick={handleAddToken}
+                      disabled={!newToken.address || !tokenValidation.isValid || tokenValidation.isLoading}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Token Validation Feedback */}
+                  {newToken.address && !tokenValidation.isLoading && tokenValidation.isValid && (
+                    <Alert className="bg-green-50 border-green-200">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      <AlertDescription className="text-green-800">
+                        <div className="space-y-1">
+                          <div className="font-medium">
+                            ✅ {tokenValidation.name} ({tokenValidation.symbol}) - {tokenValidation.tokenType}
+                          </div>
+                          {tokenValidation.tokenType === 'ERC20' && tokenValidation.decimals && (
+                            <div className="text-sm">
+                              Decimals: {tokenValidation.decimals} | Total Supply: {tokenValidation.totalSupply ? 
+                                (BigInt(tokenValidation.totalSupply) / BigInt(10 ** tokenValidation.decimals)).toString() : 'Unknown'}
+                            </div>
+                          )}
+                          {tokenValidation.tokenType === 'ERC721' && (
+                            <div className="text-sm">
+                              NFT Collection | Total Supply: {tokenValidation.totalSupply || 'Unknown'} NFTs
+                            </div>
+                          )}
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {newToken.address && !tokenValidation.isLoading && tokenValidation.error && (
+                    <Alert className="bg-red-50 border-red-200">
+                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                      <AlertDescription className="text-red-800">
+                        <div className="font-medium">❌ Invalid Token</div>
+                        <div className="text-sm mt-1">{tokenValidation.error}</div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
                   Add tokens to monitor for rollback protection. Remember to
