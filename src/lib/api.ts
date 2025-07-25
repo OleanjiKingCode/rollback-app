@@ -56,7 +56,15 @@ const putData = async (url: string, data: any) => {
 export const useUser = (address: string | null) => {
   const { data, error, isLoading, mutate } = useSWR<UserData>(
     address ? `/wallets/users/${address}` : null,
-    fetcher
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+      refreshInterval: 0,
+      dedupingInterval: 0,
+      errorRetryInterval: 0,
+      focusThrottleInterval: 0,
+    }
   );
 
   // Debug logging for API response
@@ -80,7 +88,8 @@ export const useUser = (address: string | null) => {
 export const useUserWallets = (userId: string | null) => {
   const { data, error, isLoading, mutate } = useSWR<Wallet[]>(
     userId ? `/wallets/users/${userId}/wallets` : null,
-    fetcher
+    fetcher,
+    { dedupingInterval: 0, refreshInterval: 0 }
   );
 
   return {
@@ -94,7 +103,8 @@ export const useUserWallets = (userId: string | null) => {
 export const useRollbackHistory = (userId: string | null) => {
   const { data, error, isLoading, mutate } = useSWR<RollbackHistory[]>(
     userId ? `/wallets/users/${userId}/rollback-history` : null,
-    fetcher
+    fetcher,
+    { dedupingInterval: 0, refreshInterval: 0 }
   );
 
   return {
@@ -108,7 +118,8 @@ export const useRollbackHistory = (userId: string | null) => {
 export const useWalletActivity = (address: string | null) => {
   const { data, error, isLoading, mutate } = useSWR<WalletActivity>(
     address ? `/wallets/wallets/${address}/activity` : null,
-    fetcher
+    fetcher,
+    { dedupingInterval: 0, refreshInterval: 0 }
   );
 
   return {
@@ -122,7 +133,8 @@ export const useWalletActivity = (address: string | null) => {
 export const useSystemStats = () => {
   const { data, error, isLoading, mutate } = useSWR<SystemStats>(
     "/wallets/stats",
-    fetcher
+    fetcher,
+    { dedupingInterval: 0, refreshInterval: 0 }
   );
 
   return {

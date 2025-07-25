@@ -24,6 +24,16 @@ class CustomError extends Error {
   }
 }
 
+interface VoteParams {
+  voteType:
+    | "AGENT_CHANGE"
+    | "THRESHOLD_CHANGE"
+    | "OBSOLETE_WALLET"
+    | "EMERGENCY_RECOVERY";
+  targetAddress: Address;
+  targetValue: bigint;
+}
+
 /**
  * Hook for requesting votes in rollback wallet with dynamic parameters
  */
@@ -32,11 +42,7 @@ export const useWriteRequestVote = (walletAddress?: Address) => {
   const { ErrorSonner, LoadingSonner, SuccessfulSonner } = sonnerToasts();
 
   const [enabled, setEnabled] = useState(false);
-  const [voteParams, setVoteParams] = useState<{
-    voteType: "AGENT_CHANGE" | "THRESHOLD_CHANGE" | "OBSOLETE_WALLET";
-    targetAddress: Address;
-    targetValue: bigint;
-  } | null>(null);
+  const [voteParams, setVoteParams] = useState<VoteParams | null>(null);
   const [errorException, setErrorException] = useState<Error>();
   const toastIdRef = useRef<string | number>();
   const newFetchRef = useRef(false);
@@ -78,6 +84,8 @@ export const useWriteRequestVote = (walletAddress?: Address) => {
         const voteTypeLabel =
           voteParams?.voteType === "OBSOLETE_WALLET"
             ? "Emergency Rollback"
+            : voteParams?.voteType === "EMERGENCY_RECOVERY"
+            ? "Emergency Recovery"
             : voteParams?.voteType.replace("_", " ") || "Vote";
 
         const toastId = LoadingSonner({
@@ -93,6 +101,8 @@ export const useWriteRequestVote = (walletAddress?: Address) => {
         const voteTypeLabel =
           voteParams?.voteType === "OBSOLETE_WALLET"
             ? "Emergency Rollback"
+            : voteParams?.voteType === "EMERGENCY_RECOVERY"
+            ? "Emergency Recovery"
             : voteParams?.voteType.replace("_", " ") || "Vote";
 
         SuccessfulSonner({
@@ -110,6 +120,8 @@ export const useWriteRequestVote = (walletAddress?: Address) => {
         const voteTypeLabel =
           voteParams?.voteType === "OBSOLETE_WALLET"
             ? "Emergency Rollback"
+            : voteParams?.voteType === "EMERGENCY_RECOVERY"
+            ? "Emergency Recovery"
             : voteParams?.voteType.replace("_", " ") || "Vote";
 
         ErrorSonner({
@@ -138,7 +150,7 @@ export const useWriteRequestVote = (walletAddress?: Address) => {
       simStatus === "success" &&
       simData?.request
     ) {
-      writeRequestVote(simData.request);
+      writeRequestVote(simData.request as any);
       newFetchRef.current = false;
     }
   }, [simStatus, simData, enabled, writeRequestVote]);
@@ -185,19 +197,15 @@ export const useWriteRequestVote = (walletAddress?: Address) => {
 
   const requestVote = useCallback(
     (
-      voteType: "AGENT_CHANGE" | "THRESHOLD_CHANGE" | "OBSOLETE_WALLET",
+      voteType:
+        | "AGENT_CHANGE"
+        | "THRESHOLD_CHANGE"
+        | "OBSOLETE_WALLET"
+        | "EMERGENCY_RECOVERY",
       targetAddress: Address,
       targetValue: bigint = BigInt(0)
     ) => {
       const voteTypeNumber = VOTE_TYPE[voteType];
-      console.log("🎯 requestVote called with:", {
-        voteType,
-        voteTypeNumber,
-        targetAddress,
-        targetValue: targetValue.toString(),
-        walletAddress,
-        VOTE_TYPE_ENUM: VOTE_TYPE,
-      });
 
       setVoteParams({ voteType, targetAddress, targetValue });
       setEnabled(true);
@@ -309,7 +317,7 @@ export const useWriteConfirmVote = (walletAddress?: Address) => {
       simStatus === "success" &&
       simData?.request
     ) {
-      writeConfirmVote(simData.request);
+      writeConfirmVote(simData.request as any);
       newFetchRef.current = false;
     }
   }, [simStatus, simData, enabled, writeConfirmVote]);
@@ -379,16 +387,11 @@ export const useVoteManagement = (walletAddress?: Address) => {
 
   // Specific request functions
   const requestAgentChange = (targetAddress: Address) => {
-    console.log("🧑‍💼 requestAgentChange called:", { targetAddress });
     requestVoteHook.requestVote("AGENT_CHANGE", targetAddress);
   };
 
   const requestThresholdChange = (newThresholdDays: number) => {
     const thresholdSeconds = BigInt(newThresholdDays * 24 * 60 * 60);
-    console.log("⏰ requestThresholdChange called:", {
-      newThresholdDays,
-      thresholdSeconds: thresholdSeconds.toString(),
-    });
     requestVoteHook.requestVote(
       "THRESHOLD_CHANGE",
       "0x0000000000000000000000000000000000000000" as Address,
@@ -397,8 +400,11 @@ export const useVoteManagement = (walletAddress?: Address) => {
   };
 
   const requestEmergencyRollback = (targetWalletAddress: Address) => {
-    console.log("🚨 requestEmergencyRollback called:", { targetWalletAddress });
     requestVoteHook.requestVote("OBSOLETE_WALLET", targetWalletAddress);
+  };
+
+  const requestEmergencyRecovery = (recoveryWalletAddress: Address) => {
+    requestVoteHook.requestVote("EMERGENCY_RECOVERY", recoveryWalletAddress);
   };
 
   return {
@@ -406,6 +412,7 @@ export const useVoteManagement = (walletAddress?: Address) => {
     requestAgentChange,
     requestThresholdChange,
     requestEmergencyRollback,
+    requestEmergencyRecovery,
     // Generic request function for custom use
     requestVote: requestVoteHook.requestVote,
 
@@ -427,5 +434,204 @@ export const useVoteManagement = (walletAddress?: Address) => {
     // Transaction data
     voteRequestData: requestVoteHook.data,
     voteConfirmData: confirmVoteHook.data,
+  };
+};
+
+/**
+ * Hook for direct wallet configuration updates
+ */
+export const useDirectWalletUpdates = (walletAddress?: Address) => {
+  const { address, chain } = useAccount();
+  const { ErrorSonner, LoadingSonner, SuccessfulSonner } = sonnerToasts();
+
+  // Update Fallback Wallet
+  const {
+    writeContract: updateFallback,
+    isPending: isUpdatingFallback,
+    error: fallbackError,
+    isSuccess: fallbackSuccess,
+  } = useWriteContract({
+    mutation: {
+      onMutate() {
+        LoadingSonner({ message: "Updating fallback wallet..." });
+      },
+      onSuccess() {
+        SuccessfulSonner({
+          header: "Success",
+          message: "Fallback wallet updated successfully!",
+        });
+      },
+      onError(error) {
+        ErrorSonner({
+          header: "Error",
+          message: "Failed to update fallback wallet. Please try again.",
+        });
+      },
+    },
+  });
+
+  // Update Wallet Priority
+  const {
+    writeContract: updatePriority,
+    isPending: isUpdatingPriority,
+    error: priorityError,
+    isSuccess: prioritySuccess,
+  } = useWriteContract({
+    mutation: {
+      onMutate() {
+        LoadingSonner({ message: "Updating wallet priority..." });
+      },
+      onSuccess() {
+        SuccessfulSonner({
+          header: "Success",
+          message: "Wallet priority updated successfully!",
+        });
+      },
+      onError(error) {
+        ErrorSonner({
+          header: "Error",
+          message: "Failed to update wallet priority. Please try again.",
+        });
+      },
+    },
+  });
+
+  // Update Randomization
+  const {
+    writeContract: updateRandomization,
+    isPending: isUpdatingRandomization,
+    error: randomizationError,
+    isSuccess: randomizationSuccess,
+  } = useWriteContract({
+    mutation: {
+      onMutate() {
+        LoadingSonner({ message: "Updating randomization settings..." });
+      },
+      onSuccess() {
+        SuccessfulSonner({
+          header: "Success",
+          message: "Randomization settings updated successfully!",
+        });
+      },
+      onError(error) {
+        ErrorSonner({
+          header: "Error",
+          message: "Failed to update randomization settings. Please try again.",
+        });
+      },
+    },
+  });
+
+  // Update Monitored Tokens
+  const {
+    writeContract: updateTokens,
+    isPending: isUpdatingTokens,
+    error: tokensError,
+    isSuccess: tokensSuccess,
+  } = useWriteContract({
+    mutation: {
+      onMutate() {
+        LoadingSonner({ message: "Updating monitored tokens..." });
+      },
+      onSuccess() {
+        SuccessfulSonner({
+          header: "Success",
+          message: "Monitored tokens updated successfully!",
+        });
+      },
+      onError(error) {
+        ErrorSonner({
+          header: "Error",
+          message: "Failed to update monitored tokens. Please try again.",
+        });
+      },
+    },
+  });
+
+  // Helper functions
+  const updateFallbackWallet = useCallback(
+    (newFallback: Address) => {
+      if (!walletAddress || !address) return;
+      updateFallback({
+        address: walletAddress,
+        abi: ROLLBACK_WALLET_ABI,
+        functionName: "updateFallbackWallet",
+        args: [newFallback],
+        account: address,
+        chain,
+      });
+    },
+    [walletAddress, updateFallback, address, chain]
+  );
+
+  const updateWalletPriority = useCallback(
+    (wallet: Address, newPriority: bigint) => {
+      if (!walletAddress || !address) return;
+      updatePriority({
+        address: walletAddress,
+        abi: ROLLBACK_WALLET_ABI,
+        functionName: "updateWalletPriority",
+        args: [wallet, newPriority],
+        account: address,
+        chain,
+      });
+    },
+    [walletAddress, updatePriority, address, chain]
+  );
+
+  const setRandomizationEnabled = useCallback(
+    (enabled: boolean) => {
+      if (!walletAddress || !address) return;
+      updateRandomization({
+        address: walletAddress,
+        abi: ROLLBACK_WALLET_ABI,
+        functionName: "updateRandomization",
+        args: [enabled],
+        account: address,
+        chain,
+      });
+    },
+    [walletAddress, updateRandomization, address, chain]
+  );
+
+  const setMonitoredTokens = useCallback(
+    (tokenAddresses: Address[], tokenTypes: number[]) => {
+      if (!walletAddress || !address) return;
+      updateTokens({
+        address: walletAddress,
+        abi: ROLLBACK_WALLET_ABI,
+        functionName: "updateMonitoredTokens",
+        args: [tokenAddresses, tokenTypes],
+        account: address,
+        chain,
+      });
+    },
+    [walletAddress, updateTokens, address, chain]
+  );
+
+  return {
+    // Fallback wallet operations
+    updateFallbackWallet,
+    isUpdatingFallback,
+    fallbackError,
+    fallbackSuccess,
+
+    // Wallet priority operations
+    updateWalletPriority,
+    isUpdatingPriority,
+    priorityError,
+    prioritySuccess,
+
+    // Randomization operations
+    setRandomizationEnabled,
+    isUpdatingRandomization,
+    randomizationError,
+    randomizationSuccess,
+
+    // Monitored tokens operations
+    setMonitoredTokens,
+    isUpdatingTokens,
+    tokensError,
+    tokensSuccess,
   };
 };

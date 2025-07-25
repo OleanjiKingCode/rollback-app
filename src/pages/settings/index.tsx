@@ -1,9 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useNavigate } from "react-router-dom";
 import { useRollbackWallet } from "@/hooks/useRollback";
+import { useDirectWalletUpdates } from "@/hooks/contracts/useWalletOperations";
+import { TOKEN_TYPE } from "@/config/contracts";
+import { type Address } from "viem";
 import {
   Card,
   CardContent,
@@ -14,451 +18,612 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "@/lib/toast";
-import { useNavigate } from "react-router-dom";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import {
-  Copy,
+  Settings,
+  Wallet,
+  Shield,
   Coins,
-  WifiOff,
+  ArrowRight,
   Plus,
   Trash2,
-  User,
-  Wallet,
-  CheckSquare,
-  ArrowLeft,
-  Shield,
-  Unlink,
-  Loader2,
+  Save,
   AlertTriangle,
-  CheckCircle2,
-  Info,
+  CheckCircle,
+  Loader2,
+  ExternalLink,
+  Copy,
 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useTokenValidation } from "@/hooks/contracts/useTokenValidation";
-import { RiLoader4Line } from "react-icons/ri";
 
-// Wallet connection state
-const WalletConnectionState = ({ isConnected, address }: any) => {
+export default function SettingsPage() {
+  const { isConnected, address } = useAccount();
   const { openConnectModal } = useConnectModal();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
+  // Get rollback wallet data
+  const { user, hasRollbackWallet, rollbackWalletAddress, isLoading, isError } =
+    useRollbackWallet();
+
+  // Get the wallet address (this is what we need for the direct updates)
+  const walletAddress = rollbackWalletAddress;
+
+  // Direct update hooks
+  const {
+    updateFallbackWallet,
+    isUpdatingFallback,
+    fallbackSuccess,
+    updateWalletPriority,
+    isUpdatingPriority,
+    prioritySuccess,
+    setRandomizationEnabled,
+    isUpdatingRandomization,
+    randomizationSuccess,
+    setMonitoredTokens,
+    isUpdatingTokens,
+    tokensSuccess,
+  } = useDirectWalletUpdates(walletAddress as Address);
+
+  // Form states
+  const [newFallback, setNewFallback] = useState("");
+  const [priorityWallet, setPriorityWallet] = useState("");
+  const [priorityValue, setPriorityValue] = useState("");
+  const [randomizationEnabled, setRandomizationEnabledLocal] = useState(false);
+  const [newTokens, setNewTokens] = useState<
+    Array<{ address: string; type: "ERC20" | "ERC721" }>
+  >([]);
+
+  // Copy to clipboard handler
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied!",
+      description: "Address copied to clipboard",
+    });
+  };
+
+  // Handle wallet connection check
   if (!isConnected) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rollback-light to-white pt-16 lg:pt-8 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-center max-w-lg rounded-3xl p-8 border border-gray-100 relative overflow-hidden">
-            {/* Decorative background */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-rollback-primary/10 to-rollback-secondary/10 rounded-full -mr-16 -mt-16" />
-            <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-rollback-cream to-rollback-secondary/20 rounded-full -ml-10 -mb-10" />
-
-            <div className="relative z-10">
-              <div className="w-10 h-10 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <Unlink className="h-5 w-5 text-white" />
-              </div>
-
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Connect Your Wallet
-              </h3>
-
-              <p className="text-gray-600 mb-8 text-sm leading-relaxed">
-                Connect your wallet to access rollback wallet settings.
-              </p>
-
-              <button
-                onClick={openConnectModal}
-                className="bg-gradient-to-r from-rollback-primary to-rollback-primary/90 hover:from-rollback-primary/90 hover:to-rollback-primary text-white px-4 py-2 rounded-xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center mx-auto space-x-3"
-              >
-                <Wallet className="h-4 w-4" />
-                <span className="text-sm">Connect Wallet</span>
-              </button>
+          <div className="text-center max-w-lg rounded-3xl p-8 border border-gray-100">
+            <div className="w-10 h-10 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <Settings className="h-5 w-5 text-white" />
             </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">
+              Connect Your Wallet
+            </h3>
+            <p className="text-gray-600 mb-8 text-sm">
+              Connect your wallet to access rollback wallet settings.
+            </p>
+            <button
+              onClick={openConnectModal}
+              className="w-full bg-rollback-primary hover:bg-rollback-primary/90 text-white font-medium py-3 px-6 rounded-xl transition-colors"
+            >
+              Connect Wallet
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  return null;
-};
-
-// No Rollback Wallet State
-const NoRollbackWalletState = () => {
-  const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
-      <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-        <div className="text-center max-w-2xl">
-          <div className="w-20 h-20 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-full flex items-center justify-center mx-auto mb-8">
-            <Shield className="h-6 w-6 text-white" />
-          </div>
-
-          <h2 className="text-lg font-bold text-rollback-dark mb-4">
-            No Rollback Wallet Found
-          </h2>
-
-          <p className="text-gray-600 mb-8 text-sm leading-relaxed">
-            You need to create a rollback wallet before you can access settings.
-          </p>
-
-          <Button
-            onClick={() => navigate("/create")}
-            className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-8 py-4 text-sm rounded-xl"
-            size="lg"
-          >
-            <Plus className="h-5 w-5 mr-3" />
-            Create Rollback Wallet
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default function Settings() {
-  const { isConnected, address } = useAccount();
-  const { user, hasRollbackWallet, isLoading } = useRollbackWallet();
-
-  const [tokensToMonitor, setTokensToMonitor] = useState<
-    Array<{ address: string; type: string }>
-  >([]);
-  const [newToken, setNewToken] = useState({ address: "", type: "ERC20" });
-  const navigate = useNavigate();
-  
-  // Token validation for custom token input
-  const tokenValidation = useTokenValidation(
-    newToken.address,
-    newToken.type as "ERC20" | "ERC721"
-  );
-
-  // Load tokens from user data
-  useEffect(() => {
-    if (user && user.rollbackConfig) {
-      setTokensToMonitor(user.rollbackConfig.tokens_to_monitor || []);
-    }
-  }, [user]);
-
-  const handleAddToken = () => {
-    if (
-      newToken.address &&
-      !tokensToMonitor.find((t) => t.address === newToken.address)
-    ) {
-      setTokensToMonitor([...tokensToMonitor, newToken]);
-      setNewToken({ address: "", type: "ERC20" });
-      toast.success("Token Added", "Token has been added to monitoring list.");
-    }
-  };
-
-  const handleRemoveToken = (address: string) => {
-    setTokensToMonitor(tokensToMonitor.filter((t) => t.address !== address));
-    toast.success(
-      "Token Removed",
-      "Token has been removed from monitoring list."
-    );
-  };
-
-  const handleCopyAddress = (address: string) => {
-    navigator.clipboard.writeText(address);
-    toast.plain("Address copied to clipboard");
-  };
-
-  // Show wallet connection state if not connected
-  if (!isConnected) {
-    return (
-      <WalletConnectionState isConnected={isConnected} address={address} />
-    );
-  }
-
-  // Show loading state while checking for wallet
+  // Handle loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-center max-w-lg">
-            <div className="w-20 h-20 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-full flex items-center justify-center mx-auto mb-8">
-              <RiLoader4Line className="h-8 w-8 text-white animate-spin" />
-            </div>
-            <h3 className="text-2xl font-semibold text-rollback-dark mb-3">
-              Checking Wallet Status
-            </h3>
-            <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-              Searching for your rollback wallet configuration...
-            </p>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-rollback-light to-white pt-16 lg:pt-8 flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Loading wallet settings...</span>
         </div>
       </div>
     );
   }
 
-  // Show no rollback wallet state only after checking is complete and no wallet found
-  if (hasRollbackWallet === false && !isLoading) {
-    return <NoRollbackWalletState />;
-  }
-
-  // Don't render main settings until we know the wallet status
-  if (hasRollbackWallet === undefined || hasRollbackWallet === null) {
+  // Handle no rollback wallet
+  if (!hasRollbackWallet) {
     return (
-      <div className="min-h-screen bg-rollback-light pt-16 lg:pt-8 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-rollback-light to-white pt-16 lg:pt-8 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8 flex items-center justify-center">
           <div className="text-center max-w-lg">
-            <div className="w-20 h-20 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-full flex items-center justify-center mx-auto mb-8">
-              <RiLoader4Line className="h-8 w-8 text-white animate-spin" />
+            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle className="h-8 w-8 text-yellow-500" />
             </div>
-            <h3 className="text-2xl font-semibold text-rollback-dark mb-3">
-              Loading Wallet Configuration
+            <h3 className="text-lg font-semibold text-rollback-dark mb-3">
+              No Rollback Wallet Found
             </h3>
-            <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-              Please wait while we load your rollback wallet settings...
+            <p className="text-gray-600 mb-8 text-xs">
+              You need to create a rollback wallet first to access settings.
             </p>
+            <Button
+              onClick={() => (window.location.href = "/create")}
+              className="bg-rollback-primary hover:bg-rollback-primary/90"
+            >
+              Create Rollback Wallet
+            </Button>
           </div>
         </div>
       </div>
     );
   }
+
+  // Handler functions
+  const handleUpdateFallback = () => {
+    if (
+      !newFallback ||
+      newFallback.length !== 42 ||
+      !newFallback.startsWith("0x")
+    ) {
+      toast({
+        title: "Invalid Address",
+        description: "Please enter a valid Ethereum address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    updateFallbackWallet(newFallback as Address);
+  };
+
+  const handleUpdatePriority = () => {
+    if (
+      !priorityWallet ||
+      priorityWallet.length !== 42 ||
+      !priorityWallet.startsWith("0x")
+    ) {
+      toast({
+        title: "Invalid Address",
+        description: "Please enter a valid wallet address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const priority = parseInt(priorityValue);
+    if (isNaN(priority) || priority < 0) {
+      toast({
+        title: "Invalid Priority",
+        description: "Please enter a valid priority number (0 or higher).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateWalletPriority(priorityWallet as Address, BigInt(priority));
+  };
+
+  const handleUpdateRandomization = () => {
+    setRandomizationEnabled(randomizationEnabled);
+  };
+
+  const handleUpdateTokens = () => {
+    if (newTokens.length === 0) {
+      toast({
+        title: "No Tokens",
+        description: "Please add at least one token to monitor.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const addresses = newTokens.map((t) => t.address as Address);
+    const types = newTokens.map((t) =>
+      t.type === "ERC20" ? TOKEN_TYPE.ERC20 : TOKEN_TYPE.ERC721
+    );
+
+    setMonitoredTokens(addresses, types);
+  };
+
+  const addNewToken = () => {
+    setNewTokens([...newTokens, { address: "", type: "ERC20" }]);
+  };
+
+  const removeToken = (index: number) => {
+    setNewTokens(newTokens.filter((_, i) => i !== index));
+  };
+
+  const updateToken = (index: number, field: string, value: string) => {
+    const updated = [...newTokens];
+    updated[index] = { ...updated[index], [field]: value };
+    setNewTokens(updated);
+  };
 
   return (
-    <div className="min-h-screen bg-rollback-light pt-16 lg:pt-0">
-      <div className="container mx-auto px-4 py-6 lg:py-8">
+    <div className="min-h-screen bg-gradient-to-br from-rollback-light to-white pt-16 lg:pt-8">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
-          <div className="mb-4 lg:mb-0">
-            <h1 className="text-2xl font-bold text-rollback-dark mb-2">
-              Settings
-            </h1>
-            <p className="text-sm text-gray-600">
-              Manage your token approvals and rollback wallet settings
-            </p>
+        <div className="mb-8">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-br from-rollback-primary to-rollback-primary/80 rounded-xl flex items-center justify-center">
+              <Settings className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-rollback-dark">
+                Wallet Settings
+              </h1>
+              <p className="text-gray-600 text-sm">
+                Configure your rollback wallet settings directly
+              </p>
+            </div>
           </div>
 
-          
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Quick Access to Token Approvals */}
-          <Card className="border-gray-200 bg-white rounded-2xl ">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-                <CheckSquare className="h-5 w-5 mr-2 text-rollback-primary" />
-                Token Approvals Management
-              </CardTitle>
-              <CardDescription>
-                Essential tool for managing your rollback wallet protection
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="">
-              <div className="flex flex-col gap-6 items-start p-6 h-full bg-blue-50 border border-blue-200 rounded-lg">
+          {/* Current wallet info */}
+          <div className="bg-white rounded-xl p-4 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Wallet className="h-5 w-5 text-rollback-primary" />
                 <div>
-                  <h4 className="text-lg font-semibold text-blue-800 mb-2">
-                    Manage Token Approvals
-                  </h4>
-                  <p className="text-sm text-blue-700">
-                    View and manage ERC20/ERC721 token approvals for your
-                    rollback wallet. This is the most important setting for
-                    ensuring your protection works correctly.
+                  <p className="font-medium text-sm">Current Rollback Wallet</p>
+                  <p className="text-xs text-gray-500 font-mono">
+                    {walletAddress?.slice(0, 8)}...{walletAddress?.slice(-6)}
                   </p>
                 </div>
-                <Button
-                  onClick={() => navigate("/settings/token-approvals")}
-                  className="bg-rollback-primary hover:bg-rollback-primary/90 text-white px-6 py-3"
-                >
-                  <CheckSquare className="h-5 w-5 mr-2" />
-                  Open Token Approvals
-                </Button>
               </div>
-            </CardContent>
-          </Card>
+              <Badge
+                variant="outline"
+                className="text-green-700 border-green-200 bg-green-50"
+              >
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Active
+              </Badge>
+            </div>
+          </div>
+        </div>
 
-          {/* Token Monitoring */}
-          <Card className="border-gray-200 bg-white rounded-2xl">
+        <div className="grid gap-6">
+          {/* Fallback Wallet */}
+          <Card>
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-                <Coins className="h-5 w-5 mr-2 text-rollback-primary" />
-                Monitored Tokens
+              <CardTitle className="flex items-center space-x-2">
+                <Shield className="h-5 w-5 text-rollback-primary" />
+                <span>Fallback Wallet</span>
               </CardTitle>
               <CardDescription>
-                Tokens currently under rollback protection
+                Set the wallet address to receive funds during rollback if no
+                other active wallet is available.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <Label className="text-sm font-medium text-gray-600 mb-3 block">
-                  Add New Token
-                </Label>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 relative">
-                      <Input
-                        placeholder="Token address (0x...)"
-                        value={newToken.address}
-                        onChange={(e) =>
-                          setNewToken((prev) => ({
-                            ...prev,
-                            address: e.target.value,
-                          }))
-                        }
-                        className={`pr-8 ${
-                          newToken.address && tokenValidation.isValid
-                            ? "border-green-500 focus:border-green-500"
-                            : newToken.address && tokenValidation.error
-                            ? "border-red-500 focus:border-red-500"
-                            : ""
-                        }`}
-                      />
-                      {tokenValidation.isLoading && (
-                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                          <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                        </div>
-                      )}
-                      {newToken.address && !tokenValidation.isLoading && tokenValidation.isValid && (
-                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        </div>
-                      )}
-                      {newToken.address && !tokenValidation.isLoading && tokenValidation.error && (
-                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                          <AlertTriangle className="h-4 w-4 text-red-500" />
-                        </div>
-                      )}
-                    </div>
-                    <Select
-                      value={newToken.type}
-                      onValueChange={(value) =>
-                        setNewToken((prev) => ({ ...prev, type: value }))
-                      }
-                    >
-                      <SelectTrigger className="w-24">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ERC20">ERC20</SelectItem>
-                        <SelectItem value="ERC721">ERC721</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      size="sm"
-                      onClick={handleAddToken}
-                      disabled={!newToken.address || !tokenValidation.isValid || tokenValidation.isLoading}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="fallback">New Fallback Wallet Address</Label>
+                <Input
+                  id="fallback"
+                  placeholder="0x..."
+                  value={newFallback}
+                  onChange={(e) => setNewFallback(e.target.value)}
+                  className="font-mono text-sm"
+                />
+              </div>
+              <Button
+                onClick={handleUpdateFallback}
+                disabled={isUpdatingFallback || !newFallback}
+                className="w-full"
+              >
+                {isUpdatingFallback ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Update Fallback Wallet
+                  </>
+                )}
+              </Button>
 
-                  {/* Token Validation Feedback */}
-                  {newToken.address && !tokenValidation.isLoading && tokenValidation.isValid && (
-                    <Alert className="bg-green-50 border-green-200">
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      <AlertDescription className="text-green-800">
-                        <div className="space-y-1">
-                          <div className="font-medium">
-                            ✅ {tokenValidation.name} ({tokenValidation.symbol}) - {tokenValidation.tokenType}
-                          </div>
-                          {tokenValidation.tokenType === 'ERC20' && tokenValidation.decimals && (
-                            <div className="text-sm">
-                              Decimals: {tokenValidation.decimals} | Total Supply: {tokenValidation.totalSupply ? 
-                                (BigInt(tokenValidation.totalSupply) / BigInt(10 ** tokenValidation.decimals)).toString() : 'Unknown'}
-                            </div>
-                          )}
-                          {tokenValidation.tokenType === 'ERC721' && (
-                            <div className="text-sm">
-                              NFT Collection | Total Supply: {tokenValidation.totalSupply || 'Unknown'} NFTs
-                            </div>
-                          )}
-                        </div>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  {newToken.address && !tokenValidation.isLoading && tokenValidation.error && (
-                    <Alert className="bg-red-50 border-red-200">
-                      <AlertTriangle className="h-4 w-4 text-red-600" />
-                      <AlertDescription className="text-red-800">
-                        <div className="font-medium">❌ Invalid Token</div>
-                        <div className="text-sm mt-1">{tokenValidation.error}</div>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Add tokens to monitor for rollback protection. Remember to
-                  approve them afterwards.
+              <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+                <p>
+                  <strong>Current:</strong> Check wallet contract for current
+                  fallback
                 </p>
               </div>
+            </CardContent>
+          </Card>
 
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <Label className="text-sm font-medium text-gray-600">
-                    Monitored Tokens ({tokensToMonitor.length})
-                  </Label>
-                  {tokensToMonitor.length > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate("/settings/token-approvals")}
-                      className="text-xs text-rollback-primary hover:text-rollback-primary/80"
-                    >
-                      <CheckSquare className="h-3 w-3 mr-1" />
-                      Check Approvals
-                    </Button>
-                  )}
+          {/* Wallet Priority */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <ArrowRight className="h-5 w-5 text-rollback-primary" />
+                <span>Wallet Priority</span>
+              </CardTitle>
+              <CardDescription>
+                Set priority for specific wallets in non-randomized mode.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="priorityWallet">Wallet Address</Label>
+                  <Input
+                    id="priorityWallet"
+                    placeholder="0x..."
+                    value={priorityWallet}
+                    onChange={(e) => setPriorityWallet(e.target.value)}
+                    className="font-mono text-sm"
+                  />
                 </div>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {tokensToMonitor.length > 0 ? (
-                    tokensToMonitor.map((token, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                      >
-                        <div className="flex items-center">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 font-mono">
-                              {token.address.slice(0, 8)}...
-                              {token.address.slice(-6)}
-                            </p>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Badge variant="secondary" className="text-xs">
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Priority Value</Label>
+                  <Input
+                    id="priority"
+                    type="number"
+                    placeholder="0"
+                    value={priorityValue}
+                    onChange={(e) => setPriorityValue(e.target.value)}
+                  />
+                </div>
+              </div>
+              <Button
+                onClick={handleUpdatePriority}
+                disabled={
+                  isUpdatingPriority || !priorityWallet || !priorityValue
+                }
+                className="w-full"
+              >
+                {isUpdatingPriority ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Update Priority
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Randomization */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Settings className="h-5 w-5 text-rollback-primary" />
+                <span>Randomization</span>
+              </CardTitle>
+              <CardDescription>
+                Enable or disable randomized wallet selection for rollbacks.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label>Enable Randomization</Label>
+                  <p className="text-xs text-gray-500">
+                    When enabled, rollback target is selected randomly. When
+                    disabled, uses priority order.
+                  </p>
+                </div>
+                <Switch
+                  checked={randomizationEnabled}
+                  onCheckedChange={setRandomizationEnabledLocal}
+                />
+              </div>
+
+              <Button
+                onClick={handleUpdateRandomization}
+                disabled={isUpdatingRandomization}
+                className="w-full"
+              >
+                {isUpdatingRandomization ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Update Randomization
+                  </>
+                )}
+              </Button>
+
+              <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+                <p>
+                  <strong>Current:</strong> Check wallet contract for current
+                  setting
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Token Approvals Management */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-rollback-primary" />
+                <span>Token Approvals</span>
+              </CardTitle>
+              <CardDescription>
+                Manage token approvals for your rollback system
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Current monitored tokens */}
+              <div className="space-y-3">
+                <Label>Currently Monitored Tokens</Label>
+                {user?.rollbackConfig?.tokens_to_monitor?.length > 0 ? (
+                  <div className="space-y-2">
+                    {user.rollbackConfig.tokens_to_monitor.map(
+                      (token: any, index: number) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border"
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <span className="font-medium text-sm">
+                                {token.symbol || `Token ${index + 1}`}
+                              </span>
+                              <Badge variant="outline" className="text-xs">
                                 {token.type}
                               </Badge>
-                              <button
-                                onClick={() => handleCopyAddress(token.address)}
-                                className="text-xs text-gray-500 hover:text-gray-700 flex items-center"
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-xs font-mono text-gray-600">
+                                {token.address}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyToClipboard(token.address)}
+                                className="h-6 w-6 p-0"
                               >
-                                <Copy className="h-3 w-3 mr-1" />
-                                Copy
-                              </button>
+                                <Copy className="h-3 w-3" />
+                              </Button>
                             </div>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveToken(token.address)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center p-6 text-gray-500">
-                      <Coins className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No tokens configured</p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Add tokens above to enable rollback protection
+                      )
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+                    No monitored tokens configured yet
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Navigation to token approvals page */}
+              <div className="space-y-3">
+                <Label>Approval Management</Label>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-blue-900 text-sm mb-1">
+                        Manage Token Approvals
+                      </h4>
+                      <p className="text-blue-700 text-xs">
+                        View approval status and approve tokens for all your
+                        monitored wallets
                       </p>
                     </div>
-                  )}
+                    <Button
+                      onClick={() => navigate("/settings/token-approvals")}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Token Approvals
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* Monitored Tokens */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Coins className="h-5 w-5 text-rollback-primary" />
+                <span>Monitored Tokens</span>
+              </CardTitle>
+              <CardDescription>
+                Configure which tokens to monitor for activity tracking.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Current tokens */}
+              <div className="space-y-2">
+                <Label>Current Monitored Tokens</Label>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  <p className="text-gray-500 text-xs">
+                    Check wallet contract for current monitored tokens
+                  </p>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* New tokens */}
+              <div className="space-y-2">
+                <Label>Add New Tokens</Label>
+                <div className="space-y-2">
+                  {newTokens.map((token, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <Input
+                        placeholder="Token address (0x...)"
+                        value={token.address}
+                        onChange={(e) =>
+                          updateToken(index, "address", e.target.value)
+                        }
+                        className="flex-1 font-mono text-xs"
+                      />
+                      <select
+                        value={token.type}
+                        onChange={(e) =>
+                          updateToken(index, "type", e.target.value)
+                        }
+                        className="px-3 py-2 border border-gray-300 rounded-md text-xs"
+                      >
+                        <option value="ERC20">ERC20</option>
+                        <option value="ERC721">ERC721</option>
+                      </select>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeToken(index)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  variant="outline"
+                  onClick={addNewToken}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Token
+                </Button>
+              </div>
+
+              <Button
+                onClick={handleUpdateTokens}
+                disabled={isUpdatingTokens || newTokens.length === 0}
+                className="w-full"
+              >
+                {isUpdatingTokens ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Update Monitored Tokens
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Info Banner */}
+        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-start space-x-3">
+            <AlertTriangle className="h-5 w-5 text-blue-500 mt-0.5" />
+            <div>
+              <h4 className="font-medium text-blue-900 text-sm">
+                Direct Configuration
+              </h4>
+              <p className="text-blue-700 text-xs mt-1 leading-relaxed">
+                These settings update your wallet configuration immediately
+                without requiring votes. For critical changes like agent updates
+                or emergency actions, use the governance system instead.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

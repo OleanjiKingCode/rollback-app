@@ -51,7 +51,7 @@ import { useVoteManagement } from "@/hooks/contracts/useWalletOperations";
 import { VOTE_TYPE } from "@/config/contracts";
 import { type Address } from "viem";
 
-type ProposalType = "agent" | "threshold" | "emergency";
+type ProposalType = "agent" | "threshold" | "emergency" | "recovery";
 
 interface Vote {
   voteId: number;
@@ -188,11 +188,14 @@ export default function Voting() {
     requestAgentChange,
     requestThresholdChange,
     requestEmergencyRollback,
+    requestEmergencyRecovery,
     confirmVote,
     isRequestingVote,
     isConfirmingVote,
-    voteRequestStatus,
     voteRequestError,
+    voteConfirmError,
+    voteRequestStatus,
+    voteConfirmStatus,
   } = useVoteManagement(walletAddress);
 
   // Auto-refresh votes when transactions succeed
@@ -207,12 +210,6 @@ export default function Voting() {
 
   // Handle modal closing based on transaction status
   useEffect(() => {
-    console.log("🗳️ Vote Request Status:", {
-      voteRequestStatus,
-      voteRequestError: voteRequestError?.message,
-      isRequestingVote,
-    });
-
     if (voteRequestStatus === "success") {
       // Close modal and reset form on success
       setIsCreatingProposal(false);
@@ -225,7 +222,7 @@ export default function Voting() {
         title: "Proposal Created",
         description: "Your vote proposal has been submitted successfully.",
       });
-    } else if (voteRequestStatus === "error") {
+    } else if (voteRequestError) {
       // Close modal and reset form on error (user can see error in toast from hook)
       setIsCreatingProposal(false);
       setNewProposal({
@@ -358,9 +355,11 @@ export default function Voting() {
       }
     }
 
-    // Validate target address format for agent and emergency
+    // Validate target address format for agent, emergency, and recovery
     if (
-      (newProposal.type === "agent" || newProposal.type === "emergency") &&
+      (newProposal.type === "agent" ||
+        newProposal.type === "emergency" ||
+        newProposal.type === "recovery") &&
       newProposal.targetAddress
     ) {
       if (
@@ -399,6 +398,12 @@ export default function Voting() {
         newProposal.targetAddress
       );
       requestEmergencyRollback(newProposal.targetAddress as Address);
+    } else if (newProposal.type === "recovery") {
+      console.log(
+        "🚨 Requesting emergency recovery for:",
+        newProposal.targetAddress
+      );
+      requestEmergencyRecovery(newProposal.targetAddress as Address);
     }
 
     // Don't close modal immediately - let the useEffect handle it based on transaction status
@@ -413,6 +418,8 @@ export default function Voting() {
         return "Threshold Change";
       case VOTE_TYPE.OBSOLETE_WALLET:
         return "Emergency Rollback";
+      case VOTE_TYPE.EMERGENCY_RECOVERY:
+        return "Emergency Recovery";
       default:
         return "Unknown";
     }
@@ -426,6 +433,8 @@ export default function Voting() {
         return <Clock className="h-4 w-4" />;
       case VOTE_TYPE.OBSOLETE_WALLET:
         return <Zap className="h-4 w-4 text-red-500" />;
+      case VOTE_TYPE.EMERGENCY_RECOVERY:
+        return <Shield className="h-4 w-4 text-orange-500" />;
       default:
         return <Settings className="h-4 w-4" />;
     }
@@ -441,6 +450,9 @@ export default function Voting() {
     if (vote.voteType === VOTE_TYPE.OBSOLETE_WALLET) {
       return "bg-red-100 text-red-800 border-red-300";
     }
+    if (vote.voteType === VOTE_TYPE.EMERGENCY_RECOVERY) {
+      return "bg-orange-100 text-orange-800 border-orange-300";
+    }
     return "bg-blue-100 text-blue-800 border-blue-300";
   };
 
@@ -448,6 +460,7 @@ export default function Voting() {
     if (vote.executed) return "Executed";
     if (Date.now() / 1000 >= Number(vote.expirationTime)) return "Expired";
     if (vote.voteType === VOTE_TYPE.OBSOLETE_WALLET) return "Emergency";
+    if (vote.voteType === VOTE_TYPE.EMERGENCY_RECOVERY) return "Recovery";
     return "Active";
   };
 
@@ -464,6 +477,8 @@ export default function Voting() {
     const isExecuted = vote.executed;
     const canVote = !isExpired && !isExecuted;
     const isEmergency = vote.voteType === VOTE_TYPE.OBSOLETE_WALLET;
+    const isRecovery = vote.voteType === VOTE_TYPE.EMERGENCY_RECOVERY;
+    const isUrgent = isEmergency || isRecovery;
     const isInitiator = vote.initiator.toLowerCase() === address?.toLowerCase();
     const hasUserVoted = userVotes.hasOwnProperty(vote.voteId);
     const userVoteChoice = userVotes[vote.voteId]; // true=approved, false=rejected
@@ -471,7 +486,11 @@ export default function Voting() {
     return (
       <Card
         className={`border-gray-200 bg-white hover:bg-gray-50 transition-all duration-300 rounded-xl border-2 hover:border-[#E9A344]/20 ${
-          isEmergency ? "border-red-200 hover:border-red-300" : ""
+          isEmergency
+            ? "border-red-200 hover:border-red-300"
+            : isRecovery
+            ? "border-orange-200 hover:border-orange-300"
+            : ""
         } ${isInitiator ? "ring-2 ring-blue-100 border-blue-200" : ""}`}
       >
         <CardHeader className="pb-3">
@@ -480,12 +499,17 @@ export default function Voting() {
               {getVoteTypeIcon(vote.voteType)}
               <CardTitle
                 className={`text-sm ${
-                  isEmergency ? "text-red-900" : "text-gray-900"
+                  isEmergency
+                    ? "text-red-900"
+                    : isRecovery
+                    ? "text-orange-900"
+                    : "text-gray-900"
                 }`}
               >
                 {getVoteTypeLabel(vote.voteType)}
               </CardTitle>
               {isEmergency && <Shield className="h-3 w-3 text-red-500" />}
+              {isRecovery && <Shield className="h-3 w-3 text-orange-500" />}
             </div>
             <Badge
               variant="outline"
@@ -513,6 +537,13 @@ export default function Voting() {
             {vote.voteType === VOTE_TYPE.OBSOLETE_WALLET && (
               <p className="text-xs text-red-600">
                 <span className="font-medium">Target Wallet:</span>{" "}
+                {vote.targetAddress.slice(0, 6)}...
+                {vote.targetAddress.slice(-4)}
+              </p>
+            )}
+            {vote.voteType === VOTE_TYPE.EMERGENCY_RECOVERY && (
+              <p className="text-xs text-orange-600">
+                <span className="font-medium">Recovery Wallet:</span>{" "}
                 {vote.targetAddress.slice(0, 6)}...
                 {vote.targetAddress.slice(-4)}
               </p>
@@ -546,7 +577,9 @@ export default function Voting() {
                   100,
                   (vote.approvalsReceived / totalWallets) * 100
                 )}
-                className={`h-2 ${isEmergency ? "bg-red-100" : ""}`}
+                className={`h-2 ${
+                  isEmergency ? "bg-red-100" : isRecovery ? "bg-orange-100" : ""
+                }`}
               />
             </div>
             {isInitiator && !isExecuted && !isExpired && (
@@ -768,17 +801,23 @@ export default function Voting() {
                     <SelectItem value="emergency">
                       Emergency Rollback
                     </SelectItem>
+                    <SelectItem value="recovery">Emergency Recovery</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {(newProposal.type === "agent" ||
-                newProposal.type === "emergency") && (
+                newProposal.type === "emergency" ||
+                newProposal.type === "recovery") && (
                 <div>
                   <Label htmlFor="targetAddress">
                     {newProposal.type === "agent"
                       ? "New Agent Address"
-                      : "Wallet to Mark for Emergency Rollback"}
+                      : newProposal.type === "emergency"
+                      ? "Wallet to Mark for Emergency Rollback"
+                      : newProposal.type === "recovery"
+                      ? "Recovery Wallet Address"
+                      : "Target Address"}
                   </Label>
                   {newProposal.type === "emergency" &&
                     availableWalletsForEmergency.length > 0 && (
@@ -866,6 +905,8 @@ export default function Voting() {
                   className={`flex-1 ${
                     newProposal.type === "emergency"
                       ? "bg-red-600 hover:bg-red-700 text-white"
+                      : newProposal.type === "recovery"
+                      ? "bg-orange-600 hover:bg-orange-700 text-white"
                       : "bg-rollback-primary hover:bg-rollback-primary/90 text-white"
                   }`}
                 >
@@ -879,8 +920,15 @@ export default function Voting() {
                       {newProposal.type === "emergency" && (
                         <Zap className="h-4 w-4 mr-2" />
                       )}
+                      {newProposal.type === "recovery" && (
+                        <Shield className="h-4 w-4 mr-2" />
+                      )}
                       Create{" "}
-                      {newProposal.type === "emergency" ? "Emergency" : ""}{" "}
+                      {newProposal.type === "emergency"
+                        ? "Emergency"
+                        : newProposal.type === "recovery"
+                        ? "Recovery"
+                        : ""}{" "}
                       Proposal
                     </>
                   )}

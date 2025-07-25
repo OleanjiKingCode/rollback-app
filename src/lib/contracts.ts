@@ -793,26 +793,12 @@ export const updateBackendWithWalletData = async (walletData: {
     name?: string;
   }>;
 }) => {
-  console.log("🔄 [BACKEND] Updating backend with wallet data:", {
-    userAddress: walletData.userAddress,
-    rollbackWalletAddress: walletData.rollbackWalletAddress,
-    agentWalletAddress: walletData.agentWalletAddress,
-    email: walletData.email,
-    walletsCount: walletData.wallets.length,
-    threshold: walletData.threshold,
-    isRandomized: walletData.isRandomized,
-    fallbackWallet: walletData.fallbackWallet,
-    tokensToMonitor: walletData.tokensToMonitor,
-    timestamp: new Date().toISOString(),
-  });
-
   try {
     // Encrypt the private key on frontend before sending to backend
-    console.log("🔐 [BACKEND] Encrypting private key on frontend...");
+
     const encryptedPrivateKey = await encryptPrivateKey(
       walletData.agentWalletPrivateKey
     );
-    console.log("✅ [BACKEND] Private key encrypted successfully");
 
     // Format data for backend API according to test-rollback-api.js structure
     const backendPayload = {
@@ -834,15 +820,6 @@ export const updateBackendWithWalletData = async (walletData: {
       agent_wallet_private_key: encryptedPrivateKey, // Top-level, encrypted
     };
 
-    console.log("📤 [BACKEND] Sending payload to backend API:", {
-      endpoint: `${config.apiUrl}/wallets/users`,
-      payload: {
-        ...backendPayload,
-        agent_wallet_private_key: "[ENCRYPTED]", // Don't log the encrypted key
-      },
-      timestamp: new Date().toISOString(),
-    });
-
     // Create user in backend
     const userResponse = await fetch(`${config.apiUrl}/wallets/users`, {
       method: "POST",
@@ -854,23 +831,13 @@ export const updateBackendWithWalletData = async (walletData: {
 
     if (!userResponse.ok) {
       const errorText = await userResponse.text();
-      console.error("❌ [BACKEND] Failed to create user in backend:", {
-        status: userResponse.status,
-        statusText: userResponse.statusText,
-        response: errorText,
-        timestamp: new Date().toISOString(),
-      });
+
       throw new Error(
         `Backend API error: ${userResponse.status} - ${errorText}`
       );
     }
 
     const responseData = await userResponse.json();
-    console.log("✅ [BACKEND] User created in backend successfully:", {
-      response: responseData,
-      userId: responseData.user?.id || responseData.id,
-      timestamp: new Date().toISOString(),
-    });
 
     return {
       success: true,
@@ -878,10 +845,6 @@ export const updateBackendWithWalletData = async (walletData: {
       message: "User data stored in backend for monitoring",
     };
   } catch (error) {
-    console.error("❌ [BACKEND] Error updating backend with wallet data:", {
-      error: error instanceof Error ? error.message : "Unknown error",
-      timestamp: new Date().toISOString(),
-    });
     throw new Error(
       `Failed to store wallet data in backend: ${
         error instanceof Error ? error.message : "Unknown error"

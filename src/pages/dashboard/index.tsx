@@ -151,17 +151,6 @@ export default function Dashboard() {
       );
       if (!existingWallet) {
         unique.push(wallet);
-      } else {
-        console.log("🚨 Found duplicate wallet address:", {
-          existing: existingWallet.address,
-          duplicate: wallet.address,
-          existingId: existingWallet.id,
-          duplicateId: wallet.id,
-          bothLowercase: [
-            existingWallet.address?.toLowerCase(),
-            wallet.address?.toLowerCase(),
-          ],
-        });
       }
       return unique;
     }, [] as typeof user.wallets) || [];

@@ -364,7 +364,7 @@ function TokenItem({
       try {
         await tokenApproval.approve();
       } catch (error) {
-        console.error("Approval failed:", error);
+        // console.error("Approval failed:", error);
       }
     }
   }, [canManage, tokenApproval.approve]);
@@ -387,7 +387,7 @@ function TokenItem({
       try {
         await tokenApproval.revoke();
       } catch (error) {
-        console.error("Revoke failed:", error);
+        // console.error("Revoke failed:", error);
       }
     }
   }, [canManage, tokenApproval.revoke]);

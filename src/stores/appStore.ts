@@ -87,13 +87,14 @@ interface AppState {
   getPersistentWalletInfo: (userAddress: string) => PersistentWalletInfo | null;
   removePersistentWalletInfo: (userAddress: string) => void;
   clearWalletRegistry: () => void;
+  clearAllCaches: () => void;
 
   setCurrentAddress: (address: string | null) => void;
 
   resetStates: () => void;
 }
 
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 0; // No caching - always fetch fresh
 const PERSISTENT_DATA_EXPIRY = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 const initialLoadingStates: LoadingStates = {
@@ -174,7 +175,9 @@ export const useAppStore = create<AppState>()(
           const dataSource =
             typeof isFromContractOrDataSource === "string"
               ? isFromContractOrDataSource
-              : (isFromContractOrDataSource ? "contract" : "api");
+              : isFromContractOrDataSource
+              ? "contract"
+              : "api";
 
           set(
             (state) => ({
@@ -302,6 +305,12 @@ export const useAppStore = create<AppState>()(
 
         clearWalletRegistry: () => {
           set({ walletRegistry: {} }, false, "clearWalletRegistry");
+        },
+
+        clearAllCaches: () => {
+          set({ walletCache: {}, walletRegistry: {} }, false, "clearAllCaches");
+
+          localStorage.clear();
         },
 
         resetStates: () =>

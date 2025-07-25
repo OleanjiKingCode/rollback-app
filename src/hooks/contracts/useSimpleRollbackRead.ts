@@ -34,7 +34,7 @@ export const useGetAllCreationRequests = (enabled: boolean = true) => {
     functionName: "getAllCreationRequests",
     query: {
       enabled,
-      staleTime: 30000,
+      staleTime: 0,
       retry: 2,
     },
   });
@@ -53,7 +53,7 @@ export const useGetWalletSystemConfig = (
     functionName: "getSystemConfig",
     query: {
       enabled: enabled && !!walletAddress,
-      staleTime: 30000,
+      staleTime: 0,
       retry: 2,
     },
   });
@@ -72,7 +72,7 @@ export const useGetAllWallets = (
     functionName: "getAllWallets",
     query: {
       enabled: enabled && !!walletAddress,
-      staleTime: 30000,
+      staleTime: 0,
       retry: 2,
     },
   });
@@ -91,7 +91,7 @@ export const useGetMonitoredTokens = (
     functionName: "getMonitoredTokens",
     query: {
       enabled: enabled && !!walletAddress,
-      staleTime: 30000,
+      staleTime: 0,
       retry: 2,
     },
   });
@@ -371,4 +371,24 @@ export const useCompleteWalletData = (
       isLoadingWallet || isLoadingConfig || isLoadingWallets || isLoadingTokens,
     error: walletError || configError || walletsError || tokensError,
   };
+};
+
+/**
+ * Hook to get detailed vote information including voter status
+ */
+export const useGetVoteDetails = (
+  walletAddress: Address | undefined,
+  voteId: number | undefined
+) => {
+  return useReadContract({
+    address: walletAddress,
+    abi: ROLLBACK_WALLET_ABI,
+    functionName: "getVoteDetails",
+    args: voteId !== undefined ? [BigInt(voteId)] : undefined,
+    query: {
+      enabled: Boolean(walletAddress && voteId !== undefined),
+      // Refetch every 10 seconds to get real-time voting updates
+      refetchInterval: 10000,
+    },
+  });
 };

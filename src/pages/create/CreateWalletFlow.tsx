@@ -416,6 +416,26 @@ export default function CreateWalletFlow() {
   const [useCustomThreshold, setUseCustomThreshold] = useState(false);
   const [customDays, setCustomDays] = useState(30);
 
+  // Helper function to detect duplicate wallets
+  const getDuplicateWallets = () => {
+    const wallets = formData.wallets.filter((w) => w && w.trim() !== "");
+    const duplicates: string[] = [];
+    const seen = new Set<string>();
+
+    wallets.forEach((wallet) => {
+      const normalized = wallet.toLowerCase();
+      if (seen.has(normalized)) {
+        if (!duplicates.includes(normalized)) {
+          duplicates.push(normalized);
+        }
+      } else {
+        seen.add(normalized);
+      }
+    });
+
+    return duplicates;
+  };
+
   // Check for pending requests on mount and address change
   useEffect(() => {
     if (isConnected && address) {
@@ -645,10 +665,8 @@ export default function CreateWalletFlow() {
                           result = await completeCreation();
                         }
 
-                        console.log("✅ Wallet completion result:", result);
+ 
 
-                        // Refresh the wallet data to show updated UI
-                        console.log("🔄 Refreshing wallet data...");
                         refetch();
 
                         // Show success message based on backend integration status
@@ -671,7 +689,7 @@ export default function CreateWalletFlow() {
                           "Setup Completed with Warnings",
                           "Your wallet was created successfully, but some backend features may not be available."
                         );
-                        navigate("/dashboard"); // Navigate anyway since wallet was created
+                        navigate("/dashboard");
                       }
                     }}
                     className="w-full"
@@ -733,10 +751,26 @@ export default function CreateWalletFlow() {
   };
 
   const handleWalletChange = (index: number, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      wallets: prev.wallets.map((wallet, i) => (i === index ? value : wallet)),
-    }));
+    setFormData((prev) => {
+      const newWallets = prev.wallets.map((wallet, i) =>
+        i === index ? value : wallet
+      );
+
+     
+      const duplicates = newWallets.filter(
+        (wallet, i) =>
+          wallet &&
+          wallet.trim() !== "" &&
+          newWallets.findIndex(
+            (w) => w && w.toLowerCase() === wallet.toLowerCase()
+          ) !== i
+      );
+
+      return {
+        ...prev,
+        wallets: newWallets,
+      };
+    });
   };
 
   const handleAddToken = (token: {
@@ -859,7 +893,7 @@ export default function CreateWalletFlow() {
       case 2:
         return true;
       case 3:
-        return formData.threshold >= 259200; // Minimum 3 days in seconds
+        return formData.threshold >= 86400; // Minimum 3 days in seconds
       case 4:
         return formData.tokensToMonitor.length > 0;
       case 5:
@@ -1054,6 +1088,19 @@ export default function CreateWalletFlow() {
                 Add Recovery Wallet ({formData.wallets.length}/5)
               </Button>
             )}
+
+            {/* Duplicate Wallet Warning */}
+            {getDuplicateWallets().length > 0 && (
+              <Alert className="border-yellow-200 bg-yellow-50">
+                <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                <AlertDescription className="text-yellow-800">
+                  <strong>Duplicate wallets detected:</strong> The following
+                  wallet addresses appear multiple times:{" "}
+                  {getDuplicateWallets().join(", ")}. Duplicates will be
+                  automatically removed when creating the wallet.
+                </AlertDescription>
+              </Alert>
+            )}
           </CardContent>
         </Card>
 
@@ -1225,7 +1272,7 @@ export default function CreateWalletFlow() {
 
   // Handler for custom days change
   const handleCustomDaysChange = (days: number) => {
-    if (days >= 3) {
+    if (days >= 1) {
       setCustomDays(days);
       setFormData((prev) => ({ ...prev, threshold: days * 86400 })); // Convert days to seconds
     }
@@ -1307,10 +1354,10 @@ export default function CreateWalletFlow() {
                   <div className="flex items-center space-x-2 mt-2">
                     <Input
                       type="number"
-                      min="3"
+                      min="1"
                       value={customDays}
                       onChange={(e) => {
-                        const days = parseInt(e.target.value) || 3;
+                        const days = parseInt(e.target.value) || 1;
                         handleCustomDaysChange(days);
                       }}
                       className="rounded-xl"
@@ -1319,10 +1366,10 @@ export default function CreateWalletFlow() {
                     <span className="text-sm text-gray-500">days</span>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    Minimum: 3 days • Selected:{" "}
+                    Minimum: 1 day • Selected:{" "}
                     {Math.floor(formData.threshold / 86400)} days
                   </p>
-                  {Math.floor(formData.threshold / 86400) < 3 && (
+                  {Math.floor(formData.threshold / 86400) < 1 && (
                     <p className="text-xs text-red-500 mt-1">
                       Threshold must be at least 3 days for security
                     </p>
@@ -1429,53 +1476,72 @@ export default function CreateWalletFlow() {
                       <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
                     </div>
                   )}
-                  {customTokenAddress && !tokenValidation.isLoading && tokenValidation.isValid && (
-                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    </div>
-                  )}
-                  {customTokenAddress && !tokenValidation.isLoading && tokenValidation.error && (
-                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                      <AlertTriangle className="h-4 w-4 text-red-500" />
-                    </div>
-                  )}
+                  {customTokenAddress &&
+                    !tokenValidation.isLoading &&
+                    tokenValidation.isValid && (
+                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      </div>
+                    )}
+                  {customTokenAddress &&
+                    !tokenValidation.isLoading &&
+                    tokenValidation.error && (
+                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                        <AlertTriangle className="h-4 w-4 text-red-500" />
+                      </div>
+                    )}
                 </div>
               </div>
 
               {/* Token Validation Feedback */}
-              {customTokenAddress && !tokenValidation.isLoading && tokenValidation.isValid && (
-                <Alert className="bg-green-50 border-green-200">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-800">
-                    <div className="space-y-1">
-                      <div className="font-medium">
-                        ✅ {tokenValidation.name} ({tokenValidation.symbol}) - {tokenValidation.tokenType}
+              {customTokenAddress &&
+                !tokenValidation.isLoading &&
+                tokenValidation.isValid && (
+                  <Alert className="bg-green-50 border-green-200">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800">
+                      <div className="space-y-1">
+                        <div className="font-medium">
+                          ✅ {tokenValidation.name} ({tokenValidation.symbol}) -{" "}
+                          {tokenValidation.tokenType}
+                        </div>
+                        {tokenValidation.tokenType === "ERC20" &&
+                          tokenValidation.decimals && (
+                            <div className="text-sm">
+                              Decimals: {tokenValidation.decimals} | Total
+                              Supply:{" "}
+                              {tokenValidation.totalSupply
+                                ? (
+                                    BigInt(tokenValidation.totalSupply) /
+                                    BigInt(10 ** tokenValidation.decimals)
+                                  ).toString()
+                                : "Unknown"}
+                            </div>
+                          )}
+                        {tokenValidation.tokenType === "ERC721" && (
+                          <div className="text-sm">
+                            NFT Collection | Total Supply:{" "}
+                            {tokenValidation.totalSupply || "Unknown"} NFTs
+                          </div>
+                        )}
                       </div>
-                      {tokenValidation.tokenType === 'ERC20' && tokenValidation.decimals && (
-                        <div className="text-sm">
-                          Decimals: {tokenValidation.decimals} | Total Supply: {tokenValidation.totalSupply ? 
-                            (BigInt(tokenValidation.totalSupply) / BigInt(10 ** tokenValidation.decimals)).toString() : 'Unknown'}
-                        </div>
-                      )}
-                      {tokenValidation.tokenType === 'ERC721' && (
-                        <div className="text-sm">
-                          NFT Collection | Total Supply: {tokenValidation.totalSupply || 'Unknown'} NFTs
-                        </div>
-                      )}
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-              {customTokenAddress && !tokenValidation.isLoading && tokenValidation.error && (
-                <Alert className="bg-red-50 border-red-200">
-                  <AlertTriangle className="h-4 w-4 text-red-600" />
-                  <AlertDescription className="text-red-800">
-                    <div className="font-medium">❌ Invalid Token</div>
-                    <div className="text-sm mt-1">{tokenValidation.error}</div>
-                  </AlertDescription>
-                </Alert>
-              )}
+              {customTokenAddress &&
+                !tokenValidation.isLoading &&
+                tokenValidation.error && (
+                  <Alert className="bg-red-50 border-red-200">
+                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-800">
+                      <div className="font-medium">❌ Invalid Token</div>
+                      <div className="text-sm mt-1">
+                        {tokenValidation.error}
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
             </div>
 
             <div>
@@ -1508,7 +1574,11 @@ export default function CreateWalletFlow() {
                 }
               }}
               className="w-full"
-              disabled={!customTokenAddress || !tokenValidation.isValid || tokenValidation.isLoading}
+              disabled={
+                !customTokenAddress ||
+                !tokenValidation.isValid ||
+                tokenValidation.isLoading
+              }
             >
               Add Token
             </Button>
