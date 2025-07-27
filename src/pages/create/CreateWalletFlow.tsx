@@ -346,27 +346,27 @@ const POPULAR_TOKENS = [
   {
     symbol: "USDC",
     name: "USD Coin",
-    address: "0xA0b86a33E6e0bC4e0C4a9A7c5b1b30e3F2d2E1F0",
+    address: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
     type: "ERC20" as const,
   },
-  {
-    symbol: "DAI",
-    name: "Dai Stablecoin",
-    address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-    type: "ERC20" as const,
-  },
-  {
-    symbol: "WBTC",
-    name: "Wrapped Bitcoin",
-    address: "0x2260FAC5E5522f784C1DDDF8C0A86A81D53CC3C6",
-    type: "ERC20" as const,
-  },
-  {
-    symbol: "LINK",
-    name: "Chainlink",
-    address: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
-    type: "ERC20" as const,
-  },
+  // {
+  //   symbol: "DAI",
+  //   name: "Dai Stablecoin",
+  //   address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+  //   type: "ERC20" as const,
+  // },
+  // {
+  //   symbol: "WBTC",
+  //   name: "Wrapped Bitcoin",
+  //   address: "0x2260FAC5E5522f784C1DDDF8C0A86A81D53CC3C6",
+  //   type: "ERC20" as const,
+  // },
+  // {
+  //   symbol: "LINK",
+  //   name: "Chainlink",
+  //   address: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+  //   type: "ERC20" as const,
+  // },
 ];
 
 export default function CreateWalletFlow() {
@@ -665,8 +665,6 @@ export default function CreateWalletFlow() {
                           result = await completeCreation();
                         }
 
- 
-
                         refetch();
 
                         // Show success message based on backend integration status
@@ -756,7 +754,6 @@ export default function CreateWalletFlow() {
         i === index ? value : wallet
       );
 
-     
       const duplicates = newWallets.filter(
         (wallet, i) =>
           wallet &&
