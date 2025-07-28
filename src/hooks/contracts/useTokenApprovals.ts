@@ -116,8 +116,6 @@ export const useTokenApprovals = () => {
       }));
   }, [allWalletsData, address]);
 
-  console.log({ activeWallets, allWalletsData });
-
   const parsedTokens = useMemo(() => {
     if (!monitoredTokensData) return [];
     const [addresses, types] = monitoredTokensData as [string[], number[]];

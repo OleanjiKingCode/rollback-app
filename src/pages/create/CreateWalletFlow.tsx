@@ -18,7 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import BackendIntegrationCheck from "@/components/BackendIntegrationCheck";import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -382,10 +382,13 @@ export default function CreateWalletFlow() {
     resetState,
   } = useWalletCreationFlow();
   const { approveTokens, isApproving } = useTokenApprovals();
-  const { hasRollbackWallet, isLoading, refetch } = useRollbackWallet();
+  const { hasRollbackWallet, isLoading, refetch, user: userData, rollbackWalletAddress } = useRollbackWallet();
   const navigate = useNavigate();
 
-  const [step, setStep] = useState(0); // Start with intro screen
+  const [isInCreationMode, setIsInCreationMode] = useState(() => {
+    // Check if creation is in progress from session storage
+    return localStorage.getItem("wallet-creation-in-progress") === "true";
+  });  const [step, setStep] = useState(0); // Start with intro screen
   const [formData, setFormData] = useState<CreateWalletFormData>({
     wallets: [address || ""],
     threshold: 2592000, // 30 days
@@ -408,7 +411,20 @@ export default function CreateWalletFlow() {
   const [generatedAgentWallet, setGeneratedAgentWallet] =
     useState<GeneratedAgentWallet | null>(null);
   const [showPrivateKey, setShowPrivateKey] = useState(false);
-  const [approvalStatus, setApprovalStatus] = useState<Record<string, boolean>>(
+
+  // Reset creation mode when component unmounts or user leaves
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (isInCreationMode) {
+        localStorage.removeItem("wallet-creation-in-progress");
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isInCreationMode]);  const [approvalStatus, setApprovalStatus] = useState<Record<string, boolean>>(
     {}
   );
 
@@ -491,41 +507,19 @@ export default function CreateWalletFlow() {
   }
 
   // Check if user already has a rollback wallet
-  if (hasRollbackWallet) {
+  if (hasRollbackWallet && !isInCreationMode) {
     return (
-      <div className="min-h-[90vh] bg-gradient-to-br from-gray-50 to-gray-100 pt-16 lg:pt-8 flex items-center justify-center">
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="text-center max-w-lg rounded-3xl p-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <Ban className="h-10 w-10 text-white" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">
-              Rollback Wallet Already Exists
-            </h3>
-            <p className="text-gray-600 mb-8 text-sm leading-relaxed">
-              You already have an active rollback wallet protection system. Only
-              one rollback wallet per address is allowed.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                onClick={() => navigate("/dashboard")}
-                className="bg-gradient-to-r from-[#E9A344] to-[#D4941A] hover:from-[#D4941A] hover:to-[#E9A344] text-white px-6 py-3 rounded-2xl"
-              >
-                <Shield className="h-4 w-4 mr-2" />
-                Go to Dashboard
-              </Button>
-              <Button
-                onClick={() => navigate("/settings")}
-                variant="outline"
-                className="border-gray-300 text-gray-700 px-6 py-3 rounded-2xl"
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Manage Settings
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <BackendIntegrationCheck
+        userAddress={address!}
+        rollbackWalletAddress={rollbackWalletAddress!}
+        userData={userData}
+        onBackendIntegrationComplete={() => {
+          // Reset creation mode and refresh
+          setIsInCreationMode(false);
+          localStorage.removeItem("wallet-creation-in-progress");
+          refetch();
+        }}
+      />
     );
   }
 
@@ -597,7 +591,11 @@ export default function CreateWalletFlow() {
                     <Button
                       onClick={async () => {
                         try {
-                          setApprovalStatus((prev) => ({
+                          // Set creation mode on first token approval
+                          if (!isInCreationMode) {
+                            setIsInCreationMode(true);
+                            localStorage.setItem("wallet-creation-in-progress", "true");
+                          }                          setApprovalStatus((prev) => ({
                             ...prev,
                             [token.address]: true,
                           }));
@@ -610,7 +608,11 @@ export default function CreateWalletFlow() {
                             `${token.symbol || "Token"} approved successfully`
                           );
                         } catch (error) {
-                          setApprovalStatus((prev) => ({
+                          // Set creation mode on first token approval
+                          if (!isInCreationMode) {
+                            setIsInCreationMode(true);
+                            localStorage.setItem("wallet-creation-in-progress", "true");
+                          }                          setApprovalStatus((prev) => ({
                             ...prev,
                             [token.address]: false,
                           }));
@@ -680,14 +682,18 @@ export default function CreateWalletFlow() {
                           );
                         }
 
-                        navigate("/dashboard");
+                        // Reset creation mode
+                        setIsInCreationMode(false);
+                        localStorage.removeItem("wallet-creation-in-progress");                        navigate("/dashboard");
                       } catch (error) {
                         console.error("❌ Error completing setup:", error);
                         toast.warning(
                           "Setup Completed with Warnings",
                           "Your wallet was created successfully, but some backend features may not be available."
                         );
-                        navigate("/dashboard");
+                        // Reset creation mode
+                        setIsInCreationMode(false);
+                        localStorage.removeItem("wallet-creation-in-progress");                        navigate("/dashboard");
                       }
                     }}
                     className="w-full"
@@ -826,13 +832,21 @@ export default function CreateWalletFlow() {
     if (!generatedAgentWallet) return;
 
     try {
-      setApprovalStatus((prev) => ({ ...prev, [tokenAddress]: true }));
+                          // Set creation mode on first token approval
+                          if (!isInCreationMode) {
+                            setIsInCreationMode(true);
+                            localStorage.setItem("wallet-creation-in-progress", "true");
+                          }      setApprovalStatus((prev) => ({ ...prev, [tokenAddress]: true }));
       toast.success(
         "Token Approved",
         "Token has been approved for monitoring."
       );
     } catch (error) {
-      setApprovalStatus((prev) => ({ ...prev, [tokenAddress]: false }));
+                          // Set creation mode on first token approval
+                          if (!isInCreationMode) {
+                            setIsInCreationMode(true);
+                            localStorage.setItem("wallet-creation-in-progress", "true");
+                          }      setApprovalStatus((prev) => ({ ...prev, [tokenAddress]: false }));
       toast.error(
         "Approval Failed",
         "Failed to approve token. Please try again."
@@ -856,7 +870,9 @@ export default function CreateWalletFlow() {
         agentWallet: generatedAgentWallet.address,
       };
 
-      await proposeCreation(updatedFormData);
+      // Set creation mode to prevent premature wallet check
+      setIsInCreationMode(true);
+      localStorage.setItem("wallet-creation-in-progress", "true");      await proposeCreation(updatedFormData);
 
       toast.success(
         "Wallet Creation Proposed!",
