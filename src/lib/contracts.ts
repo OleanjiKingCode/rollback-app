@@ -43,8 +43,6 @@ export const checkRollbackWallet = async (
   publicClient: PublicClient,
   userAddress: Address
 ): Promise<{ hasWallet: boolean; walletAddress: string }> => {
-  console.log("🔍 Checking rollback wallet for:", userAddress);
-
   try {
     const result = await publicClient.readContract({
       address: ROLLBACK_MANAGER_ADDRESS,
@@ -74,8 +72,6 @@ export const checkPendingCreationRequests = async (
   publicClient: PublicClient,
   userAddress: Address
 ): Promise<CreationRequest[]> => {
-  console.log("🔍 Checking pending creation requests for:", userAddress);
-
   try {
     // Get all creation requests
     const result = await publicClient.readContract({
@@ -124,8 +120,6 @@ export const proposeWalletCreation = async (
   publicClient: PublicClient,
   params: CreateWalletFormData
 ): Promise<number> => {
-  console.log("📝 Proposing wallet creation:", params);
-
   if (!walletClient.account) {
     throw new Error("Wallet not connected");
   }
@@ -158,7 +152,6 @@ export const proposeWalletCreation = async (
     });
 
     const hash = await walletClient.writeContract(request);
-    console.log("✅ Proposal transaction hash:", hash);
 
     // Wait for transaction and get receipt to extract requestId from events
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
@@ -167,10 +160,7 @@ export const proposeWalletCreation = async (
     // For now, return a timestamp-based requestId as a temporary solution
     // In production, extract from the actual event logs
     const tempRequestId = Date.now() % 1000000; // Simple mock requestId
-    console.log(
-      "✅ Wallet creation proposal submitted with requestId:",
-      tempRequestId
-    );
+
     return tempRequestId;
   } catch (error) {
     console.error("Error proposing wallet creation:", error);
@@ -184,8 +174,6 @@ export const signWalletCreation = async (
   publicClient: PublicClient,
   requestId: number
 ): Promise<void> => {
-  console.log("✍️ Signing wallet creation:", requestId);
-
   if (!walletClient.account) {
     throw new Error("Wallet not connected");
   }
@@ -200,10 +188,8 @@ export const signWalletCreation = async (
     });
 
     const hash = await walletClient.writeContract(request);
-    console.log("✅ Signature transaction hash:", hash);
 
     await publicClient.waitForTransactionReceipt({ hash });
-    console.log("✅ Wallet creation signed successfully");
   } catch (error) {
     console.error("Error signing wallet creation:", error);
     throw new Error("Failed to sign wallet creation");
@@ -216,8 +202,6 @@ export const finalizeWalletCreation = async (
   publicClient: PublicClient,
   requestId: number
 ): Promise<string> => {
-  console.log("🏁 Finalizing wallet creation:", requestId);
-
   if (!walletClient.account) {
     throw new Error("Wallet not connected");
   }
@@ -236,7 +220,6 @@ export const finalizeWalletCreation = async (
     });
 
     const hash = await walletClient.writeContract(request);
-    console.log("✅ Finalization transaction hash:", hash);
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
@@ -245,20 +228,12 @@ export const finalizeWalletCreation = async (
 
     // Use findRollbackWalletForAddress for accurate wallet data (equivalent to useSimpleFindRollbackWallet)
     try {
-      console.log(
-        "🔍 Getting accurate wallet data using findRollbackWalletForAddress..."
-      );
-
       const walletResult = await findRollbackWalletForAddress(
         publicClient,
         walletClient.account.address
       );
 
       if (walletResult.hasWallet && walletResult.walletAddress) {
-        console.log(
-          "🎉 Wallet creation finalized successfully! Wallet address:",
-          walletResult.walletAddress
-        );
         return walletResult.walletAddress;
       } else {
         // If no wallet found, verify the creation request was executed
@@ -267,9 +242,6 @@ export const finalizeWalletCreation = async (
           requestId
         );
         if (creationRequest.executed) {
-          console.log(
-            "✅ Wallet created but address not yet available - returning pending status"
-          );
           return "WALLET_CREATED_PENDING"; // Special value to indicate success but address pending
         }
       }
@@ -295,8 +267,6 @@ export const finalizeWalletCreation = async (
 export const getInitializationFee = async (
   publicClient: PublicClient
 ): Promise<string> => {
-  console.log("💰 Getting initialization fee");
-
   try {
     const fee = await publicClient.readContract({
       address: ROLLBACK_MANAGER_ADDRESS,
@@ -357,8 +327,6 @@ export const requestVote = async (
   targetAddress?: Address,
   targetValue?: number
 ): Promise<void> => {
-  console.log("🗳️ Requesting vote:", voteType, targetAddress, targetValue);
-
   if (!walletClient.account) {
     throw new Error("Wallet not connected");
   }
@@ -377,10 +345,8 @@ export const requestVote = async (
     });
 
     const hash = await walletClient.writeContract(request);
-    console.log("✅ Vote request transaction hash:", hash);
 
     await publicClient.waitForTransactionReceipt({ hash });
-    console.log("✅ Vote requested successfully");
   } catch (error) {
     console.error("Error requesting vote:", error);
     throw new Error("Failed to request vote");
@@ -395,8 +361,6 @@ export const confirmVote = async (
   voteId: number,
   approve: boolean
 ): Promise<void> => {
-  console.log("✅ Confirming vote:", voteId, approve);
-
   if (!walletClient.account) {
     throw new Error("Wallet not connected");
   }
@@ -411,10 +375,8 @@ export const confirmVote = async (
     });
 
     const hash = await walletClient.writeContract(request);
-    console.log("✅ Vote confirmation transaction hash:", hash);
 
     await publicClient.waitForTransactionReceipt({ hash });
-    console.log("✅ Vote confirmed successfully");
   } catch (error) {
     console.error("Error confirming vote:", error);
     throw new Error("Failed to confirm vote");
@@ -449,13 +411,6 @@ export const checkERC20Approval = async (
   ownerAddress: Address,
   spenderAddress: Address
 ): Promise<{ isApproved: boolean; allowance: string }> => {
-  console.log(
-    "🔍 Checking ERC20 approval:",
-    tokenAddress,
-    ownerAddress,
-    spenderAddress
-  );
-
   try {
     const allowance = await publicClient.readContract({
       address: tokenAddress,
@@ -487,13 +442,6 @@ export const checkERC721Approval = async (
   ownerAddress: Address,
   operatorAddress: Address
 ): Promise<{ isApproved: boolean }> => {
-  console.log(
-    "🔍 Checking ERC721 approval:",
-    tokenAddress,
-    ownerAddress,
-    operatorAddress
-  );
-
   try {
     const isApproved = await publicClient.readContract({
       address: tokenAddress,
@@ -519,8 +467,6 @@ export const getERC20Balance = async (
   tokenAddress: Address,
   ownerAddress: Address
 ): Promise<{ balance: string; decimals: number }> => {
-  console.log("💰 Getting ERC20 balance:", tokenAddress, ownerAddress);
-
   try {
     const [balance, decimals] = await Promise.all([
       publicClient.readContract({
@@ -555,8 +501,6 @@ export const getERC721Balance = async (
   tokenAddress: Address,
   ownerAddress: Address
 ): Promise<{ balance: string }> => {
-  console.log("🎨 Getting ERC721 balance:", tokenAddress, ownerAddress);
-
   try {
     const balance = await publicClient.readContract({
       address: tokenAddress,
@@ -603,8 +547,6 @@ export const getWalletInfoFromContract = async (
     }>;
   };
 }> => {
-  console.log("🔍 Getting wallet info from contract for:", userAddress);
-
   try {
     // First check if user has a wallet
     const { hasWallet, walletAddress } = await checkRollbackWallet(
@@ -692,8 +634,6 @@ export const approveERC20Token = async (
   spenderAddress: Address,
   amount?: string
 ): Promise<void> => {
-  console.log("✅ ERC20 token approval:", tokenAddress, spenderAddress, amount);
-
   if (!walletClient.account) {
     throw new Error("Wallet not connected");
   }
@@ -714,10 +654,8 @@ export const approveERC20Token = async (
     });
 
     const hash = await walletClient.writeContract(request);
-    console.log("✅ ERC20 approval transaction hash:", hash);
 
     await publicClient.waitForTransactionReceipt({ hash });
-    console.log("✅ ERC20 token approved successfully");
   } catch (error) {
     console.error("Error approving ERC20 token:", error);
     throw new Error("Failed to approve ERC20 token");
@@ -731,13 +669,6 @@ export const approveERC721Token = async (
   operatorAddress: Address,
   approved: boolean = true
 ): Promise<void> => {
-  console.log(
-    "✅ ERC721 token approval:",
-    tokenAddress,
-    operatorAddress,
-    approved
-  );
-
   if (!walletClient.account) {
     throw new Error("Wallet not connected");
   }
@@ -752,10 +683,8 @@ export const approveERC721Token = async (
     });
 
     const hash = await walletClient.writeContract(request);
-    console.log("✅ ERC721 approval transaction hash:", hash);
 
     await publicClient.waitForTransactionReceipt({ hash });
-    console.log("✅ ERC721 token approved successfully");
   } catch (error) {
     console.error("Error approving ERC721 token:", error);
     throw new Error("Failed to approve ERC721 token");
@@ -764,8 +693,6 @@ export const approveERC721Token = async (
 
 // Helper function to generate agent wallet (placeholder for real implementation)
 export const generateRandomWallet = () => {
-  console.log("🤖 Agent wallet generation requested");
-
   // TODO: Replace with secure key generation and proper backend integration
   throw new Error(
     "Agent wallet generation not yet implemented - requires secure backend integration"
@@ -881,8 +808,6 @@ export const findRollbackWalletForAddress = async (
   };
   userRole?: "owner" | "recovery_wallet";
 }> => {
-  console.log("🔍 Checking RollbackWalletManager for address:", userAddress);
-
   try {
     // First, try the direct approach - check if user is the primary owner
     const directResult = await getWalletInfoFromContract(
@@ -890,7 +815,6 @@ export const findRollbackWalletForAddress = async (
       userAddress
     );
     if (directResult.hasWallet) {
-      console.log("✅ Found as primary owner");
       return {
         ...directResult,
         userRole: "owner",
@@ -898,9 +822,6 @@ export const findRollbackWalletForAddress = async (
     }
 
     // If not found as primary owner, check executed creation requests in the manager
-    console.log(
-      "🔍 Checking executed rollback wallets in RollbackWalletManager contract..."
-    );
 
     const allRequests = await publicClient.readContract({
       address: ROLLBACK_MANAGER_ADDRESS,
@@ -909,22 +830,12 @@ export const findRollbackWalletForAddress = async (
     });
 
     const [requestIds, requests] = allRequests as [bigint[], any[]];
-    console.log(
-      "📋 Found",
-      requests.length,
-      "total creation requests in manager"
-    );
 
     // Filter to only executed requests for efficiency
     const executedRequests = requests.filter((request) => request.executed);
-    console.log("📋 Processing", executedRequests.length, "executed requests");
 
     // Check each executed request to see if userAddress is in the wallets array
     for (const request of executedRequests) {
-      console.log(
-        `🔍 Checking rollback wallet for user: ${request.params.user}`
-      );
-
       try {
         // Check if the userAddress is in the wallets array OR is the primary user
         const isInWallets = request.params.wallets.some(
@@ -934,11 +845,6 @@ export const findRollbackWalletForAddress = async (
           request.params.user.toLowerCase() === userAddress.toLowerCase();
 
         if (isInWallets || isPrimaryUser) {
-          console.log(
-            "✅ Found user in rollback system for primary user:",
-            request.params.user
-          );
-
           // Get the rollback wallet address for this primary user
           const rollbackWalletAddress = await publicClient.readContract({
             address: ROLLBACK_MANAGER_ADDRESS,
@@ -953,11 +859,6 @@ export const findRollbackWalletForAddress = async (
             walletAddressString &&
             walletAddressString !== "0x0000000000000000000000000000000000000000"
           ) {
-            console.log(
-              "📍 Getting detailed info for rollback wallet:",
-              walletAddressString
-            );
-
             // Get detailed wallet information
             const [systemConfig, allWallets, monitoredTokens] =
               await Promise.all([
@@ -1006,8 +907,6 @@ export const findRollbackWalletForAddress = async (
               nextWalletInLine: wallet.nextWalletInLine,
             }));
 
-            console.log("✅ Successfully loaded wallet data from contract");
-
             return {
               hasWallet: true,
               walletAddress: walletAddressString,
@@ -1034,7 +933,6 @@ export const findRollbackWalletForAddress = async (
       }
     }
 
-    console.log("❌ Address not found in any rollback wallet system");
     return { hasWallet: false, walletAddress: "" };
   } catch (error) {
     console.error("❌ Error checking RollbackWalletManager:", error);

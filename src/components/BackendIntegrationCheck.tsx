@@ -1,10 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from './ui/button';
-import { Card, CardContent } from './ui/card';
-import { Alert, AlertDescription } from './ui/alert';
-import { Loader2, Shield, Settings, CheckCircle, AlertTriangle, Wifi, WifiOff } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from "react";
+import { Button } from "./ui/button";
+import { Card, CardContent } from "./ui/card";
+import { Alert, AlertDescription } from "./ui/alert";
+import {
+  Loader2,
+  Shield,
+  Settings,
+  CheckCircle,
+  AlertTriangle,
+  Wifi,
+  WifiOff,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface BackendIntegrationCheckProps {
   userAddress: string;
@@ -13,13 +21,15 @@ interface BackendIntegrationCheckProps {
   onBackendIntegrationComplete?: () => void;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-export const BackendIntegrationCheck: React.FC<BackendIntegrationCheckProps> = ({
+export const BackendIntegrationCheck: React.FC<
+  BackendIntegrationCheckProps
+> = ({
   userAddress,
   rollbackWalletAddress,
   userData,
-  onBackendIntegrationComplete
+  onBackendIntegrationComplete,
 }) => {
   const navigate = useNavigate();
   const [isChecking, setIsChecking] = useState(true);
@@ -31,8 +41,10 @@ export const BackendIntegrationCheck: React.FC<BackendIntegrationCheckProps> = (
   const checkBackendIntegration = async () => {
     try {
       setIsChecking(true);
-      const response = await fetch(`${API_BASE_URL}/wallets/users/${userAddress}`);
-      
+      const response = await fetch(
+        `${API_BASE_URL}/wallets/users/${userAddress}`
+      );
+
       if (response.ok) {
         const backendUser = await response.json();
         setHasBackendIntegration(!!backendUser);
@@ -41,10 +53,10 @@ export const BackendIntegrationCheck: React.FC<BackendIntegrationCheckProps> = (
         setHasBackendIntegration(false);
         return false;
       } else {
-        throw new Error('Failed to check backend integration');
+        throw new Error("Failed to check backend integration");
       }
     } catch (error) {
-      console.warn('Could not check backend integration:', error);
+      console.warn("Could not check backend integration:", error);
       setHasBackendIntegration(false);
       return false;
     } finally {
@@ -55,7 +67,9 @@ export const BackendIntegrationCheck: React.FC<BackendIntegrationCheckProps> = (
   // Complete backend integration
   const completeBackendIntegration = async () => {
     if (!userData || !userData.rollbackConfig) {
-      toast.error("Cannot complete backend integration without wallet configuration");
+      toast.error(
+        "Cannot complete backend integration without wallet configuration"
+      );
       return;
     }
 
@@ -66,41 +80,49 @@ export const BackendIntegrationCheck: React.FC<BackendIntegrationCheckProps> = (
       const backendPayload = {
         user_address: userAddress,
         wallet_addresses: userData.wallets.map((w: any) => w.address),
-        email: '', // User can add email later in settings
+        email: "", // User can add email later in settings
         rollback_config: {
           inactivity_threshold: userData.rollbackConfig.inactivity_threshold,
-          rollback_method: userData.rollbackConfig.rollback_method === 'randomized' ? 'random' : 'priority',
+          rollback_method:
+            userData.rollbackConfig.rollback_method === "randomized"
+              ? "random"
+              : "priority",
           fallback_wallet: userData.rollbackConfig.fallback_wallet,
           agent_wallet: userData.rollbackConfig.agent_wallet,
           rollback_wallet_address: rollbackWalletAddress,
           tokens_to_monitor: userData.rollbackConfig.tokens_to_monitor || [],
         },
-        agent_wallet_private_key: userData.rollbackConfig.agent_wallet + '_key', // Placeholder
+        agent_wallet_private_key: userData.rollbackConfig.agent_wallet + "_key", // Placeholder
       };
 
       const response = await fetch(`${API_BASE_URL}/wallets/users`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(backendPayload),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Backend integration failed: ${response.status}`);
+        throw new Error(
+          errorData.message || `Backend integration failed: ${response.status}`
+        );
       }
 
       setHasBackendIntegration(true);
-      toast.success("Your rollback wallet is now fully integrated with our monitoring system.");
+      toast.success(
+        "Your rollback wallet is now fully integrated with our monitoring system."
+      );
 
       if (onBackendIntegrationComplete) {
         onBackendIntegrationComplete();
       }
 
       setTimeout(() => navigate("/dashboard"), 1500);
-
     } catch (error: any) {
-      console.error('Backend integration failed:', error);
-      setIntegrationError(error.message || 'Failed to complete backend integration');
+      console.error("Backend integration failed:", error);
+      setIntegrationError(
+        error.message || "Failed to complete backend integration"
+      );
       toast.error(error.message || "Could not complete backend integration");
     } finally {
       setIsIntegrating(false);
@@ -146,7 +168,8 @@ export const BackendIntegrationCheck: React.FC<BackendIntegrationCheckProps> = (
                 Rollback Wallet Active
               </h3>
               <p className="text-gray-600 mb-8 text-sm leading-relaxed">
-                Your rollback wallet is fully configured and being monitored by our backend service.
+                Your rollback wallet is fully configured and being monitored by
+                our backend service.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
@@ -186,14 +209,16 @@ export const BackendIntegrationCheck: React.FC<BackendIntegrationCheckProps> = (
                 Complete Your Setup
               </h3>
               <p className="text-gray-600 text-sm leading-relaxed">
-                Your rollback wallet exists but needs backend integration for monitoring and notifications.
+                Your rollback wallet exists but needs backend integration for
+                monitoring and notifications.
               </p>
             </div>
 
             <Alert className="mb-6">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                <strong>Current Status:</strong> Wallet works manually, but automated monitoring is disabled.
+                <strong>Current Status:</strong> Wallet works manually, but
+                automated monitoring is disabled.
               </AlertDescription>
             </Alert>
 
@@ -246,7 +271,9 @@ export const BackendIntegrationCheck: React.FC<BackendIntegrationCheckProps> = (
             </div>
 
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold text-blue-900 mb-2">What you'll get:</h4>
+              <h4 className="font-semibold text-blue-900 mb-2">
+                What you'll get:
+              </h4>
               <ul className="text-sm text-blue-800 space-y-1">
                 <li>• Automated wallet activity monitoring</li>
                 <li>• Email notifications for inactivity warnings</li>

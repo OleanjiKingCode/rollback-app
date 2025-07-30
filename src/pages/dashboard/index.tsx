@@ -394,7 +394,7 @@ export default function Dashboard() {
                                   : "bg-green-500"
                               }`}
                             >
-                              {wallet.priority_position || index + 1}
+                              {index + 1}
                             </div>
                             <div>
                               <p className="text-xs font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded">

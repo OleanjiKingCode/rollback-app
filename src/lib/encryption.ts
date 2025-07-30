@@ -19,7 +19,7 @@ const ENCRYPTION_KEY =
  */
 export async function encryptPrivateKey(privateKey: string): Promise<string> {
   try {
-    console.log("🔐 Starting private key encryption on frontend");
+
 
     // Check if Web Crypto API is available
     if (!window.crypto || !window.crypto.subtle) {
@@ -81,7 +81,6 @@ export async function encryptPrivateKey(privateKey: string): Promise<string> {
     // Convert to base64 (matches backend format)
     const base64Result = btoa(String.fromCharCode(...combined));
 
-    console.log("✅ Private key encrypted successfully on frontend");
     return base64Result;
   } catch (error) {
     console.error("❌ Failed to encrypt private key on frontend:", error);
@@ -96,7 +95,6 @@ export async function encryptPrivateKey(privateKey: string): Promise<string> {
 export async function testEncryption(testKey: string): Promise<boolean> {
   try {
     const encrypted = await encryptPrivateKey(testKey);
-    console.log("🧪 Test encryption result length:", encrypted.length);
     return encrypted.length > 0;
   } catch (error) {
     console.error("❌ Encryption test failed:", error);

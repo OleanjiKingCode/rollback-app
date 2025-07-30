@@ -67,16 +67,6 @@ export const useUser = (address: string | null) => {
     }
   );
 
-  // Debug logging for API response
-  console.log("📡 useUser API Debug:", {
-    address,
-    data,
-    error,
-    isLoading,
-    url: address ? `/wallets/users/${address}` : null,
-    fullApiUrl: address ? `${config.apiUrl}/wallets/users/${address}` : null,
-  });
-
   return {
     user: data,
     isLoading,

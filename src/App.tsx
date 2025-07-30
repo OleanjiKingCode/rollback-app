@@ -14,7 +14,7 @@ import Voting from "./pages/governance/index";
 import Agent from "./pages/agent/index";
 // import Subscribe from "./pages/subscribe/index";
 import Settings from "./pages/settings/index";
-import TokenApprovals from "./pages/settings/TokenApprovals";
+import MintPage from "./pages/mint/index";import TokenApprovals from "./pages/settings/TokenApprovals";
 import NotFound from "./pages/NotFound";
 import { useState, createContext, useContext } from "react";
 
@@ -64,7 +64,7 @@ const App = () => {
                         <Route path="/create" element={<CreateWallet />} />
                         <Route path="/governance" element={<Voting />} />
                         <Route path="/agent" element={<Agent />} />
-                        {/* <Route path="/subscribe" element={<Subscribe />} /> */}
+                        <Route path="/mint" element={<MintPage />} />                        {/* <Route path="/subscribe" element={<Subscribe />} /> */}
                         <Route path="/settings" element={<Settings />} />
                         <Route
                           path="/settings/token-approvals"

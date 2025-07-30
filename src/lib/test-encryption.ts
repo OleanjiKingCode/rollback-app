@@ -6,32 +6,18 @@ import { encryptPrivateKey } from "./encryption";
 // Test function to verify encryption works
 export async function testEncryptionCompatibility() {
   try {
-    console.log("🧪 Testing encryption compatibility...");
 
     const testPrivateKey =
       "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
     const encrypted = await encryptPrivateKey(testPrivateKey);
 
-    console.log("✅ Encryption successful!");
-    console.log("🔐 Encrypted length:", encrypted.length);
-    console.log(
-      "📝 Encrypted (first 100 chars):",
-      encrypted.substring(0, 100) + "..."
-    );
+
 
     // Decode base64 to check structure
     const combined = atob(encrypted);
     const saltLength = 64;
     const ivLength = 16;
 
-    console.log("📊 Structure check:");
-    console.log("- Total length:", combined.length);
-    console.log("- Salt length:", saltLength);
-    console.log("- IV length:", ivLength);
-    console.log(
-      "- Encrypted data length:",
-      combined.length - saltLength - ivLength
-    );
 
     return {
       success: true,

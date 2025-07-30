@@ -128,7 +128,7 @@ export const useSimpleFindRollbackWallet = (
     error: directError,
   } = useCheckDirectRollbackWallet(userAddress, enabled);
 
-  console.log(userAddress, directWalletAddress);
+
 
   // Check all creation requests to see if user is in any system
   const {
@@ -250,7 +250,7 @@ export const useCompleteWalletData = (
     error: walletError,
   } = useSimpleFindRollbackWallet(userAddress, enabled);
 
-  console.log({ userAddress, walletResult });
+
 
   const walletAddress = walletResult?.walletAddress as Address;
   const hasWallet = !!walletResult?.hasWallet && !!walletAddress;

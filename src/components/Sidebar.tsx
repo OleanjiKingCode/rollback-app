@@ -21,6 +21,7 @@ import {
   LogOut,
   Wallet,
   Copy,
+  Coins,
 } from "lucide-react";
 import { useSidebarContext } from "@/App";
 import { ChainSelector } from "./ChainSelector";
@@ -30,7 +31,7 @@ const navigation = [
   { name: "Create Wallet", href: "/create", icon: PlusCircle },
   { name: "Voting", href: "/governance", icon: Vote },
   { name: "Wallet Agent", href: "/agent", icon: Bot },
-  // { name: "Subscribe", href: "/subscribe", icon: Mail },
+  { name: "Mint Tokens", href: "/mint", icon: Coins },  // { name: "Subscribe", href: "/subscribe", icon: Mail },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 

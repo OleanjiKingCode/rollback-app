@@ -377,37 +377,25 @@ export default function Voting() {
     }
 
     // Debug the proposal before sending to contract
-    console.log("🔄 Creating proposal with data:", {
-      type: newProposal.type,
-      targetAddress: newProposal.targetAddress,
-      targetValue: newProposal.targetValue,
-      walletAddress,
-      userAddress: address,
-    });
+
 
     if (newProposal.type === "agent") {
-      console.log("👤 Requesting agent change to:", newProposal.targetAddress);
+     
       requestAgentChange(newProposal.targetAddress as Address);
     } else if (newProposal.type === "threshold") {
       const thresholdDays = parseInt(newProposal.targetValue);
-      console.log("⏰ Requesting threshold change to:", thresholdDays, "days");
+      
       requestThresholdChange(thresholdDays);
     } else if (newProposal.type === "emergency") {
-      console.log(
-        "🚨 Requesting emergency rollback for:",
-        newProposal.targetAddress
-      );
+
       requestEmergencyRollback(newProposal.targetAddress as Address);
     } else if (newProposal.type === "recovery") {
-      console.log(
-        "🚨 Requesting emergency recovery for:",
-        newProposal.targetAddress
-      );
+     
       requestEmergencyRecovery(newProposal.targetAddress as Address);
     }
 
     // Don't close modal immediately - let the useEffect handle it based on transaction status
-    console.log("📝 Vote request initiated, waiting for transaction result...");
+  
   };
 
   const getVoteTypeLabel = (voteType: number) => {
