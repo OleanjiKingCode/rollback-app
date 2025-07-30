@@ -2,7 +2,7 @@ export const config = {
   apiUrl:
     import.meta.env.VITE_API_URL ||
     "https://rollback-service.onrender.com/api/v1",
-  rollbackManagerAddress:"0xC874C97b43c6D0Db4A877b87F100Df88d9300dF4",
+  rollbackManagerAddress:"0x030d177478aE41676D715AB4466557F37E9ab19A",
   reownProjectId: import.meta.env.VITE_REOWN_PROJECT_ID || "",
 } as const;
 
