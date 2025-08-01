@@ -24,9 +24,9 @@ export const ROLLBACK_MANAGER_ABI = [
         type: "tuple",
         internalType: "struct RollbackWalletManager.CreateWalletParams",
         components: [
-          { name: "user", type: "address", internalType: "address" },
-          { name: "wallets", type: "address[]", internalType: "address[]" },
-          { name: "threshold", type: "uint256", internalType: "uint256" },
+          { name: "userAddress", type: "address", internalType: "address" },
+          { name: "walletList", type: "address[]", internalType: "address[]" },
+          { name: "timeThreshold", type: "uint256", internalType: "uint256" },
           {
             name: "tokensToMonitor",
             type: "address[]",
@@ -78,9 +78,17 @@ export const ROLLBACK_MANAGER_ABI = [
             type: "tuple",
             internalType: "struct RollbackWalletManager.CreateWalletParams",
             components: [
-              { name: "user", type: "address", internalType: "address" },
-              { name: "wallets", type: "address[]", internalType: "address[]" },
-              { name: "threshold", type: "uint256", internalType: "uint256" },
+              { name: "userAddress", type: "address", internalType: "address" },
+              {
+                name: "walletList",
+                type: "address[]",
+                internalType: "address[]",
+              },
+              {
+                name: "timeThreshold",
+                type: "uint256",
+                internalType: "uint256",
+              },
               {
                 name: "tokensToMonitor",
                 type: "address[]",
@@ -131,9 +139,17 @@ export const ROLLBACK_MANAGER_ABI = [
             type: "tuple",
             internalType: "struct RollbackWalletManager.CreateWalletParams",
             components: [
-              { name: "user", type: "address", internalType: "address" },
-              { name: "wallets", type: "address[]", internalType: "address[]" },
-              { name: "threshold", type: "uint256", internalType: "uint256" },
+              { name: "userAddress", type: "address", internalType: "address" },
+              {
+                name: "walletList",
+                type: "address[]",
+                internalType: "address[]",
+              },
+              {
+                name: "timeThreshold",
+                type: "uint256",
+                internalType: "uint256",
+              },
               {
                 name: "tokensToMonitor",
                 type: "address[]",
@@ -241,9 +257,9 @@ export const ROLLBACK_MANAGER_ABI = [
         type: "tuple",
         internalType: "struct RollbackWalletManager.CreateWalletParams",
         components: [
-          { name: "user", type: "address", internalType: "address" },
-          { name: "wallets", type: "address[]", internalType: "address[]" },
-          { name: "threshold", type: "uint256", internalType: "uint256" },
+          { name: "userAddress", type: "address", internalType: "address" },
+          { name: "walletList", type: "address[]", internalType: "address[]" },
+          { name: "timeThreshold", type: "uint256", internalType: "uint256" },
           {
             name: "tokensToMonitor",
             type: "address[]",
@@ -464,9 +480,9 @@ export const ROLLBACK_MANAGER_ABI = [
         indexed: false,
         internalType: "struct RollbackWalletManager.CreateWalletParams",
         components: [
-          { name: "user", type: "address", internalType: "address" },
-          { name: "wallets", type: "address[]", internalType: "address[]" },
-          { name: "threshold", type: "uint256", internalType: "uint256" },
+          { name: "userAddress", type: "address", internalType: "address" },
+          { name: "walletList", type: "address[]", internalType: "address[]" },
+          { name: "timeThreshold", type: "uint256", internalType: "uint256" },
           {
             name: "tokensToMonitor",
             type: "address[]",
@@ -847,11 +863,19 @@ export const ROLLBACK_WALLET_ABI = [
         type: "tuple",
         internalType: "struct RollbackWallet.RollbackWalletParams",
         components: [
-          { name: "agentWallet", type: "address", internalType: "address" },
+          {
+            name: "agentWalletAddress",
+            type: "address",
+            internalType: "address",
+          },
           { name: "isRandomized", type: "bool", internalType: "bool" },
-          { name: "fallbackWallet", type: "address", internalType: "address" },
-          { name: "wallets", type: "address[]", internalType: "address[]" },
-          { name: "threshold", type: "uint256", internalType: "uint256" },
+          {
+            name: "fallbackWalletAddress",
+            type: "address",
+            internalType: "address",
+          },
+          { name: "walletList", type: "address[]", internalType: "address[]" },
+          { name: "timeThreshold", type: "uint256", internalType: "uint256" },
           {
             name: "tokensToMonitor",
             type: "address[]",

@@ -250,7 +250,7 @@ export const useRollbackWallet = () => {
 };
 
 export const useWalletCreationFlow = () => {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
 
@@ -281,7 +281,8 @@ export const useWalletCreationFlow = () => {
     try {
       const pendingRequests = await checkPendingCreationRequests(
         publicClient,
-        address
+        address,
+        chainId
       );
 
       if (pendingRequests.length > 0) {
@@ -308,7 +309,7 @@ export const useWalletCreationFlow = () => {
     }
 
     return null;
-  }, [publicClient, address, isConnected]);
+  }, [publicClient, address, isConnected, chainId]);
 
   // Propose wallet creation
   const proposeCreation = useCallback(
@@ -330,7 +331,8 @@ export const useWalletCreationFlow = () => {
         const requestId = await proposeWalletCreation(
           walletClient,
           publicClient,
-          formData
+          formData,
+          chainId
         );
 
         setState((prev) => ({
@@ -357,7 +359,7 @@ export const useWalletCreationFlow = () => {
         throw error;
       }
     },
-    [publicClient, walletClient, address, isConnected]
+    [publicClient, walletClient, address, isConnected, chainId]
   );
 
   // Sign wallet creation
@@ -370,12 +372,18 @@ export const useWalletCreationFlow = () => {
       setState((prev) => ({ ...prev, isCreating: true, error: null }));
 
       try {
-        await signWalletCreation(walletClient, publicClient, requestId);
+        await signWalletCreation(
+          walletClient,
+          publicClient,
+          requestId,
+          chainId
+        );
 
         // Refresh request state
         const updatedRequest = await getCreationRequest(
           publicClient,
-          requestId
+          requestId,
+          chainId
         );
         const canFinalize =
           updatedRequest.signatureCount >= updatedRequest.params.wallets.length;
@@ -397,7 +405,7 @@ export const useWalletCreationFlow = () => {
         throw error;
       }
     },
-    [publicClient, walletClient, isConnected]
+    [publicClient, walletClient, isConnected, chainId]
   );
 
   // Finalize wallet creation
@@ -418,7 +426,8 @@ export const useWalletCreationFlow = () => {
         const walletAddress = await finalizeWalletCreation(
           walletClient,
           publicClient,
-          requestId
+          requestId,
+          chainId
         );
 
         setState((prev) => ({
@@ -439,7 +448,7 @@ export const useWalletCreationFlow = () => {
         throw error;
       }
     },
-    [publicClient, walletClient, isConnected]
+    [publicClient, walletClient, isConnected, chainId]
   );
 
   // Complete the creation process with backend integration
@@ -582,7 +591,13 @@ export const useWalletCreationFlow = () => {
         throw error;
       }
     },
-    [address, state.walletAddress, rollbackWalletData, isLoadingRollbackWallet]
+    [
+      address,
+      state.walletAddress,
+      rollbackWalletData,
+      isLoadingRollbackWallet,
+      chainId,
+    ]
   );
 
   // Reset state

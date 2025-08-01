@@ -1,10 +1,14 @@
-import { useReadContract } from "wagmi";
+import { useReadContract, useChainId } from "wagmi";
 import { type Address } from "viem";
 import { ROLLBACK_MANAGER_ABI, ROLLBACK_WALLET_ABI } from "@/config/contracts";
-import { config } from "@/config/env";
+import { config, getContractAddress } from "@/config/env";
 import { useMemo } from "react";
 
-const ROLLBACK_MANAGER_ADDRESS = config.rollbackManagerAddress as Address;
+// Get current chain ID and contract address
+const useRollbackManagerAddress = () => {
+  const chainId = useChainId();
+  return getContractAddress(chainId) as Address;
+};
 
 /**
  * Simple hook to check if a user has a rollback wallet directly
@@ -13,8 +17,10 @@ export const useCheckDirectRollbackWallet = (
   userAddress?: Address,
   enabled: boolean = true
 ) => {
+  const rollbackManagerAddress = useRollbackManagerAddress();
+
   return useReadContract({
-    address: ROLLBACK_MANAGER_ADDRESS,
+    address: rollbackManagerAddress,
     abi: ROLLBACK_MANAGER_ABI,
     functionName: "getUserWallet",
     args: userAddress ? [userAddress] : undefined,
@@ -28,8 +34,10 @@ export const useCheckDirectRollbackWallet = (
  * Simple hook to get all creation requests from RollbackWalletManager
  */
 export const useGetAllCreationRequests = (enabled: boolean = true) => {
+  const rollbackManagerAddress = useRollbackManagerAddress();
+
   return useReadContract({
-    address: ROLLBACK_MANAGER_ADDRESS,
+    address: rollbackManagerAddress,
     abi: ROLLBACK_MANAGER_ABI,
     functionName: "getAllCreationRequests",
     query: {
@@ -127,8 +135,6 @@ export const useSimpleFindRollbackWallet = (
     isLoading: isLoadingDirect,
     error: directError,
   } = useCheckDirectRollbackWallet(userAddress, enabled);
-
-
 
   // Check all creation requests to see if user is in any system
   const {
@@ -249,8 +255,6 @@ export const useCompleteWalletData = (
     isLoading: isLoadingWallet,
     error: walletError,
   } = useSimpleFindRollbackWallet(userAddress, enabled);
-
-
 
   const walletAddress = walletResult?.walletAddress as Address;
   const hasWallet = !!walletResult?.hasWallet && !!walletAddress;

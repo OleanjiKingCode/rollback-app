@@ -30,6 +30,8 @@ import {
   bsc,
   bscTestnet,
   sepolia,
+  avalanche,
+  avalancheFuji,
 } from "wagmi/chains";
 import { config } from "./env";
 import { createPublicClient, http as viemHttp } from "viem";
@@ -42,12 +44,15 @@ const chains = [
   polygon,
   arbitrum,
   bsc,
+  avalanche,
+
   // Testnets
   sepolia,
   baseSepolia,
   polygonMumbai,
   arbitrumSepolia,
   bscTestnet,
+  avalancheFuji,
 ] as const;
 
 // Create wallet connectors with expanded wallet support
@@ -99,10 +104,10 @@ export const wagmiConfig = createConfig({
     [arbitrum.id]: http(),
     [bsc.id]: http(),
     [sepolia.id]: http(),
-    [baseSepolia.id]: http(),
+    [baseSepolia.id]: http(config.BASE_SEPOLIA_RPC_URL),
     [polygonMumbai.id]: http(),
-    [arbitrumSepolia.id]: http(),
-    [bscTestnet.id]: http(),
+    [avalanche.id]: http(),
+    [avalancheFuji.id]: http(config.AVAX_FUJI_RPC_URL),
   },
   ssr: false,
 });
@@ -139,6 +144,11 @@ export const SUPPORTED_CHAINS = [
     isTestnet: false,
   },
   {
+    ...avalanche,
+    logo: "/avalanche.png",
+    isTestnet: false,
+  },
+  {
     ...arbitrum,
     logo: "/arbitrum.png",
     isTestnet: false,
@@ -172,6 +182,11 @@ export const SUPPORTED_CHAINS = [
   {
     ...bscTestnet,
     logo: "/binance.png",
+    isTestnet: true,
+  },
+  {
+    ...avalancheFuji,
+    logo: "/avalanche.png",
     isTestnet: true,
   },
 ];

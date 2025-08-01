@@ -13,12 +13,15 @@ import {
   TOKEN_TYPE,
   VOTE_TYPE,
 } from "@/config/contracts";
-import { config } from "@/config/env";
+import { config, getContractAddress } from "@/config/env";
 import type { CreateWalletFormData } from "@/types/api";
 import { encryptPrivateKey } from "@/lib/encryption";
 
-// Contract addresses
-const ROLLBACK_MANAGER_ADDRESS = config.rollbackManagerAddress as Address;
+// Helper function to get contract address for a specific chain
+const getRollbackManagerAddress = (chainId: number): Address => {
+  const targetChainId = chainId || config.defaultChainId;
+  return getContractAddress(targetChainId) as Address;
+};
 
 // Types for creation request
 export interface CreationRequest {
@@ -41,11 +44,13 @@ export interface CreationRequest {
 // Check if user has a rollback wallet
 export const checkRollbackWallet = async (
   publicClient: PublicClient,
-  userAddress: Address
+  userAddress: Address,
+  chainId?: number
 ): Promise<{ hasWallet: boolean; walletAddress: string }> => {
   try {
+    const rollbackManagerAddress = getRollbackManagerAddress(chainId);
     const result = await publicClient.readContract({
-      address: ROLLBACK_MANAGER_ADDRESS,
+      address: rollbackManagerAddress,
       abi: ROLLBACK_MANAGER_ABI,
       functionName: "hasRollbackWallet",
       args: [userAddress],
@@ -70,12 +75,16 @@ export const checkRollbackWallet = async (
 // Check for pending creation requests for a user
 export const checkPendingCreationRequests = async (
   publicClient: PublicClient,
-  userAddress: Address
+  userAddress: Address,
+  chainId?: number
 ): Promise<CreationRequest[]> => {
   try {
     // Get all creation requests
+
+    const rollbackManagerAddress = getRollbackManagerAddress(chainId);
+    console.log({ rollbackManagerAddress, chainId });
     const result = await publicClient.readContract({
-      address: ROLLBACK_MANAGER_ADDRESS,
+      address: rollbackManagerAddress,
       abi: ROLLBACK_MANAGER_ABI,
       functionName: "getAllCreationRequests",
     });
@@ -87,13 +96,16 @@ export const checkPendingCreationRequests = async (
 
     for (let i = 0; i < requests.length; i++) {
       const request = requests[i];
-      if (!request.executed && request.params.wallets.includes(userAddress)) {
+      if (
+        !request.executed &&
+        request.params.walletList.includes(userAddress)
+      ) {
         pendingRequests.push({
           requestId: Number(requestIds[i]),
           params: {
-            user: request.params.user,
-            wallets: request.params.wallets,
-            threshold: Number(request.params.threshold),
+            user: request.params.userAddress,
+            wallets: request.params.walletList,
+            threshold: Number(request.params.timeThreshold),
             tokensToMonitor: request.params.tokensToMonitor,
             tokenTypes: request.params.tokenTypes,
             isRandomized: request.params.isRandomized,
@@ -118,7 +130,8 @@ export const checkPendingCreationRequests = async (
 export const proposeWalletCreation = async (
   walletClient: WalletClient,
   publicClient: PublicClient,
-  params: CreateWalletFormData
+  params: CreateWalletFormData,
+  chainId: number
 ): Promise<number> => {
   if (!walletClient.account) {
     throw new Error("Wallet not connected");
@@ -130,9 +143,9 @@ export const proposeWalletCreation = async (
   );
 
   const contractParams = {
-    user: params.wallets[0] as Address,
-    wallets: params.wallets as Address[],
-    threshold: BigInt(params.threshold),
+    userAddress: params.wallets[0] as Address,
+    walletList: params.wallets as Address[],
+    timeThreshold: BigInt(params.threshold),
     tokensToMonitor: params.tokensToMonitor.map((t) => t.address as Address),
     tokenTypes: tokenTypes,
     isRandomized: params.isRandomized,
@@ -143,8 +156,9 @@ export const proposeWalletCreation = async (
   };
 
   try {
+    const rollbackManagerAddress = getRollbackManagerAddress(chainId);
     const { request } = await publicClient.simulateContract({
-      address: ROLLBACK_MANAGER_ADDRESS,
+      address: rollbackManagerAddress,
       abi: ROLLBACK_MANAGER_ABI,
       functionName: "proposeWalletCreation",
       args: [contractParams],
@@ -172,15 +186,17 @@ export const proposeWalletCreation = async (
 export const signWalletCreation = async (
   walletClient: WalletClient,
   publicClient: PublicClient,
-  requestId: number
+  requestId: number,
+  chainId: number
 ): Promise<void> => {
   if (!walletClient.account) {
     throw new Error("Wallet not connected");
   }
 
   try {
+    const rollbackManagerAddress = getRollbackManagerAddress(chainId);
     const { request } = await publicClient.simulateContract({
-      address: ROLLBACK_MANAGER_ADDRESS,
+      address: rollbackManagerAddress,
       abi: ROLLBACK_MANAGER_ABI,
       functionName: "signWalletCreation",
       args: [BigInt(requestId)],
@@ -200,7 +216,8 @@ export const signWalletCreation = async (
 export const finalizeWalletCreation = async (
   walletClient: WalletClient,
   publicClient: PublicClient,
-  requestId: number
+  requestId: number,
+  chainId: number
 ): Promise<string> => {
   if (!walletClient.account) {
     throw new Error("Wallet not connected");
@@ -208,10 +225,11 @@ export const finalizeWalletCreation = async (
 
   try {
     // Get the initialization fee
-    const fee = await getInitializationFee(publicClient);
+    const fee = await getInitializationFee(publicClient, chainId);
 
+    const rollbackManagerAddress = getRollbackManagerAddress(chainId);
     const { request } = await publicClient.simulateContract({
-      address: ROLLBACK_MANAGER_ADDRESS,
+      address: rollbackManagerAddress,
       abi: ROLLBACK_MANAGER_ABI,
       functionName: "finalizeWalletCreation",
       args: [BigInt(requestId)],
@@ -230,7 +248,8 @@ export const finalizeWalletCreation = async (
     try {
       const walletResult = await findRollbackWalletForAddress(
         publicClient,
-        walletClient.account.address
+        walletClient.account.address,
+        chainId
       );
 
       if (walletResult.hasWallet && walletResult.walletAddress) {
@@ -239,7 +258,8 @@ export const finalizeWalletCreation = async (
         // If no wallet found, verify the creation request was executed
         const creationRequest = await getCreationRequest(
           publicClient,
-          requestId
+          requestId,
+          chainId
         );
         if (creationRequest.executed) {
           return "WALLET_CREATED_PENDING"; // Special value to indicate success but address pending
@@ -265,11 +285,13 @@ export const finalizeWalletCreation = async (
 
 // Get initialization fee from contract
 export const getInitializationFee = async (
-  publicClient: PublicClient
+  publicClient: PublicClient,
+  chainId?: number
 ): Promise<string> => {
   try {
+    const rollbackManagerAddress = getRollbackManagerAddress(chainId);
     const fee = await publicClient.readContract({
-      address: ROLLBACK_MANAGER_ADDRESS,
+      address: rollbackManagerAddress,
       abi: ROLLBACK_MANAGER_ABI,
       functionName: "getInitializationFee",
     });
@@ -283,11 +305,13 @@ export const getInitializationFee = async (
 // Get creation request details
 export const getCreationRequest = async (
   publicClient: PublicClient,
-  requestId: number
+  requestId: number,
+  chainId?: number
 ): Promise<CreationRequest> => {
   try {
+    const rollbackManagerAddress = getRollbackManagerAddress(chainId);
     const request = await publicClient.readContract({
-      address: ROLLBACK_MANAGER_ADDRESS,
+      address: rollbackManagerAddress,
       abi: ROLLBACK_MANAGER_ABI,
       functionName: "getCreationRequest",
       args: [BigInt(requestId)],
@@ -297,9 +321,9 @@ export const getCreationRequest = async (
     return {
       requestId: Number(typedRequest.requestId),
       params: {
-        user: typedRequest.params.user,
-        wallets: typedRequest.params.wallets,
-        threshold: Number(typedRequest.params.threshold),
+        user: typedRequest.params.userAddress,
+        wallets: typedRequest.params.walletList,
+        threshold: Number(typedRequest.params.timeThreshold),
         tokensToMonitor: typedRequest.params.tokensToMonitor,
         tokenTypes: typedRequest.params.tokenTypes,
         isRandomized: typedRequest.params.isRandomized,
@@ -523,7 +547,8 @@ export const getERC721Balance = async (
 // Get wallet information from contract
 export const getWalletInfoFromContract = async (
   publicClient: PublicClient,
-  userAddress: Address
+  userAddress: Address,
+  chainId: number
 ): Promise<{
   hasWallet: boolean;
   walletAddress: string;
@@ -551,7 +576,8 @@ export const getWalletInfoFromContract = async (
     // First check if user has a wallet
     const { hasWallet, walletAddress } = await checkRollbackWallet(
       publicClient,
-      userAddress
+      userAddress,
+      chainId
     );
 
     if (
@@ -783,7 +809,8 @@ export const updateBackendWithWalletData = async (walletData: {
 // Enhanced function to find rollback wallet for any connected address (even if not primary owner)
 export const findRollbackWalletForAddress = async (
   publicClient: PublicClient,
-  userAddress: Address
+  userAddress: Address,
+  chainId: number
 ): Promise<{
   hasWallet: boolean;
   walletAddress: string;
@@ -812,7 +839,8 @@ export const findRollbackWalletForAddress = async (
     // First, try the direct approach - check if user is the primary owner
     const directResult = await getWalletInfoFromContract(
       publicClient,
-      userAddress
+      userAddress,
+      chainId
     );
     if (directResult.hasWallet) {
       return {
@@ -823,8 +851,9 @@ export const findRollbackWalletForAddress = async (
 
     // If not found as primary owner, check executed creation requests in the manager
 
+    const rollbackManagerAddress = getRollbackManagerAddress(chainId);
     const allRequests = await publicClient.readContract({
-      address: ROLLBACK_MANAGER_ADDRESS,
+      address: rollbackManagerAddress,
       abi: ROLLBACK_MANAGER_ABI,
       functionName: "getAllCreationRequests",
     });
@@ -838,19 +867,20 @@ export const findRollbackWalletForAddress = async (
     for (const request of executedRequests) {
       try {
         // Check if the userAddress is in the wallets array OR is the primary user
-        const isInWallets = request.params.wallets.some(
+        const isInWallets = request.params.walletList.some(
           (wallet: string) => wallet.toLowerCase() === userAddress.toLowerCase()
         );
         const isPrimaryUser =
-          request.params.user.toLowerCase() === userAddress.toLowerCase();
+          request.params.userAddress.toLowerCase() ===
+          userAddress.toLowerCase();
 
         if (isInWallets || isPrimaryUser) {
           // Get the rollback wallet address for this primary user
           const rollbackWalletAddress = await publicClient.readContract({
-            address: ROLLBACK_MANAGER_ADDRESS,
+            address: rollbackManagerAddress,
             abi: ROLLBACK_MANAGER_ABI,
             functionName: "getUserWallet",
-            args: [request.params.user as Address],
+            args: [request.params.userAddress as Address],
           });
 
           const walletAddressString = rollbackWalletAddress as string;
@@ -926,7 +956,7 @@ export const findRollbackWalletForAddress = async (
       } catch (walletError) {
         console.warn(
           "⚠️ Could not get wallet details for user:",
-          request.params.user,
+          request.params.userAddress,
           walletError
         );
         continue;

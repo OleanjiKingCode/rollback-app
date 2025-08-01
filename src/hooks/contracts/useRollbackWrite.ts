@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useSimulateContract, useWriteContract, useAccount } from "wagmi";
+import {
+  useSimulateContract,
+  useWriteContract,
+  useAccount,
+  useChainId,
+} from "wagmi";
 import { type Address, type BaseError, parseEther } from "viem";
 import {
   ROLLBACK_MANAGER_ABI,
@@ -9,11 +14,15 @@ import {
   TOKEN_TYPE,
   VOTE_TYPE,
 } from "@/config/contracts";
-import { config } from "@/config/env";
+import { config, getContractAddress } from "@/config/env";
 import { toastApi, sonnerToasts } from "@/lib/toast";
 import type { CreateWalletFormData } from "@/types/api";
 
-const ROLLBACK_MANAGER_ADDRESS = config.rollbackManagerAddress as Address;
+// Get current chain ID and contract address
+const useRollbackManagerAddress = () => {
+  const chainId = useChainId();
+  return getContractAddress(chainId);
+};
 
 // Custom error class for Sentry integration
 class CustomError extends Error {
@@ -43,6 +52,7 @@ export const useWriteProposeWalletCreation = (
 ) => {
   const { address } = useAccount();
   const { ErrorSonner, LoadingSonner, SuccessfulSonner } = sonnerToasts();
+  const rollbackManagerAddress = useRollbackManagerAddress() as Address;
 
   // State management
   const [enabled, setEnabled] = useState(false);
@@ -77,7 +87,7 @@ export const useWriteProposeWalletCreation = (
     error: simError,
     fetchStatus: simFetchStatus,
   } = useSimulateContract({
-    address: ROLLBACK_MANAGER_ADDRESS,
+    address: rollbackManagerAddress,
     abi: ROLLBACK_MANAGER_ABI,
     functionName: "proposeWalletCreation",
     args: contractParams ? [contractParams] : undefined,
@@ -208,6 +218,7 @@ export const useWriteProposeWalletCreation = (
 export const useWriteSignWalletCreation = (requestId?: number) => {
   const { address } = useAccount();
   const { ErrorSonner, LoadingSonner, SuccessfulSonner } = sonnerToasts();
+  const rollbackManagerAddress = useRollbackManagerAddress() as Address;
 
   const [enabled, setEnabled] = useState(false);
   const [errorException, setErrorException] = useState<Error>();
@@ -220,7 +231,7 @@ export const useWriteSignWalletCreation = (requestId?: number) => {
     error: simError,
     fetchStatus: simFetchStatus,
   } = useSimulateContract({
-    address: ROLLBACK_MANAGER_ADDRESS,
+    address: rollbackManagerAddress,
     abi: ROLLBACK_MANAGER_ABI,
     functionName: "signWalletCreation",
     args: requestId !== undefined ? [BigInt(requestId)] : undefined,
@@ -347,6 +358,7 @@ export const useWriteFinalizeWalletCreation = (
 ) => {
   const { address } = useAccount();
   const { ErrorSonner, LoadingSonner, SuccessfulSonner } = sonnerToasts();
+  const rollbackManagerAddress = useRollbackManagerAddress() as Address;
 
   const [enabled, setEnabled] = useState(false);
   const [errorException, setErrorException] = useState<Error>();
@@ -359,7 +371,7 @@ export const useWriteFinalizeWalletCreation = (
     error: simError,
     fetchStatus: simFetchStatus,
   } = useSimulateContract({
-    address: ROLLBACK_MANAGER_ADDRESS,
+    address: rollbackManagerAddress,
     abi: ROLLBACK_MANAGER_ABI,
     functionName: "finalizeWalletCreation",
     args: requestId !== undefined ? [BigInt(requestId)] : undefined,
